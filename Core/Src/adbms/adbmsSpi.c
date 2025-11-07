@@ -4,6 +4,8 @@
 #include "adbms/adbmsSpi.h"
 #include "utils.h"
 #include <string.h>
+#include <stdio.h>
+
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -353,6 +355,8 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *r
     return returnStatus;
 }
 
+uint16_t readRegisterCounter = 0;
+
 /**
  * @brief Read data over isospi - data buffer will be populated with 6 bytes per device
  * @param command Command code to initiate read transaction
@@ -363,7 +367,7 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *r
  * @param packMonitorIndex The index of the pack monitor device as seen from the current port
  * @return Transaction status error code
  */
-static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uint8_t *rxBuff, PORT_INSTANCE_S *portInstance, uint32_t *localCommandCounter, uint32_t packMonitorIndex)
+TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uint8_t *rxBuff, PORT_INSTANCE_S *portInstance/*, uint32_t *localCommandCounter, uint32_t packMonitorIndex*/)
 {
     // Size in bytes: Command Word(2) + Command CRC(2) + [Register data(6) + Data CRC(2)] * numDevs
     uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * REGISTER_PACKET_LENGTH);
@@ -383,7 +387,10 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uin
     for(int32_t i = 0; i < TRANSACTION_ATTEMPTS; i++)
     {
         // SPIify!
-        sendSPI(portInstance, packetLength);
+        if(sendSPI(portInstance, packetLength) != TRANSACTION_SUCCESS)
+        {
+            return TRANSACTION_SPI_ERROR;
+        }
 
         TRANSACTION_STATUS_E returnStatus = processReadRegisterCRCs(numDevs, rxBuffer, rxBuff, portInstance);
         if(returnStatus != TRANSACTION_CHAIN_BREAK_ERROR)
@@ -391,7 +398,7 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uin
             return returnStatus;
         }
     }
-
     // If there are enough failed attempts with crc errors, return chain break error
+    printf("transaction failure\n");
     return TRANSACTION_CHAIN_BREAK_ERROR;
 }

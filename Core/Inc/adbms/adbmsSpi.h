@@ -78,5 +78,7 @@ void activatePort(PORT_INSTANCE_S *portInstance, uint8_t numDevs, uint32_t usDel
  */
 TRANSACTION_STATUS_E writeRegister(uint16_t command, uint32_t numDevs, uint8_t *txBuff, PORT_INSTANCE_S *portInstance);
 
+TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uint8_t *rxBuff, PORT_INSTANCE_S *portInstance/*, uint32_t *localCommandCounter, uint32_t packMonitorIndex*/);
+
 
 #endif /* INC_ADBMS_SPI_H_ */
