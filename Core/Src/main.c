@@ -115,16 +115,17 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		xTaskNotifyFromISR(printTaskHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
+  // TODO: Add second if statement for hspi2
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	// if (hspi == &hspi1)
-	// {
-	// 	static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	// 	xTaskNotifyFromISR(printTaskHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
-	// 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-	// }
+	if (hspi == &hspi1)
+	{
+		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xTaskNotifyFromISR(printTaskHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
 }
 /* USER CODE END 0 */
 
