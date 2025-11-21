@@ -3,6 +3,8 @@
 /* ==================================================================== */
 
 #include "adbms/adbmsCellMonitor.h"
+#include <string.h>
+#include <math.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -92,19 +94,595 @@
 
 /* END ADBMS Register addresses */
 
+// Size of command groups
+#define NUM_CELLV_REGISTERS 6
+#define NUM_AUXV_REGISTERS  4
+
+// ADC result register sizes
+#define VOLTAGE_16BIT_SIZE_BYTES    2
+#define VOLTAGE_16BIT_PER_REG       (REGISTER_SIZE_BYTES / VOLTAGE_16BIT_SIZE_BYTES)
+
+// ADC result register encoding
+#define CELL_MON_OV_UV_GAIN             0.0024f
+#define CELL_MON_OV_UV_OFFSET           1.5f
+
+#define CELL_MON_DIE_TEMP_GAIN          0.02f
+#define CELL_MON_DIE_TEMP_OFFSET        -73.0f
+
+#define PWM_CONFIG_SIZE_BITS    4
+#define PWM_CONFIG_SIZE_MASK    0x0F
+#define PWM_CONFIG_RANGE        15
+#define PWM_PERCENT_RANGE       100.0f
+#define PWM_SETTING_GAIN        (PWM_PERCENT_RANGE / PWM_CONFIG_RANGE)
+#define PWM_SETTING_OFFSET      0
+
+#define NUM_CELLS_PWM_A         12
+#define NUM_CELLS_PWM_B         4
+#define NUM_BYTES_PWM_B         ((NUM_CELLS_PWM_B * PWM_CONFIG_SIZE_BITS) / BITS_IN_BYTE)
+
+#define MAX_OV_UV_VALUE         6.4128f
+#define MIN_OV_UV_VALUE         -3.4152f
+
+#define CELL_OV_UV_MASK         0x00000FFF
+#define CELL_OV_UV_BITS         12
+
+#define DTM_ENABLE              0x80
+#define DTM_LONG_RANGE_ENABLE   0x40
+#define DTM_TIME_MASK           0x3F
+
+#define DTM_SHORT_RANGE_MAX     63
+#define DTM_LONG_RANGE_MAX      1008
+#define DTM_LONG_RANGE_STEP     16
+
 /* ==================================================================== */
 /* ============================== MACROS ============================== */
 /* ==================================================================== */
+
+#define EXTRACT_16_BIT(buffer)                          (((uint32_t)buffer[1] << (1 * BITS_IN_BYTE)) | ((uint32_t)buffer[0]))
+
+#define CONVERT_SIGNED_12_BIT_REGISTER(reg, gain, offset)    (((((int16_t)(reg << 4)) / 16) * gain) + offset)
+
+#define CONVERT_SIGNED_16_BIT_REGISTER(reg, gain, offset)    (((int16_t)(EXTRACT_16_BIT(reg)) * gain) + offset)
+
+#define CONVERT_FLOAT_TO_REGISTER(val, gain, offset)    (int32_t)roundf((val - offset) / gain)
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
+static uint8_t transactionBuffer[100]; // TODO: Change size to #define
+
+static const uint16_t cellVoltageCode[NUM_CELL_VOLTAGE_TYPES][NUM_CELLV_REGISTERS] =
+{
+    {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF},
+    {RDACA, RDACB, RDACC, RDACD, RDACE, RDACF},
+    {RDFCA, RDFCB, RDFCC, RDFCD, RDFCE, RDFCF}
+};
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E startCellConversions(CHAIN_INFO_S chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MODE_CONTINOUS_E continousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_FILTER_E filterMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode)
+TRANSACTION_STATUS_E startCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MODE_CONTINUOUS_E continuousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_FILTER_E filterMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode)
 {
-    return commandChain((uint16_t)(ADCV | redundantMode | continousMode | dischargeMode | filterMode | openWireMode), &chainInfo);
+    return commandChain((uint16_t)(ADCV | redundantMode | continuousMode | dischargeMode | filterMode | openWireMode), chainInfo);
+}
+
+TRANSACTION_STATUS_E startRedundantCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_CONTINUOUS_E continousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode)
+{
+    return commandChain((uint16_t)(ADSV | continousMode | dischargeMode | openWireMode), chainInfo);
+}
+
+TRANSACTION_STATUS_E startAuxConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_AUX_CHANNEL_E auxChannel, ADC_MODE_AUX_OPEN_WIRE_E openWireMode)
+{
+    return commandChain((uint16_t)(ADAX | auxChannel | openWireMode), chainInfo);
+}
+
+TRANSACTION_STATUS_E startRedundantAuxConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_AUX_CHANNEL_E auxChannel)
+{
+    return commandChain((uint16_t)(ADAX2 | auxChannel), chainInfo);
+}
+
+TRANSACTION_STATUS_E muteDischarge(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(MUTE, chainInfo);
+}
+
+TRANSACTION_STATUS_E unmuteDischarge(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(UNMUTE, chainInfo);
+}
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(UNSNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SRST, chainInfo);
+}
+
+TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
+{
+    TRANSACTION_STATUS_E status = commandChain(CLRCELL, chainInfo);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    status = commandChain(CLRFC, chainInfo);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    status = commandChain(CLRAUX, chainInfo);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    return commandChain(CLRSPIN, chainInfo);
+}
+
+TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo)
+{
+    memset(transactionBuffer, 0xFF, (chainInfo->numDevs * REGISTER_SIZE_BYTES));
+
+    TRANSACTION_STATUS_E status = writeChain(CLRFLAG, chainInfo, transactionBuffer);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    status = writeChain(CLOVUV, chainInfo, transactionBuffer);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    activatePort(chainInfo, TIME_READY_US);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(cellMonitor[i].serialId, transactionBuffer + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        for(uint32_t j = 0; j < REGISTER_SIZE_BYTES; j++)
+        {
+            float pwm0 = cellMonitor[i].dischargePWM[j * 2];
+            float pwm1 = cellMonitor[i].dischargePWM[(j * 2) + 1];
+
+            if(pwm0 < 0.0f)
+            {
+                pwm0 = 0.0f;
+            }
+            else if(pwm0 > PWM_PERCENT_RANGE)
+            {
+                pwm0 = PWM_PERCENT_RANGE;
+            }
+
+            if(pwm1 < 0.0f)
+            {
+                pwm1 = 0.0f;
+            }
+            else if(pwm1 > PWM_PERCENT_RANGE)
+            {
+                pwm1 = PWM_PERCENT_RANGE;
+            }
+
+            uint8_t pwmSetting0 = CONVERT_FLOAT_TO_REGISTER(pwm0, PWM_SETTING_GAIN, PWM_SETTING_OFFSET);
+            uint8_t pwmSetting1 = CONVERT_FLOAT_TO_REGISTER(pwm1, PWM_SETTING_GAIN, PWM_SETTING_OFFSET);
+
+            transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] = ((pwmSetting1 << PWM_CONFIG_SIZE_BITS) | pwmSetting0);
+        }
+    }
+
+    TRANSACTION_STATUS_E status = writeChain(WRPWMA, chainInfo, transactionBuffer);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        for(uint32_t j = 0; j < NUM_BYTES_PWM_B; j++)
+        {
+            float pwm0 = cellMonitor[i].dischargePWM[NUM_CELLS_PWM_A + (j * 2)];
+            float pwm1 = cellMonitor[i].dischargePWM[NUM_CELLS_PWM_A + (j * 2) + 1];
+
+            if(pwm0 < 0.0f)
+            {
+                pwm0 = 0.0f;
+            }
+            else if(pwm0 > PWM_PERCENT_RANGE)
+            {
+                pwm0 = PWM_PERCENT_RANGE;
+            }
+
+            if(pwm1 < 0.0f)
+            {
+                pwm1 = 0.0f;
+            }
+            else if(pwm1 > PWM_PERCENT_RANGE)
+            {
+                pwm1 = PWM_PERCENT_RANGE;
+            }
+
+            uint8_t pwmSetting0 = CONVERT_FLOAT_TO_REGISTER(pwm0, PWM_SETTING_GAIN, PWM_SETTING_OFFSET);
+            uint8_t pwmSetting1 = CONVERT_FLOAT_TO_REGISTER(pwm1, PWM_SETTING_GAIN, PWM_SETTING_OFFSET);
+
+            transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] = ((pwmSetting1 << PWM_CONFIG_SIZE_BITS) | pwmSetting0);
+        }
+    }
+
+    return writeChain(WRPWMB, chainInfo, transactionBuffer);
+}
+
+TRANSACTION_STATUS_E readPwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDPWMA, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        for(uint32_t j = 0; j < REGISTER_SIZE_BYTES; j++)
+        {
+            uint8_t pwmSetting0 = (transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] & PWM_CONFIG_SIZE_MASK);
+            uint8_t pwmSetting1 = (transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] >> PWM_CONFIG_SIZE_BITS);
+
+            cellMonitor[i].dischargePWM[j * 2] = pwmSetting0 * PWM_SETTING_GAIN;
+            cellMonitor[i].dischargePWM[(j * 2) + 1] = pwmSetting1 * PWM_SETTING_GAIN;
+        }
+    }
+
+    if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        status = readChain(RDPWMB, chainInfo, transactionBuffer);
+    }
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        for(uint32_t j = 0; j < NUM_BYTES_PWM_B; j++)
+        {
+            uint8_t pwmSetting0 = (transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] & PWM_CONFIG_SIZE_MASK);
+            uint8_t pwmSetting1 = (transactionBuffer[(i * REGISTER_SIZE_BYTES) + j] >> PWM_CONFIG_SIZE_BITS);
+
+            cellMonitor[i].dischargePWM[NUM_CELLS_PWM_A + (j * 2)] = pwmSetting0 * PWM_SETTING_GAIN;
+            cellMonitor[i].dischargePWM[NUM_CELLS_PWM_A + (j * 2) + 1] = pwmSetting1 * PWM_SETTING_GAIN;
+        }
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E writeNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    TRANSACTION_STATUS_E status = commandChain(ULRR, chainInfo);
+    if(status != TRANSACTION_SUCCESS)
+    {
+        return status;
+    }
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(transactionBuffer + (i * REGISTER_SIZE_BYTES), cellMonitor[i].retentionRegister, REGISTER_SIZE_BYTES);
+    }
+
+    return writeChain(WRRR, chainInfo, transactionBuffer);
+}
+
+TRANSACTION_STATUS_E readNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDRR, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(cellMonitor[i].retentionRegister, transactionBuffer + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(transactionBuffer + (i * REGISTER_SIZE_BYTES), &cellMonitor[i].configGroupA, REGISTER_SIZE_BYTES);
+    }
+
+    return writeChain(WRCFGA, chainInfo, transactionBuffer);
+}
+
+TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(&cellMonitor[i].configGroupA, transactionBuffer + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        uint8_t *deviceRegister = transactionBuffer + (i * REGISTER_SIZE_BYTES);
+
+        float underVoltageThresh = cellMonitor[i].configGroupB.undervoltageThreshold;
+        float overVoltageThresh = cellMonitor[i].configGroupB.overvoltageThreshold;
+
+        if(underVoltageThresh < MIN_OV_UV_VALUE)
+        {
+            underVoltageThresh = MIN_OV_UV_VALUE;
+        }
+        else if(underVoltageThresh > MAX_OV_UV_VALUE)
+        {
+            underVoltageThresh = MAX_OV_UV_VALUE;
+        }
+
+        if(overVoltageThresh < MIN_OV_UV_VALUE)
+        {
+            overVoltageThresh = MIN_OV_UV_VALUE;
+        }
+        else if(overVoltageThresh > MAX_OV_UV_VALUE)
+        {
+            overVoltageThresh = MAX_OV_UV_VALUE;
+        }
+
+        uint32_t underVoltageSetting = CONVERT_FLOAT_TO_REGISTER(underVoltageThresh, CELL_MON_OV_UV_GAIN, CELL_MON_OV_UV_OFFSET) & CELL_OV_UV_MASK;
+        uint32_t overVoltageSetting = CONVERT_FLOAT_TO_REGISTER(overVoltageThresh, CELL_MON_OV_UV_GAIN, CELL_MON_OV_UV_OFFSET) & CELL_OV_UV_MASK;
+        uint32_t cellThresholdSettings = underVoltageSetting | (overVoltageSetting << CELL_OV_UV_BITS);
+
+        deviceRegister[REGISTER_BYTE0] = (uint8_t)(cellThresholdSettings);
+        deviceRegister[REGISTER_BYTE1] = (uint8_t)(cellThresholdSettings >> BITS_IN_BYTE);
+        deviceRegister[REGISTER_BYTE2] = (uint8_t)(cellThresholdSettings >> (2 * BITS_IN_BYTE));
+
+        uint32_t dischargeTimeout = cellMonitor[i].configGroupB.dischargeTimeoutMinutes;
+        uint8_t dischargeTimerSetting = 0;
+        if(dischargeTimeout > 0)
+        {
+            dischargeTimerSetting |= DTM_ENABLE;
+
+            if(dischargeTimeout <= DTM_SHORT_RANGE_MAX)
+            {
+                dischargeTimerSetting |= (uint8_t)dischargeTimeout;
+            }
+            else
+            {
+                dischargeTimerSetting |= DTM_LONG_RANGE_ENABLE;
+
+                if(dischargeTimeout <= DTM_LONG_RANGE_MAX)
+                {
+                    dischargeTimerSetting |= (uint8_t)((dischargeTimeout + (DTM_LONG_RANGE_STEP / 2)) /  DTM_LONG_RANGE_STEP);
+                }
+                else
+                {
+                    dischargeTimerSetting |= (uint8_t)(DTM_LONG_RANGE_MAX /  DTM_LONG_RANGE_STEP);
+                }
+            }
+        }
+
+        deviceRegister[REGISTER_BYTE3] = dischargeTimerSetting;
+
+        uint16_t dischargeMask = 0;
+        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            dischargeMask |= (cellMonitor[i].configGroupB.dischargeCell[j] << j);
+        }
+
+        deviceRegister[REGISTER_BYTE4] = (uint8_t)dischargeMask;
+        deviceRegister[REGISTER_BYTE5] = (uint8_t)(dischargeMask >> BITS_IN_BYTE);
+    }
+
+    return writeChain(WRCFGB, chainInfo, transactionBuffer);
+
+}
+
+TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        uint8_t *deviceRegister = transactionBuffer + (i * REGISTER_SIZE_BYTES);
+
+        uint32_t cellThresholdSettings = (uint32_t)deviceRegister[REGISTER_BYTE0] | ((uint32_t)deviceRegister[REGISTER_BYTE1] << BITS_IN_BYTE) | ((uint32_t)deviceRegister[REGISTER_BYTE2] << (2 * BITS_IN_BYTE));
+        uint16_t underVoltageSetting = cellThresholdSettings & CELL_OV_UV_MASK;
+        uint16_t overVoltageSetting = cellThresholdSettings >> CELL_OV_UV_BITS;
+
+        cellMonitor[i].configGroupB.undervoltageThreshold = CONVERT_SIGNED_12_BIT_REGISTER(underVoltageSetting, CELL_MON_OV_UV_GAIN, CELL_MON_OV_UV_OFFSET);
+        cellMonitor[i].configGroupB.overvoltageThreshold = CONVERT_SIGNED_12_BIT_REGISTER(overVoltageSetting, CELL_MON_OV_UV_GAIN, CELL_MON_OV_UV_OFFSET);
+
+        uint8_t dischargeTimerSetting = deviceRegister[REGISTER_BYTE3];
+
+        if(dischargeTimerSetting & DTM_ENABLE)
+        {
+            if(dischargeTimerSetting & DTM_LONG_RANGE_ENABLE)
+            {
+                cellMonitor[i].configGroupB.dischargeTimeoutMinutes = ((dischargeTimerSetting & DTM_TIME_MASK) * DTM_LONG_RANGE_STEP);
+            }
+            else
+            {
+                cellMonitor[i].configGroupB.dischargeTimeoutMinutes = (dischargeTimerSetting & DTM_TIME_MASK);
+            }
+        }
+        else
+        {
+            cellMonitor[i].configGroupB.dischargeTimeoutMinutes = 0;
+        }
+
+        uint16_t dischargeMask = (uint16_t)deviceRegister[REGISTER_BYTE4] | ((uint16_t)deviceRegister[REGISTER_BYTE5] << BITS_IN_BYTE);
+        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            cellMonitor[i].configGroupB.dischargeCell[j] = (dischargeMask >> j) & 0x0001;
+        }
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatusA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTATA, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        cellMonitor[i].statusGroupA.referenceVoltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (i * REGISTER_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+        cellMonitor[i].statusGroupA.dieTemp = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (i * REGISTER_SIZE_BYTES) + (VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_DIE_TEMP_GAIN, CELL_MON_DIE_TEMP_OFFSET);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatusB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTATB, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        cellMonitor[i].statusGroupB.digitalSupplyVoltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (i * REGISTER_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+        cellMonitor[i].statusGroupB.analogSupplyVoltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (i * REGISTER_SIZE_BYTES) + (VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+        cellMonitor[i].statusGroupB.referenceResistorVoltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (i * REGISTER_SIZE_BYTES) + (2 * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatusC(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTATC, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        uint8_t *statRegister = transactionBuffer + (i * REGISTER_SIZE_BYTES);
+
+        memcpy(&cellMonitor[i].statusGroupC, statRegister, REGISTER_SIZE_BYTES);
+
+        cellMonitor[i].statusGroupC.conversionCounter = (((uint16_t)(statRegister[REGISTER_BYTE2])) << BITS_IN_BYTE) | ((uint16_t)(statRegister[REGISTER_BYTE3]));
+
+        uint16_t cellAdcMismatchMask = ((uint16_t)(statRegister[REGISTER_BYTE0])) | (((uint16_t)(statRegister[REGISTER_BYTE1])) << BITS_IN_BYTE);
+
+        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            cellMonitor[i].statusGroupC.cellAdcMismatchFault[j] = ((cellAdcMismatchMask >> j) & 0x0001);
+        }
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatusD(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTATD, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        uint8_t *statRegister = transactionBuffer + (i * REGISTER_SIZE_BYTES);
+
+        cellMonitor[i].statusGroupD.oscillatorCounter = statRegister[REGISTER_BYTE5];
+
+        uint32_t cellFault0 = (uint32_t)statRegister[REGISTER_BYTE0];
+        uint32_t cellFault1 = ((uint32_t)statRegister[REGISTER_BYTE1]) << (BITS_IN_BYTE);
+        uint32_t cellFault2 = ((uint32_t)statRegister[REGISTER_BYTE2]) << (BITS_IN_BYTE * 2);
+        uint32_t cellFault3 = ((uint32_t)statRegister[REGISTER_BYTE3]) << (BITS_IN_BYTE * 3);
+
+        uint32_t cellFaultMask = (cellFault0) | (cellFault1) | (cellFault2) | (cellFault3);
+
+        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            cellMonitor[i].statusGroupD.cellUnderVoltageFault[j] = ((cellFaultMask >> (j * 2)) & 0x00000001);
+            cellMonitor[i].statusGroupD.cellOverVoltageFault[j] = ((cellFaultMask >> ((j * 2) + 1)) & 0x00000001);
+        }
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatusE(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTATE, chainInfo, transactionBuffer);
+
+    for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
+    {
+        memcpy(&cellMonitor[i].statusGroupE, transactionBuffer + (i * REGISTER_SIZE_BYTES) + REGISTER_BYTE4, BYTES_IN_WORD);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor, CELL_VOLTAGE_TYPE_E cellVoltageType)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
+    for(uint32_t i = 0; i < (NUM_CELLV_REGISTERS - 1); i++)
+    {
+        if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            status = readChain(cellVoltageCode[cellVoltageType][i], chainInfo, transactionBuffer);
+        }
+
+        for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+        {
+            for(uint32_t k = 0; k < VOLTAGE_16BIT_PER_REG; k++)
+            {
+                cellMonitor[j].cellVoltage[(i * VOLTAGE_16BIT_PER_REG) + k] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (k * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_CELL_ADC_GAIN, CELL_MON_CELL_ADC_OFFSET);
+            }
+        }
+    }
+
+    if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        status = readChain(cellVoltageCode[cellVoltageType][NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer);
+    }
+
+    for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+    {
+        cellMonitor[j].cellVoltage[(NUM_CELLV_REGISTERS - 1) * VOLTAGE_16BIT_PER_REG] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES)), CELL_MON_CELL_ADC_GAIN, CELL_MON_CELL_ADC_OFFSET);
+    }
+
+    return status;
 }

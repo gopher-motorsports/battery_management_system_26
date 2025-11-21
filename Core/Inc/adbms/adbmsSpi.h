@@ -97,7 +97,7 @@ typedef struct
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
-void activatePort(PORT_INSTANCE_S *portInstance, uint8_t numDevs, uint32_t usDelay);
+void activatePort(CHAIN_INFO_S* chainInfo, uint32_t usDelay);
 
 void incCommandCounter(CHAIN_INFO_S *chainInfo);
 

@@ -172,12 +172,12 @@ static void resetCommandCounter(CHAIN_INFO_S *chainInfo)
     // Reset the device command counters
     if(chainInfo->chainStatus == CHAIN_COMPLETE)
     {
-        sendCommand(RSTCC, PORTA);
+        sendCommand(RSTCC, &chainInfo->commPorts[PORTA]);
     }
     else
     {
-        sendCommand(RSTCC, PORTA);
-        sendCommand(RSTCC, PORTB);
+        sendCommand(RSTCC, &chainInfo->commPorts[PORTA]);
+        sendCommand(RSTCC, &chainInfo->commPorts[PORTB]);
     }
 }
 
@@ -358,12 +358,12 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uin
 /* ==================================================================== */
 
 
-void activatePort(PORT_INSTANCE_S *portInstance, uint8_t numDevs, uint32_t usDelay)
+void activatePort(CHAIN_INFO_S* chainInfo, uint32_t usDelay)
 {
-    for(uint8_t i = 0; i < (numDevs + 1); i++)
+    for(uint8_t i = 0; i < (chainInfo->numDevs + 1); i++)
     {
-        HAL_GPIO_WritePin(portInstance->csPort, portInstance->csPin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(portInstance->csPort, portInstance->csPin, GPIO_PIN_SET);        
+        HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_SET);
         delayMicroseconds(usDelay);
     }
 
@@ -655,7 +655,7 @@ TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_
         else if(chainUpdateStatus != TRANSACTION_SUCCESS)
         {
             // On a command counter error or power on reset error, reset the command counter and return error
-            resetCommandCounter(&chainInfo);
+            resetCommandCounter(chainInfo);
             return chainUpdateStatus;
         }
 

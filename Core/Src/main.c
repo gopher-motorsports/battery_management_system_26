@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "printTask.h"
+#include "updateCellMonitorTask.h"
 #include "utils.h"
 #include <stdbool.h>
 
@@ -54,6 +55,9 @@ UART_HandleTypeDef huart2;
 
 osThreadId printTaskHandle;
 osThreadId idleTaskHandle;
+osThreadId updateCellMonHandle;
+uint32_t updateCellMonBuffer[ 1024 ];
+osStaticThreadDef_t updateCellMonControlBlock;
 /* USER CODE BEGIN PV */
 
 volatile bool usDelayActive;
@@ -69,6 +73,7 @@ static void MX_SPI1_Init(void);
 static void MX_TIM7_Init(void);
 void startPrintTask(void const * argument);
 void startIdleTask(void const * argument);
+void startUpdateCellMon(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -112,7 +117,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 	if (hspi == &hspi1)
 	{
 		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xTaskNotifyFromISR(printTaskHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
+		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
   // TODO: Add second if statement for hspi2
@@ -123,7 +128,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 	if (hspi == &hspi1)
 	{
 		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xTaskNotifyFromISR(printTaskHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
+		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 }
@@ -190,6 +195,10 @@ int main(void)
   /* definition and creation of idleTask */
   osThreadDef(idleTask, startIdleTask, osPriorityIdle, 0, 128);
   idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
+
+  /* definition and creation of updateCellMon */
+  osThreadStaticDef(updateCellMon, startUpdateCellMon, osPriorityNormal, 0, 1024, updateCellMonBuffer, &updateCellMonControlBlock);
+  updateCellMonHandle = osThreadCreate(osThread(updateCellMon), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -472,6 +481,26 @@ void startIdleTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END startIdleTask */
+}
+
+/* USER CODE BEGIN Header_startUpdateCellMon */
+/**
+* @brief Function implementing the updateCellMon thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startUpdateCellMon */
+void startUpdateCellMon(void const * argument)
+{
+  /* USER CODE BEGIN startUpdateCellMon */
+  initUpdateCellMonitorTask();
+  /* Infinite loop */
+  for(;;)
+  {
+    runUpdateCellMonitorTask();
+    osDelay(100);
+  }
+  /* USER CODE END startUpdateCellMon */
 }
 
 /**

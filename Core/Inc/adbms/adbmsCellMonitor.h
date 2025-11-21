@@ -14,6 +14,20 @@
 #define NUM_CELLS_PER_CELL_MONITOR  14
 #define NUM_CELL_MONITOR_GPIO       10
 
+#define REGISTER_BYTE0      0
+#define REGISTER_BYTE1      1
+#define REGISTER_BYTE2      2
+#define REGISTER_BYTE3      3
+#define REGISTER_BYTE4      4
+#define REGISTER_BYTE5      5
+
+// ADC result register encoding
+#define CELL_MON_CELL_ADC_GAIN          0.00015f
+#define CELL_MON_CELL_ADC_OFFSET        1.5f
+
+#define CELL_MON_AUX_ADC_GAIN           0.00015f
+#define CELL_MON_AUX_ADC_OFFSET         1.5f
+
 /* ==================================================================== */
 /* ========================= ENUMERATED TYPES========================== */
 /* ==================================================================== */
@@ -71,8 +85,8 @@ typedef enum
 typedef enum
 {
     SINGLE_SHOT_MODE = 0,
-    CONTINOUS_MODE = (1 << 7)
-} ADC_MODE_CONTINOUS_E;
+    CONTINUOUS_MODE = (1 << 7)
+} ADC_MODE_CONTINUOUS_E;
 
 typedef enum
 {
@@ -122,7 +136,13 @@ typedef enum
     AUX_VRES_ONLY = 0x16
 } ADC_MODE_AUX_CHANNEL_E;
 
-
+typedef enum
+{
+    RAW_CELL_VOLTAGE = 0,
+    AVERAGED_CELL_VOLTAGE,
+    FILTERED_CELL_VOLTAGE,
+    NUM_CELL_VOLTAGE_TYPES
+} CELL_VOLTAGE_TYPE_E;
 
 /* ==================================================================== */
 /* ============================== STRUCTS============================== */
@@ -176,7 +196,7 @@ typedef struct __attribute__((packed))
 typedef struct __attribute__((packed))
 {
     float undervoltageThreshold;
-    float overvoltagethreshold;
+    float overvoltageThreshold;
     uint32_t dischargeTimeoutMinutes;
     bool dischargeCell[NUM_CELLS_PER_CELL_MONITOR];
 } ADBMS_ConfigBCellMonitor;
@@ -270,12 +290,60 @@ typedef struct __attribute__((packed))
 
 } ADBMS_CellMonitorData;
 
-// Do something like this to replace ADBMS_BatteryData??
-ADBMS_CellMonitorData cellMonitor[10];
-ADBMS_CellMonitorData* cellMonitorData = cellMonitor;
-
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
+
+TRANSACTION_STATUS_E startCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MODE_CONTINUOUS_E continuousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_FILTER_E filterMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode);
+
+TRANSACTION_STATUS_E startRedundantCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_CONTINUOUS_E continousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode);
+
+TRANSACTION_STATUS_E startAuxConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_AUX_CHANNEL_E auxChannel, ADC_MODE_AUX_OPEN_WIRE_E openWireMode);
+
+TRANSACTION_STATUS_E startRedundantAuxConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_AUX_CHANNEL_E auxChannel);
+
+TRANSACTION_STATUS_E muteDischarge(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E unmuteDischarge(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E readSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readPwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E writeNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readStatusA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readStatusB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readStatusC(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readStatusD(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readStatusE(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor, CELL_VOLTAGE_TYPE_E cellVoltageType);
 
 #endif /* INC_ADBMS_CELL_MONITOR_H_ */
