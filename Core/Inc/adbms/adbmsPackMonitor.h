@@ -50,6 +50,6 @@ typedef struct __attribute__((packed))
     // Byte 2
 
 
-}
+};
 
 #endif /* INC_ADBMS_PACK_MONITOR_H */
