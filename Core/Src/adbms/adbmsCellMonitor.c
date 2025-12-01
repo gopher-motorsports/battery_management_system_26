@@ -109,6 +109,9 @@
 #define CELL_MON_DIE_TEMP_GAIN          0.02f
 #define CELL_MON_DIE_TEMP_OFFSET        -73.0f
 
+#define CELL_MON_HV_SUPPLY_GAIN         0.00375f
+#define CELL_MON_HV_SUPPLY_OFFSET       0.00375f
+
 #define PWM_CONFIG_SIZE_BITS    4
 #define PWM_CONFIG_SIZE_MASK    0x0F
 #define PWM_CONFIG_RANGE        15
@@ -157,6 +160,21 @@ static const uint16_t cellVoltageCode[NUM_CELL_VOLTAGE_TYPES][NUM_CELLV_REGISTER
     {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF},
     {RDACA, RDACB, RDACC, RDACD, RDACE, RDACF},
     {RDFCA, RDFCB, RDFCC, RDFCD, RDFCE, RDFCF}
+};
+
+static const uint16_t redundantCellVoltageCode[NUM_CELLV_REGISTERS] =
+{
+    RDSVA, RDSVB, RDSVC, RDSVD, RDSVE, RDSVF
+};
+
+static const uint16_t auxVoltageCode[NUM_AUXV_REGISTERS] =
+{
+    RDAUXA, RDAUXB, RDAUXC, RDAUXD
+};
+
+static const uint16_t redundantAuxVoltageCode[NUM_AUXV_REGISTERS] =
+{
+    RDAUXA, RDAUXB, RDAUXC, RDAUXD
 };
 
 /* ==================================================================== */
@@ -682,6 +700,110 @@ TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitor
     for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
     {
         cellMonitor[j].cellVoltage[(NUM_CELLV_REGISTERS - 1) * VOLTAGE_16BIT_PER_REG] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES)), CELL_MON_CELL_ADC_GAIN, CELL_MON_CELL_ADC_OFFSET);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readRedundantCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
+    for(uint32_t i = 0; i < (NUM_CELLV_REGISTERS - 1); i++)
+    {
+        if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            status = readChain(redundantCellVoltageCode[i], chainInfo, transactionBuffer);
+        }
+
+        for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+        {
+            for(uint32_t k = 0; k < VOLTAGE_16BIT_PER_REG; k++)
+            {
+                cellMonitor[j].redundantCellVoltage[(i * VOLTAGE_16BIT_PER_REG) + k] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (k * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_CELL_ADC_GAIN, CELL_MON_CELL_ADC_OFFSET);
+            }
+        }
+    }
+
+    if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        status = readChain(redundantCellVoltageCode[NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer);
+    }
+
+    for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+    {
+        cellMonitor[j].redundantCellVoltage[(NUM_CELLV_REGISTERS - 1) * VOLTAGE_16BIT_PER_REG] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES)), CELL_MON_CELL_ADC_GAIN, CELL_MON_CELL_ADC_OFFSET);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
+    for(uint32_t i = 0; i < (NUM_AUXV_REGISTERS - 1); i++)
+    {
+        if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            status = readChain(auxVoltageCode[i], chainInfo, transactionBuffer);
+        }
+
+        for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+        {
+            for(uint32_t k = 0; k < VOLTAGE_16BIT_PER_REG; k++)
+            {
+                cellMonitor[j].auxVoltage[(i * VOLTAGE_16BIT_PER_REG) + k] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (k * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+            }
+        }
+    }
+
+    if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        status = readChain(auxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer);
+    }
+
+    for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+    {
+        cellMonitor[j].auxVoltage[(NUM_AUXV_REGISTERS - 1) * VOLTAGE_16BIT_PER_REG] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+        cellMonitor[j].switch1Voltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+        cellMonitor[j].hvSupplyVoltage = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (2 * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_HV_SUPPLY_GAIN, CELL_MON_HV_SUPPLY_OFFSET);
+    }
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readRedundantAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+{
+    memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
+    for(uint32_t i = 0; i < (NUM_AUXV_REGISTERS - 1); i++)
+    {
+        if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            status = readChain(redundantAuxVoltageCode[i], chainInfo, transactionBuffer);
+        }
+
+        for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+        {
+            for(uint32_t k = 0; k < VOLTAGE_16BIT_PER_REG; k++)
+            {
+                cellMonitor[j].reduntantAuxVoltage[(i * VOLTAGE_16BIT_PER_REG) + k] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES) + (k * VOLTAGE_16BIT_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
+            }
+        }
+    }
+
+    if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        status = readChain(redundantAuxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer);
+    }
+
+    for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
+    {
+        cellMonitor[j].reduntantAuxVoltage[(NUM_AUXV_REGISTERS - 1) * VOLTAGE_16BIT_PER_REG] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (j * REGISTER_SIZE_BYTES)), CELL_MON_AUX_ADC_GAIN, CELL_MON_AUX_ADC_OFFSET);
     }
 
     return status;
