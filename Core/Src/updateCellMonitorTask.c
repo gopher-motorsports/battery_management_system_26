@@ -50,6 +50,7 @@ void initUpdateCellMonitorTask()
     chainInfo.numDevs = 1;
     chainInfo.currentPort = PORTA;
     chainInfo.chainStatus = CHAIN_COMPLETE;
+    // chainInfo.localCommandCounter = 0;
 
 }
 
@@ -63,12 +64,12 @@ void runUpdateCellMonitorTask()
     printf("Serial ID status: %u\n", status);
     printf("Serial ID reading: %X\n", cellMonitor->serialId[0]);
 
-    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
-    readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
-    for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
-    {
-        printf("Cell Voltage %u: %f\n", i, cellMonitor->cellVoltage[i]);
-    }
+    // status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
+    // readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
+    // for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    // {
+    //     printf("Cell Voltage %u: %f\n", i, cellMonitor->cellVoltage[i]);
+    // }
 
 
     // writeRegister(0x0024, 1, txBuffer, &port1);
