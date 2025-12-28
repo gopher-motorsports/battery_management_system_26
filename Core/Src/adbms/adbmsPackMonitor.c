@@ -61,6 +61,61 @@
 #define TRANSACTION_SIZE_BYTES_48_BIT       48 / BITS_IN_BYTE
 #define TRANSACTION_SIZE_BYTES_160_BIT      160 / BITS_IN_BYTE
 
+#define VOLTAGE_16BIT_SIZE_BYTES    2
+#define VOLTAGE_24BIT_SIZE_BYTES    3
+
+// ADC Result Register Encoding
+#define IADC1_GAIN_UV       1
+#define IADC2_GAIN_UV       -1
+
+#define VADC1_GAIN          0.0001f
+#define VADC1_OFFSET        0.0f
+
+#define VADC2_GAIN          -0.000085f
+#define VADC2_OFFSET        0.0f
+
+#define VREF2A_GAIN            0.00024f
+#define VREF2A_OFFSET          0.0f
+
+#define VREF2B_GAIN            -0.000204f
+#define VREF2B_OFFSET          0.0f
+
+#define VREF1P25_GAIN          0.0001f
+#define VREF1P25_OFFSET        0.0f
+
+#define VDIV_GAIN              0.0001f
+#define VDIV_OFFSET            0.0f
+
+#define VREG_GAIN              0.00024f
+#define VREG_OFFSET            0.0f
+
+#define VDD_GAIN               0.001f
+#define VDD_OFFSET             0.0f
+
+#define VDIG_GAIN              0.00024f
+#define VDIG_OFFSET            0.0f
+
+#define EPAD_GAIN              0.0001f
+#define EPAD_OFFSET            0.0f
+
+#define DIE_TEMP1_GAIN         0.01618f
+#define DIE_TEMP1_OFFSET       -250.0f
+
+#define DIE_TEMP2_GAIN         0.04878f
+#define DIE_TEMP2_OFFSET       -267.0f
+
+/* ==================================================================== */
+/* ============================== MACROS ============================== */
+/* ==================================================================== */
+
+#define EXTRACT_16_BIT(buffer)      (((uint32_t)buffer[1] << (1 * BITS_IN_BYTE)) | ((uint32_t)buffer[0]))
+
+#define EXTRACT_24_BIT(buffer)      (((uint32_t)buffer[2] << (2 * BITS_IN_BYTE)) | ((uint32_t)buffer[1] << (1 * BITS_IN_BYTE)) | ((uint32_t)buffer[0]))
+
+#define CONVERT_SIGNED_16_BIT_REGISTER(reg, gain, offset)    (((int16_t)(EXTRACT_16_BIT(reg)) * gain) + offset)
+
+#define CONVERT_SIGNED_24_BIT_REGISTER_UV(reg, gain)         ((((int32_t)(EXTRACT_24_BIT(reg) << BITS_IN_BYTE)) /  BYTE_SIZE_DEC) * gain)
+
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
@@ -120,3 +175,157 @@ TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo)
     return status;
 }
 
+TRANSACTION_STATUS_E readFlagRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDFLAG, chainInfo, transactionBuffer);
+
+    memcpy(&packMonitor->flagGroup, transactionBuffer, REGISTER_SIZE_BYTES);
+    packMonitor->flagGroup.conversionCounter1 = (((uint16_t)(transactionBuffer[REGISTER_BYTE2] & COUNTER1_MASK)) << BITS_IN_BYTE) | ((uint16_t)(transactionBuffer[REGISTER_BYTE3]));
+    packMonitor->flagGroup.conversionCounter2 = transactionBuffer[REGISTER_BYTE2] >> COUNTER2_BIT;
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readStatRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSTAT, chainInfo, transactionBuffer);
+
+    memcpy(&packMonitor->statGroup, transactionBuffer, REGISTER_SIZE_BYTES);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readCurrentAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDI, chainInfo, transactionBuffer);
+
+    packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->currentAdc2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDVB, chainInfo, transactionBuffer);
+
+    packMonitor->batteryVoltage1 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + VOLTAGE_16BIT_SIZE_BYTES), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->batteryVoltage2 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES* 2)), VADC2_GAIN, VADC2_OFFSET);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readCurrentAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDIACC, chainInfo, transactionBuffer);
+
+    // TODO: I think the gain would be different if your ACCN != 1, because then you have to divide by ACCN? Maybe that happens somewhere else? Or maybe you don't care about dividing bc it's only being used for coloumb counting?
+    packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
+
+    return status;       
+}
+
+TRANSACTION_STATUS_E readBatteryVoltageAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDVBACC, chainInfo, transactionBuffer);
+
+    packMonitor->batteryVoltageAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, VADC1_GAIN);
+    packMonitor->batteryVoltageAccumulator2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), VADC2_GAIN);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readPrimaryAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDIVB1, chainInfo, transactionBuffer);
+
+    packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->batteryVoltage1 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + 4), VADC1_GAIN, VADC1_OFFSET); // TODO: create #define for 4
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDIVB1ACC, chainInfo, transactionBuffer);
+
+    packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->batteryVoltageAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), VADC1_GAIN);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLV, chainInfo, transactionBuffer);
+
+    for(uint8_t i = 0; i < NUM_RD_AUX_VOLTAGES; i++)
+    {
+        packMonitor->auxVoltage[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC1_GAIN, VADC1_OFFSET);
+    }
+
+    packMonitor->auxVoltage[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->auxVoltage[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->auxVoltage[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->auxVoltage[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLR, chainInfo, transactionBuffer);
+
+    for(uint8_t i = 0; i < NUM_AUX_VOLTAGES; i++)
+    {
+        packMonitor->auxVoltage[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC2_GAIN, VADC2_OFFSET);
+    }
+
+    packMonitor->auxVoltage[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->auxVoltage[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->auxVoltage[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->auxVoltage[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLX, chainInfo, transactionBuffer);
+
+    packMonitor->referenceVoltage = 0;
+    packMonitor->redundantReferenceVoltage = 0;
+    packMonitor->referenceVoltage1P25 = 0;
+    packMonitor->primaryIntTemp = 0;
+    packMonitor->vregPowerSupply = 0;
+    packMonitor->vddPowerSupply = 0;
+    packMonitor->digitalSupplyVoltage = 0;
+    packMonitor->exposedPadVoltage = 0;
+    packMonitor->dividedReferenceVoltge = 0;
+    packMonitor->secondaryIntTemp = 0;
+    // TODO: Make some sort of struct to organize all of these and write the actual code obviously
+
+}
