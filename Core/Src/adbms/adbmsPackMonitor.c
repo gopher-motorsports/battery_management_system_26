@@ -65,44 +65,57 @@
 #define VOLTAGE_24BIT_SIZE_BYTES    3
 
 // ADC Result Register Encoding
-#define IADC1_GAIN_UV       1
-#define IADC2_GAIN_UV       -1
+#define IADC1_GAIN_UV           1
+#define IADC2_GAIN_UV           -1
 
-#define VADC1_GAIN          0.0001f
-#define VADC1_OFFSET        0.0f
+#define VADC1_GAIN              0.0001f
+#define VADC1_OFFSET            0.0f
 
-#define VADC2_GAIN          -0.000085f
-#define VADC2_OFFSET        0.0f
+#define VADC2_GAIN              -0.000085f
+#define VADC2_OFFSET            0.0f
 
-#define VREF2A_GAIN            0.00024f
-#define VREF2A_OFFSET          0.0f
+#define VREF2A_GAIN             0.00024f
+#define VREF2A_OFFSET           0.0f
 
-#define VREF2B_GAIN            -0.000204f
-#define VREF2B_OFFSET          0.0f
+#define VREF2B_GAIN             -0.000204f
+#define VREF2B_OFFSET           0.0f
 
-#define VREF1P25_GAIN          0.0001f
-#define VREF1P25_OFFSET        0.0f
+#define VREF1P25_GAIN           0.0001f
+#define VREF1P25_OFFSET         0.0f
 
-#define VDIV_GAIN              0.0001f
-#define VDIV_OFFSET            0.0f
+#define VDIV_GAIN               0.0001f
+#define VDIV_OFFSET             0.0f
 
-#define VREG_GAIN              0.00024f
-#define VREG_OFFSET            0.0f
+#define VREG_GAIN               0.00024f
+#define VREG_OFFSET             0.0f
 
-#define VDD_GAIN               0.001f
-#define VDD_OFFSET             0.0f
+#define VDD_GAIN                0.001f
+#define VDD_OFFSET              0.0f
 
-#define VDIG_GAIN              0.00024f
-#define VDIG_OFFSET            0.0f
+#define VDIG_GAIN               0.00024f
+#define VDIG_OFFSET             0.0f
 
-#define EPAD_GAIN              0.0001f
-#define EPAD_OFFSET            0.0f
+#define EPAD_GAIN               0.0001f
+#define EPAD_OFFSET             0.0f
 
-#define DIE_TEMP1_GAIN         0.01618f
-#define DIE_TEMP1_OFFSET       -250.0f
+#define DIE_TEMP1_GAIN          0.01618f
+#define DIE_TEMP1_OFFSET        -250.0f
 
-#define DIE_TEMP2_GAIN         0.04878f
-#define DIE_TEMP2_OFFSET       -267.0f
+#define DIE_TEMP2_GAIN          0.04878f
+#define DIE_TEMP2_OFFSET        -267.0f
+
+#define OVERCURRENT_GAIN1       5.0f
+#define OVERCURRENT_GAIN2       2.5f
+
+/* ==================================================================== */
+/* ========================= ENUMERATED TYPES========================== */
+/* ==================================================================== */
+
+typedef enum{
+    AUX_GAIN = 0,
+    AUX_OFFSET = 1,
+    NUM_AUX_CONV_VAL = 2,
+} AUX_CONV_E;
 
 /* ==================================================================== */
 /* ============================== MACROS ============================== */
@@ -120,7 +133,21 @@
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-static uint8_t transactionBuffer[20]; // TODO: Change size to #define
+static uint8_t transactionBuffer[TRANSACTION_SIZE_BYTES_160_BIT];
+
+static const float auxVoltageConv[NUM_AUX_VOLTAGES][NUM_AUX_CONV_VAL] = 
+{
+    {VREF2A_GAIN,       VREF2A_OFFSET},
+    {VREF2B_GAIN,       VREF2B_OFFSET},
+    {VREF1P25_GAIN,     VREF1P25_OFFSET},
+    {DIE_TEMP1_GAIN,    DIE_TEMP1_OFFSET},
+    {VREG_GAIN,         VREG_OFFSET},
+    {VDD_GAIN,          VDD_OFFSET},
+    {VDIG_GAIN,         VDIG_OFFSET},
+    {EPAD_GAIN,         EPAD_OFFSET},
+    {VDIV_GAIN,         VDIV_OFFSET},
+    {DIE_TEMP2_GAIN,    DIE_TEMP2_OFFSET}
+};
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
@@ -141,11 +168,25 @@ TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
     return commandChain(UNSNAP, chainInfo);
 }
 
-// TODO: Figure out configuration for OPT[3:0] in start adc commands
-// TRANSACTION_STATUS_E startPackChannelOneConversions(CHAIN_INFO_S* chainInfo)
-// {
-//     return commandChain(ADI1, chainInfo);
-// }
+TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption)
+{
+    return commandChain((uint16_t)(ADI1 | redundantMode | measureOption), chainInfo);
+}
+
+TRANSACTION_STATUS_E startRedundantAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MEASURE_OPTION_E measureOption)
+{
+    return commandChain((uint16_t)(ADI2 | measureOption), chainInfo);
+}
+
+TRANSACTION_STATUS_E startVoltageConversions(CHAIN_INFO_S* chainInfo, ADC_OPEN_WIRE_E openWire, VOLTAGE_ADC_CHANNEL_E channelSelect)
+{
+    return commandChain((uint16_t)(ADV | openWire | channelSelect), chainInfo);
+}
+
+TRANSACTION_STATUS_E startAuxVoltageConversions(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain((uint16_t)(ADX), chainInfo);
+}
 
 TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
 {
@@ -162,6 +203,11 @@ TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
     }
 
     return commandChain(CLRO, chainInfo);
+}
+
+TRANSACTION_STATUS_E clearAccumulators(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(CLRA, chainInfo);
 }
 
 TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo)
@@ -229,7 +275,6 @@ TRANSACTION_STATUS_E readCurrentAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 
     TRANSACTION_STATUS_E status = readChain(RDIACC, chainInfo, transactionBuffer);
 
-    // TODO: I think the gain would be different if your ACCN != 1, because then you have to divide by ACCN? Maybe that happens somewhere else? Or maybe you don't care about dividing bc it's only being used for coloumb counting?
     packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
     packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
 
@@ -272,21 +317,82 @@ TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
     return status;
 }
 
+TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDOC, chainInfo, transactionBuffer);
+
+    float oc1Gain = (packMonitor->configGroupB.oc1GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+    float oc2Gain = (packMonitor->configGroupB.oc2GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+    float oc3Gain = (packMonitor->configGroupB.oc3GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+
+    packMonitor->overcurrentStatusGroup.overcurrentAdc1 = transactionBuffer[REGISTER_BYTE0] * oc1Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc2 = transactionBuffer[REGISTER_BYTE1] * oc2Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc3 = transactionBuffer[REGISTER_BYTE2] * oc3Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc3Max = transactionBuffer[REGISTER_BYTE4] * oc3Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc3Min = transactionBuffer[REGISTER_BYTE5] * oc3Gain;
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer);
+
+    memcpy(&packMonitor->configGroupA, transactionBuffer, REGISTER_SIZE_BYTES);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer);
+
+    memcpy(&packMonitor->configGroupB, transactionBuffer, REGISTER_SIZE_BYTES);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    memcpy(transactionBuffer, &packMonitor->configGroupA, REGISTER_SIZE_BYTES);
+
+    return writeChain(WRCFGA, chainInfo, transactionBuffer);
+}
+
+TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    memcpy(transactionBuffer, &packMonitor->configGroupB, REGISTER_SIZE_BYTES);
+
+    return writeChain(WRCFGB, chainInfo, transactionBuffer);
+}
+
+// TODO: Add RDALLI, RDALLA, and RDALLC
+
 TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
 
     TRANSACTION_STATUS_E status = readChain(RDALLV, chainInfo, transactionBuffer);
 
-    for(uint8_t i = 0; i < NUM_RD_AUX_VOLTAGES; i++)
+    for(uint8_t i = 0; i < NUM_RD_VOLTAGE_ADC; i++)
     {
-        packMonitor->auxVoltage[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC1_GAIN, VADC1_OFFSET);
+        packMonitor->voltageAdc[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC1_GAIN, VADC1_OFFSET);
     }
 
-    packMonitor->auxVoltage[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
-    packMonitor->auxVoltage[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
-    packMonitor->auxVoltage[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
-    packMonitor->auxVoltage[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->voltageAdc[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->voltageAdc[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
 
     return status;
 }
@@ -297,15 +403,15 @@ TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 
     TRANSACTION_STATUS_E status = readChain(RDALLR, chainInfo, transactionBuffer);
 
-    for(uint8_t i = 0; i < NUM_AUX_VOLTAGES; i++)
+    for(uint8_t i = 0; i < NUM_RD_VOLTAGE_ADC; i++)
     {
-        packMonitor->auxVoltage[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC2_GAIN, VADC2_OFFSET);
+        packMonitor->redundantVoltageAdc[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), VADC2_GAIN, VADC2_OFFSET);
     }
 
-    packMonitor->auxVoltage[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
-    packMonitor->auxVoltage[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
-    packMonitor->auxVoltage[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
-    packMonitor->auxVoltage[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->voltageAdc[6] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 6)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[7] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 7)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[8] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 8)), VADC2_GAIN, VADC2_OFFSET);
+    packMonitor->voltageAdc[9] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 9)), VADC2_GAIN, VADC2_OFFSET);
 
     return status;
 }
@@ -316,16 +422,24 @@ TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorDa
 
     TRANSACTION_STATUS_E status = readChain(RDALLX, chainInfo, transactionBuffer);
 
-    packMonitor->referenceVoltage = 0;
-    packMonitor->redundantReferenceVoltage = 0;
-    packMonitor->referenceVoltage1P25 = 0;
-    packMonitor->primaryIntTemp = 0;
-    packMonitor->vregPowerSupply = 0;
-    packMonitor->vddPowerSupply = 0;
-    packMonitor->digitalSupplyVoltage = 0;
-    packMonitor->exposedPadVoltage = 0;
-    packMonitor->dividedReferenceVoltge = 0;
-    packMonitor->secondaryIntTemp = 0;
-    // TODO: Make some sort of struct to organize all of these and write the actual code obviously
+    float *auxVoltageAdc[NUM_AUX_VOLTAGES] = 
+    {
+        &packMonitor->referenceVoltage,
+        &packMonitor->redundantReferenceVoltage,
+        &packMonitor->referenceVoltage1P25,
+        &packMonitor->primaryIntTemp,
+        &packMonitor->vregPowerSupply,
+        &packMonitor->vddPowerSupply,
+        &packMonitor->digitalSupply,
+        &packMonitor->exposedPadVoltage,
+        &packMonitor->dividedReferenceVoltage,
+        &packMonitor->secondaryIntTemp
+    };
 
+    for(uint8_t i = 0; i < NUM_AUX_VOLTAGES; i++)
+    {
+        CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), auxVoltageConv[i][AUX_GAIN], auxVoltageConv[i][AUX_OFFSET]);
+    }
+
+    return status;
 }

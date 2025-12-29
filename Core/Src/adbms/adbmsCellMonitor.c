@@ -84,7 +84,6 @@
 #define MUTE        0x0028 // Mute Discharge
 #define UNMUTE      0x0029 // Unmute Discharge
 #define RDSID       0x002C // Read Serial ID Register Group
-#define RSTCC       0x002E // Reset Command Counter
 #define SNAP        0x002D // Snapshot
 #define UNSNAP      0x002F // Release Snapshot
 #define SRST        0x0027 // Soft Reset

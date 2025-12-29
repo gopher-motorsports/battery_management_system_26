@@ -21,8 +21,9 @@
 #define COUNTER1_MASK   0x1F
 #define COUNTER2_BIT    5
 
+#define NUM_VOLTAGE_ADC     10
+#define NUM_RD_VOLTAGE_ADC  6
 #define NUM_AUX_VOLTAGES    10
-#define NUM_RD_AUX_VOLTAGES 6
 
 /* ==================================================================== */
 /* ========================= ENUMERATED TYPES========================== */
@@ -114,7 +115,48 @@ typedef enum
     CONVERT_VDIV,
     CONVERT_SCALED_VREF,
     INJECT_IxB_CONVERT_SxA_VS_IxA
-} PACK_ADC_DIAGNOSTIC_SETTING_E;
+} PACK_ADC_DIAGNOSTIC_SETTING_E; 
+
+typedef enum
+{
+    NON_REDUNDANT_MODE = 0,
+    REDUNDANT_MODE = (1 << 8)
+} ADC_MODE_REDUNDANT_E;
+
+typedef enum
+{
+    SINGLE_SHOT_MEASUREMENT = 0,
+    SINGLE_SHOT_DIAGNOSTIC_MEASUREMENT = (1 << 4) | (1),
+    CONTINUOUS_MEASUREMENT = (1 << 7),
+    CONTINUOUS_DIAGNOSTIC_MEASURMENT = (1 << 7) | (1),
+} ADC_MEASURE_OPTION_E;
+
+typedef enum
+{
+    OPEN_WIRE_DISABLED = 0,
+    OPEN_WIRE_POSITIVE = (1 << 6),
+    OPEN_WIRE_NEGATIVE = (1 << 7)
+} ADC_OPEN_WIRE_E;
+
+typedef enum
+{
+    PACK_V1_ONLY = 0,
+    PACK_V2_ONLY,
+    PACK_V3_ONLY,
+    PACK_V4_ONLY,
+    PACK_V5_ONLY,
+    PACK_V6_ONLY,
+    PACK_V7_V9,
+    PACK_V8_V10,
+    PACK_VREF2_ONLY,
+    PACK_ALL_CHANNELS,
+    PACK_V2_V4_V6,
+    PACK_V1_TO_V6,
+    PACK_V1_TO_V4,
+    PACK_V1_V3_V5,
+    PACK_V3_TO_V6,
+    PACK_V4_TO_V6
+} VOLTAGE_ADC_CHANNEL_E;
 
 /* ==================================================================== */
 /* ============================== STRUCTS============================== */
@@ -231,7 +273,7 @@ typedef struct __attribute__((packed))
     uint8_t supplyUnderVoltage : 1;
     uint8_t reserved2 : 2;
 
-    // Bytes 2 and 3 (special case)
+    // Bytes 2 and 3
     uint16_t conversionCounter1 : 13; 
     uint16_t conversionCounter2 : 3;
 
@@ -301,6 +343,16 @@ typedef struct __attribute__((packed))
 
 typedef struct __attribute__((packed))
 {
+    float overcurrentAdc1;
+    float overcurrentAdc2;
+    float overcurrentAdc3;
+    float overcurrentAdc3Max;
+    float overcurrentAdc3Min;
+
+} ADBMS_OvercurrentStatus;
+
+typedef struct __attribute__((packed))
+{
     ADBMS_ConfigAPackMonitor configGroupA;
     ADBMS_ConfigBPackMonitor configGroupB;
 
@@ -319,19 +371,21 @@ typedef struct __attribute__((packed))
     int32_t batteryVoltageAccumulator1_uV;
     int32_t batteryVoltageAccumulator2_uV;
 
-    float auxVoltage[NUM_AUX_VOLTAGES];
-    float redundantAuxVoltage[NUM_RD_AUX_VOLTAGES];
+    float voltageAdc[NUM_VOLTAGE_ADC];
+    float redundantVoltageAdc[NUM_RD_VOLTAGE_ADC];
 
     float referenceVoltage;
     float redundantReferenceVoltage;
-    float dividedReferenceVoltge;
-    float exposedPadVoltage;
     float referenceVoltage1P25;
-    float digitalSupplyVoltage;
-    float vddPowerSupply;
     float primaryIntTemp;
     float vregPowerSupply;
+    float vddPowerSupply;
+    float digitalSupply;
+    float exposedPadVoltage;
+    float dividedReferenceVoltage;
     float secondaryIntTemp;
+
+    ADBMS_OvercurrentStatus overcurrentStatusGroup;
 
 } ADBMS_PackMonitorData;
 
