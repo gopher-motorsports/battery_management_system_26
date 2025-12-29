@@ -291,7 +291,7 @@ typedef struct __attribute__((packed))
 } ADBMS_CellMonitorData;
 
 /* ==================================================================== */
-/* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
+/* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
 TRANSACTION_STATUS_E startCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MODE_CONTINUOUS_E continuousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_FILTER_E filterMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode);

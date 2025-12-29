@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "printTask.h"
 #include "updateCellMonitorTask.h"
+#include "updatePackMonitorTask.h"
 #include "utils.h"
 #include <stdbool.h>
 
@@ -46,8 +47,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_tx;
 DMA_HandleTypeDef hdma_spi1_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
+DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim7;
 
@@ -62,6 +66,9 @@ osStaticThreadDef_t idleTaskControlBlock;
 osThreadId updateCellMonHandle;
 uint32_t updateCellMonBuffer[ 1024 ];
 osStaticThreadDef_t updateCellMonControlBlock;
+osThreadId updatePackMonHandle;
+uint32_t updatePackMonBuffer[ 1024 ];
+osStaticThreadDef_t updatePackMonControlBlock;
 /* USER CODE BEGIN PV */
 
 volatile bool usDelayActive;
@@ -75,9 +82,11 @@ static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_SPI2_Init(void);
 void startPrintTask(void const * argument);
 void startIdleTask(void const * argument);
 void startUpdateCellMon(void const * argument);
+void startUpdatePackMon(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -124,7 +133,12 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
-  // TODO: Add second if statement for hspi2
+  if (hspi == &hspi2)
+  {
+		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xTaskNotifyFromISR(updatePackMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);    
+  }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
@@ -135,6 +149,12 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
+  if (hspi == &hspi2)
+  {
+		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xTaskNotifyFromISR(updatePackMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);    
+  }
 }
 /* USER CODE END 0 */
 
@@ -171,6 +191,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM7_Init();
   MX_USART1_UART_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -203,6 +224,10 @@ int main(void)
   /* definition and creation of updateCellMon */
   osThreadStaticDef(updateCellMon, startUpdateCellMon, osPriorityNormal, 0, 1024, updateCellMonBuffer, &updateCellMonControlBlock);
   updateCellMonHandle = osThreadCreate(osThread(updateCellMon), NULL);
+
+  /* definition and creation of updatePackMon */
+  osThreadStaticDef(updatePackMon, startUpdatePackMon, osPriorityNormal, 0, 1024, updatePackMonBuffer, &updatePackMonControlBlock);
+  updatePackMonHandle = osThreadCreate(osThread(updatePackMon), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -309,6 +334,44 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief TIM7 Initialization Function
   * @param None
   * @retval None
@@ -387,8 +450,15 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
   /* DMA2_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
@@ -412,12 +482,15 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, MCU_FAULT_Pin|MCU_HEART_Pin|PORTB_CS_Pin|PORTA_CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PACK_MON_CS_N_GPIO_Port, PACK_MON_CS_N_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
@@ -431,6 +504,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PACK_MON_CS_N_Pin */
+  GPIO_InitStruct.Pin = PACK_MON_CS_N_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PACK_MON_CS_N_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : BMS_FAULT_READ_Pin IMD_FAULT_READ_Pin */
   GPIO_InitStruct.Pin = BMS_FAULT_READ_Pin|IMD_FAULT_READ_Pin;
@@ -523,6 +603,26 @@ void startUpdateCellMon(void const * argument)
     osDelay(100);
   }
   /* USER CODE END startUpdateCellMon */
+}
+
+/* USER CODE BEGIN Header_startUpdatePackMon */
+/**
+* @brief Function implementing the updatePackMon thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startUpdatePackMon */
+void startUpdatePackMon(void const * argument)
+{
+  /* USER CODE BEGIN startUpdatePackMon */
+  initUpdatePackMonitorTask();
+  /* Infinite loop */
+  for(;;)
+  {
+    runUpdateCellMonitorTask();
+    osDelay(100);
+  }
+  /* USER CODE END startUpdatePackMon */
 }
 
 /**

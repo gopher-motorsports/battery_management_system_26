@@ -389,4 +389,60 @@ typedef struct __attribute__((packed))
 
 } ADBMS_PackMonitorData;
 
+/* ==================================================================== */
+/* =================== GLOBAL FUNCTION DECLARATIONS =================== */
+/* ==================================================================== */
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption);
+
+TRANSACTION_STATUS_E startRedundantAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MEASURE_OPTION_E measureOption);
+
+TRANSACTION_STATUS_E startVoltageConversions(CHAIN_INFO_S* chainInfo, ADC_OPEN_WIRE_E openWire, VOLTAGE_ADC_CHANNEL_E channelSelect);
+
+TRANSACTION_STATUS_E startAuxVoltageConversions(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E clearAccumulators(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E readFlagRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readStatRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readCurrentAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readCurrentAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readBatteryVoltageAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readPrimaryAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
 #endif /* INC_ADBMS_PACK_MONITOR_H */

@@ -71,6 +71,14 @@ void Error_Handler(void);
 #define ISO_SPI_MISO_GPIO_Port GPIOA
 #define ISO_SPI_MOSI_Pin GPIO_PIN_7
 #define ISO_SPI_MOSI_GPIO_Port GPIOA
+#define PACK_MON_CS_N_Pin GPIO_PIN_12
+#define PACK_MON_CS_N_GPIO_Port GPIOB
+#define PACK_MON_MISO_Pin GPIO_PIN_14
+#define PACK_MON_MISO_GPIO_Port GPIOB
+#define PACK_MON_MOSI_Pin GPIO_PIN_15
+#define PACK_MON_MOSI_GPIO_Port GPIOB
+#define PACK_MON_SCK_Pin GPIO_PIN_7
+#define PACK_MON_SCK_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
