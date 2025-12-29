@@ -84,9 +84,6 @@
 #define MUTE        0x0028 // Mute Discharge
 #define UNMUTE      0x0029 // Unmute Discharge
 #define RDSID       0x002C // Read Serial ID Register Group
-#define SNAP        0x002D // Snapshot
-#define UNSNAP      0x002F // Release Snapshot
-#define SRST        0x0027 // Soft Reset
 #define ULRR        0x0038 // Unlock Retention Register
 #define WRRR        0x0039 // Write Retention Registers
 #define RDRR        0x003A // Read Retention Registers
@@ -210,22 +207,7 @@ TRANSACTION_STATUS_E unmuteDischarge(CHAIN_INFO_S* chainInfo)
     return commandChain(UNMUTE, chainInfo);
 }
 
-TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(SNAP, chainInfo);
-}
-
-TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(UNSNAP, chainInfo);
-}
-
-TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(SRST, chainInfo);
-}
-
-TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
+TRANSACTION_STATUS_E clearCellMonitorVoltageRegisters(CHAIN_INFO_S* chainInfo)
 {
     TRANSACTION_STATUS_E status = commandChain(CLRCELL, chainInfo);
     if(status != TRANSACTION_SUCCESS)
@@ -248,7 +230,7 @@ TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
     return commandChain(CLRSPIN, chainInfo);
 }
 
-TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo)
+TRANSACTION_STATUS_E clearCellMonitorFlags(CHAIN_INFO_S* chainInfo)
 {
     memset(transactionBuffer, 0xFF, (chainInfo->numDevs * REGISTER_SIZE_BYTES));
 
@@ -426,7 +408,7 @@ TRANSACTION_STATUS_E readNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cel
     return status;
 }
 
-TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+TRANSACTION_STATUS_E writeCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -436,7 +418,7 @@ TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData
     return writeChain(WRCFGA, chainInfo, transactionBuffer);
 }
 
-TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+TRANSACTION_STATUS_E readCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
@@ -450,7 +432,7 @@ TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
     return status;
 }
 
-TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+TRANSACTION_STATUS_E writeCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -526,7 +508,7 @@ TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData
 
 }
 
-TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+TRANSACTION_STATUS_E readCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 

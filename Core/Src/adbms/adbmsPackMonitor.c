@@ -3,6 +3,7 @@
 /* ==================================================================== */
 
 #include "adbms/adbmsPackMonitor.h"
+#include <string.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -153,21 +154,6 @@ static const float auxVoltageConv[NUM_AUX_VOLTAGES][NUM_AUX_CONV_VAL] =
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(SRST, chainInfo);
-}
-
-TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(SNAP, chainInfo);
-}
-
-TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
-{
-    return commandChain(UNSNAP, chainInfo);
-}
-
 TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption)
 {
     return commandChain((uint16_t)(ADI1 | redundantMode | measureOption), chainInfo);
@@ -188,7 +174,7 @@ TRANSACTION_STATUS_E startAuxVoltageConversions(CHAIN_INFO_S* chainInfo)
     return commandChain((uint16_t)(ADX), chainInfo);
 }
 
-TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo)
+TRANSACTION_STATUS_E clearPackMonitorVoltageRegisters(CHAIN_INFO_S* chainInfo)
 {
     TRANSACTION_STATUS_E status = commandChain(CLRI, chainInfo);
     if(status != TRANSACTION_SUCCESS)
@@ -210,7 +196,7 @@ TRANSACTION_STATUS_E clearAccumulators(CHAIN_INFO_S* chainInfo)
     return commandChain(CLRA, chainInfo);
 }
 
-TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo)
+TRANSACTION_STATUS_E clearPackMonitorFlags(CHAIN_INFO_S* chainInfo)
 {
     memset(transactionBuffer, 0xFF, TRANSACTION_SIZE_BYTES_48_BIT);
 
@@ -336,7 +322,7 @@ TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_Pack
     return status;
 }
 
-TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E readPackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
@@ -347,7 +333,7 @@ TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData*
     return status;
 }
 
-TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E readPackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
@@ -358,7 +344,7 @@ TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData*
     return status;
 }
 
-TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E writePackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
@@ -367,7 +353,7 @@ TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData
     return writeChain(WRCFGA, chainInfo, transactionBuffer);
 }
 
-TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
@@ -438,7 +424,7 @@ TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorDa
 
     for(uint8_t i = 0; i < NUM_AUX_VOLTAGES; i++)
     {
-        CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), auxVoltageConv[i][AUX_GAIN], auxVoltageConv[i][AUX_OFFSET]);
+        *auxVoltageAdc[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), auxVoltageConv[i][AUX_GAIN], auxVoltageConv[i][AUX_OFFSET]);
     }
 
     return status;

@@ -34,11 +34,13 @@
 #define COMMAND_PACKET_LENGTH    (COMMAND_SIZE_BYTES + CRC_SIZE_BYTES)
 #define REGISTER_PACKET_LENGTH   (REGISTER_SIZE_BYTES + CRC_SIZE_BYTES)
 
-// Read Serial ID Register Group
-#define RDSID 0x002C
+// ADBMS Shared register addresses
 
-// Reset Command Counter
-#define RSTCC 0x002E
+#define RDSID       0x002C // Read Serial ID Register Group
+#define RSTCC       0x002E // Reset Command Counter
+#define SNAP        0x002D // Snapshot
+#define UNSNAP      0x002F // Release Snapshot
+#define SRST        0x0027 // Soft Reset
 
 // Number of Read attempts before returning error
 #define TRANSACTION_ATTEMPTS    3
@@ -664,4 +666,21 @@ TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_
 
     // This should only be reached if the chain status does not get updated properly the first time
     return TRANSACTION_CHAIN_BREAK_ERROR;
+}
+
+// Shared cell monitor and pack monitor functions
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(UNSNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SRST, chainInfo);
 }

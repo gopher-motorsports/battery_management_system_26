@@ -407,11 +407,11 @@ TRANSACTION_STATUS_E startVoltageConversions(CHAIN_INFO_S* chainInfo, ADC_OPEN_W
 
 TRANSACTION_STATUS_E startAuxVoltageConversions(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo);
+TRANSACTION_STATUS_E clearPackMonitorVoltageRegisters(CHAIN_INFO_S* chainInfo);
 
 TRANSACTION_STATUS_E clearAccumulators(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo);
+TRANSACTION_STATUS_E clearPackMonitorFlags(CHAIN_INFO_S* chainInfo);
 
 TRANSACTION_STATUS_E readFlagRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
@@ -431,13 +431,13 @@ TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 
 TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E readPackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E readPackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E writePackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
 TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 

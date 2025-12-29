@@ -18,7 +18,7 @@ PORT_INSTANCE_S packMonPort = {
     .csPin = PACK_MON_CS_N_Pin
 };
 
-CHAIN_INFO_S chainInfo;
+CHAIN_INFO_S packMonInfo;
 
 static ADBMS_PackMonitorData packMonitor;
 
@@ -32,16 +32,16 @@ void initUpdatePackMonitorTask()
     HAL_GPIO_WritePin(PACK_MON_CS_N_GPIO_Port, PACK_MON_CS_N_Pin, GPIO_PIN_SET);
 
     // Init chain to default values (this will become initChain function)
-    chainInfo.commPorts[PORTA] = packMonPort;
-    chainInfo.commPorts[PORTB] = packMonPort;
-    chainInfo.numDevs = 1;
-    chainInfo.currentPort = PORTA;
-    chainInfo.chainStatus = CHAIN_COMPLETE;
+    packMonInfo.commPorts[PORTA] = packMonPort;
+    packMonInfo.commPorts[PORTB] = packMonPort;
+    packMonInfo.numDevs = 1;
+    packMonInfo.currentPort = PORTA;
+    packMonInfo.chainStatus = CHAIN_COMPLETE;
 
 }
 
 void runUpdatePackMonitorTask()
 {
-    updateChainStatus(&chainInfo);
+    updateChainStatus(&packMonInfo);
     
 }

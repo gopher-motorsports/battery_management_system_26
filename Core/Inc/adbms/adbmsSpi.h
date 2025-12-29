@@ -109,4 +109,10 @@ TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8
 
 TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *rxData);
 
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo);
+
 #endif /* INC_ADBMS_SPI_H_ */
