@@ -316,7 +316,7 @@ TRANSACTION_STATUS_E clearCellMonitorCellMonitorVoltageRegisters(CHAIN_INFO_S* c
 
 TRANSACTION_STATUS_E clearCellMonitorFlags(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E readSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E readCellMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
 TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 

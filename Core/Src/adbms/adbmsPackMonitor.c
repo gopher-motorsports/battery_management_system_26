@@ -44,6 +44,7 @@
 #define RDXB        0x0031 // Read AUX ADC Results B
 #define RDXC        0x0033 // Read AUX ADC Results C
 #define RDOC        0x000B // Read OCxADC Results
+#define RDSID       0x002C // Read Serial ID Register Group
 #define RDCFGA      0x0002 // Read Configuration Register Group A
 #define RDCFGB      0x0026 // Read Configuration Register Group B
 #define RDCOMM      0x0722 // Read COMM Register Group
@@ -303,6 +304,19 @@ TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
     return status;
 }
 
+TRANSACTION_STATUS_E readVoltage1B(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDV1B, chainInfo, transactionBuffer);
+
+    packMonitor->voltageAdc[3] = CONVERT_SIGNED_16_BIT_REGISTER(transactionBuffer, VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[4] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + VOLTAGE_16BIT_SIZE_BYTES), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->voltageAdc[5] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * 2)), VADC1_GAIN, VADC1_OFFSET);
+
+    return status;
+}
+
 TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
@@ -318,6 +332,17 @@ TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_Pack
     packMonitor->overcurrentStatusGroup.overcurrentAdc3 = transactionBuffer[REGISTER_BYTE2] * oc3Gain;
     packMonitor->overcurrentStatusGroup.overcurrentAdc3Max = transactionBuffer[REGISTER_BYTE4] * oc3Gain;
     packMonitor->overcurrentStatusGroup.overcurrentAdc3Min = transactionBuffer[REGISTER_BYTE5] * oc3Gain;
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readPackMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer);
+
+    memcpy(packMonitor->serialId, transactionBuffer, REGISTER_SIZE_BYTES);
 
     return status;
 }

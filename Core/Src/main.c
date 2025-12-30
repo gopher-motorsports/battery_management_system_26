@@ -619,7 +619,7 @@ void startUpdatePackMon(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    runUpdateCellMonitorTask();
+    runUpdatePackMonitorTask();
     osDelay(100);
   }
   /* USER CODE END startUpdatePackMon */

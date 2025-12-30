@@ -38,10 +38,37 @@ void initUpdatePackMonitorTask()
     packMonInfo.currentPort = PORTA;
     packMonInfo.chainStatus = CHAIN_COMPLETE;
 
+
 }
 
 void runUpdatePackMonitorTask()
 {
     updateChainStatus(&packMonInfo);
+
+    TRANSACTION_STATUS_E status = readPackMonitorSerialId(&packMonInfo, &packMonitor);
+    
+    printf("Serial ID Transaction Status: %u\n", status);
+
+    for(uint8_t i = 0; i < REGISTER_SIZE_BYTES; i++)
+    {
+        printf("Serial ID Byte [%hhu]: %hhu\n", i, packMonitor.serialId[i]);
+    }
+
+    static bool voltageAdcStarted = 0;
+
+    if(!voltageAdcStarted)
+    {
+        status = startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+        voltageAdcStarted = 1;
+    }
+
+    status = readVoltage1B(&packMonInfo, &packMonitor);
+
+    float linkPlusDivVoltage = packMonitor.voltageAdc[3];
+    float linkMinusDivVoltage = packMonitor.voltageAdc[5];
+
+    printf("Link+ Div Voltage: %f\n", linkPlusDivVoltage);
+    printf("Link- Div Voltage: %f\n", linkMinusDivVoltage);
+    // TODO: calculate using divider gain
     
 }

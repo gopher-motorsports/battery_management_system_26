@@ -251,7 +251,7 @@ TRANSACTION_STATUS_E clearCellMonitorFlags(CHAIN_INFO_S* chainInfo)
     return status;
 }
 
-TRANSACTION_STATUS_E readSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
+TRANSACTION_STATUS_E readCellMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 

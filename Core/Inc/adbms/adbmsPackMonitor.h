@@ -387,6 +387,8 @@ typedef struct __attribute__((packed))
 
     ADBMS_OvercurrentStatus overcurrentStatusGroup;
 
+    uint8_t serialId[REGISTER_SIZE_BYTES];
+
 } ADBMS_PackMonitorData;
 
 /* ==================================================================== */
@@ -429,7 +431,11 @@ TRANSACTION_STATUS_E readPrimaryAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 
 TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
+TRANSACTION_STATUS_E readVoltage1B(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
 TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readPackMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
 TRANSACTION_STATUS_E readPackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 

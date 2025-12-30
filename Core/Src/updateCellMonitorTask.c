@@ -64,14 +64,14 @@ void runUpdateCellMonitorTask()
     updateChainStatus(&chainInfo);
 
     printf("Starting comms . . .\n");
-    TRANSACTION_STATUS_E status = readSerialId(&chainInfo, cellMonitor);
+    TRANSACTION_STATUS_E status = readCellMonitorSerialId(&chainInfo, cellMonitor);
     printf("Serial ID status: %u\n", status);
     for(uint8_t i = 0; i < 6; i++)
     {
         printf("Serial ID reading: %X\n", cellMonitor->serialId[i]);
     }
 
-    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
+    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, NO_FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
     readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
     for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     {
@@ -110,4 +110,3 @@ void runUpdateCellMonitorTask()
     //     printf("index[%d]: %X\n", i, rxBuffer[i]);
     // }
 }
-
