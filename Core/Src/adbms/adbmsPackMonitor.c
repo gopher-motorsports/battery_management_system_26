@@ -60,9 +60,6 @@
 
 /* END Pack Monitor Register Addresses */
 
-#define TRANSACTION_SIZE_BYTES_48_BIT       48 / BITS_IN_BYTE
-#define TRANSACTION_SIZE_BYTES_160_BIT      160 / BITS_IN_BYTE
-
 #define VOLTAGE_16BIT_SIZE_BYTES    2
 #define VOLTAGE_24BIT_SIZE_BYTES    3
 
@@ -135,7 +132,7 @@ typedef enum{
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-static uint8_t transactionBuffer[TRANSACTION_SIZE_BYTES_160_BIT];
+static uint8_t transactionBuffer[EXTENDED_REGISTER_SIZE_BYTES];
 
 static const float auxVoltageConv[NUM_AUX_VOLTAGES][NUM_AUX_CONV_VAL] = 
 {
@@ -199,9 +196,9 @@ TRANSACTION_STATUS_E clearAccumulators(CHAIN_INFO_S* chainInfo)
 
 TRANSACTION_STATUS_E clearPackMonitorFlags(CHAIN_INFO_S* chainInfo)
 {
-    memset(transactionBuffer, 0xFF, TRANSACTION_SIZE_BYTES_48_BIT);
+    memset(transactionBuffer, 0xFF, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = writeChain(CLRFLAG, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = writeChain(CLRFLAG, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     activatePort(chainInfo, TIME_READY_US);
 
@@ -212,7 +209,7 @@ TRANSACTION_STATUS_E readFlagRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitor
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDFLAG, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDFLAG, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     memcpy(&packMonitor->flagGroup, transactionBuffer, REGISTER_SIZE_BYTES);
     packMonitor->flagGroup.conversionCounter1 = (((uint16_t)(transactionBuffer[REGISTER_BYTE2] & COUNTER1_MASK)) << BITS_IN_BYTE) | ((uint16_t)(transactionBuffer[REGISTER_BYTE3]));
@@ -225,7 +222,7 @@ TRANSACTION_STATUS_E readStatRegister(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitor
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTAT, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTAT, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     memcpy(&packMonitor->statGroup, transactionBuffer, REGISTER_SIZE_BYTES);
 
@@ -236,7 +233,7 @@ TRANSACTION_STATUS_E readCurrentAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDI, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDI, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
     packMonitor->currentAdc2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
@@ -248,7 +245,7 @@ TRANSACTION_STATUS_E readBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackM
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDVB, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDVB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->batteryVoltage1 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + VOLTAGE_16BIT_SIZE_BYTES), VADC1_GAIN, VADC1_OFFSET);
     packMonitor->batteryVoltage2 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES* 2)), VADC2_GAIN, VADC2_OFFSET);
@@ -260,7 +257,7 @@ TRANSACTION_STATUS_E readCurrentAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDIACC, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDIACC, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
     packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
@@ -272,7 +269,7 @@ TRANSACTION_STATUS_E readBatteryVoltageAccumulators(CHAIN_INFO_S* chainInfo, ADB
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDVBACC, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDVBACC, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->batteryVoltageAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, VADC1_GAIN);
     packMonitor->batteryVoltageAccumulator2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), VADC2_GAIN);
@@ -284,7 +281,7 @@ TRANSACTION_STATUS_E readPrimaryAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDIVB1, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDIVB1, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
     packMonitor->batteryVoltage1 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + 4), VADC1_GAIN, VADC1_OFFSET); // TODO: create #define for 4
@@ -296,7 +293,7 @@ TRANSACTION_STATUS_E readPrimaryAccumulators(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDIVB1ACC, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDIVB1ACC, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
     packMonitor->batteryVoltageAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), VADC1_GAIN);
@@ -308,7 +305,7 @@ TRANSACTION_STATUS_E readVoltage1B(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorDat
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDV1B, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDV1B, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->voltageAdc[3] = CONVERT_SIGNED_16_BIT_REGISTER(transactionBuffer, VADC1_GAIN, VADC1_OFFSET);
     packMonitor->voltageAdc[4] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + VOLTAGE_16BIT_SIZE_BYTES), VADC1_GAIN, VADC1_OFFSET);
@@ -321,7 +318,7 @@ TRANSACTION_STATUS_E readOvercurrentRegister(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDOC, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDOC, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     float oc1Gain = (packMonitor->configGroupB.oc1GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
     float oc2Gain = (packMonitor->configGroupB.oc2GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
@@ -340,7 +337,7 @@ TRANSACTION_STATUS_E readPackMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     memcpy(packMonitor->serialId, transactionBuffer, REGISTER_SIZE_BYTES);
 
@@ -351,7 +348,7 @@ TRANSACTION_STATUS_E readPackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_PackM
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     memcpy(&packMonitor->configGroupA, transactionBuffer, REGISTER_SIZE_BYTES);
 
@@ -362,7 +359,7 @@ TRANSACTION_STATUS_E readPackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackM
 {
     memset(transactionBuffer, 0x00, REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     memcpy(&packMonitor->configGroupB, transactionBuffer, REGISTER_SIZE_BYTES);
 
@@ -375,7 +372,7 @@ TRANSACTION_STATUS_E writePackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 
     memcpy(transactionBuffer, &packMonitor->configGroupA, REGISTER_SIZE_BYTES);
 
-    return writeChain(WRCFGA, chainInfo, transactionBuffer);
+    return writeChain(WRCFGA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
 TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
@@ -384,16 +381,16 @@ TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 
     memcpy(transactionBuffer, &packMonitor->configGroupB, REGISTER_SIZE_BYTES);
 
-    return writeChain(WRCFGB, chainInfo, transactionBuffer);
+    return writeChain(WRCFGB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
 // TODO: Add RDALLI, RDALLA, and RDALLC
 
 TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
-    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDALLV, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDALLV, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
 
     for(uint8_t i = 0; i < NUM_RD_VOLTAGE_ADC; i++)
     {
@@ -410,9 +407,9 @@ TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 
 TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
-    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDALLR, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDALLR, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
 
     for(uint8_t i = 0; i < NUM_RD_VOLTAGE_ADC; i++)
     {
@@ -429,9 +426,9 @@ TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
 
 TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
-    memset(transactionBuffer, 0x00, TRANSACTION_SIZE_BYTES_160_BIT);
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDALLX, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDALLX, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
 
     float *auxVoltageAdc[NUM_AUX_VOLTAGES] = 
     {

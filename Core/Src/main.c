@@ -599,8 +599,8 @@ void startUpdateCellMon(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    runUpdateCellMonitorTask();
-    osDelay(100);
+    // runUpdateCellMonitorTask();
+    osDelay(1000);
   }
   /* USER CODE END startUpdateCellMon */
 }

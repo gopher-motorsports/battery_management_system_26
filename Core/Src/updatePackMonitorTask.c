@@ -7,6 +7,12 @@
 #include <stdio.h>
 
 /* ==================================================================== */
+/* ============================= DEFINES ============================== */
+/* ==================================================================== */
+
+#define LINK_DIV_GAIN 483.35f
+
+/* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
@@ -51,8 +57,13 @@ void runUpdatePackMonitorTask()
 
     for(uint8_t i = 0; i < REGISTER_SIZE_BYTES; i++)
     {
-        printf("Serial ID Byte [%hhu]: %hhu\n", i, packMonitor.serialId[i]);
+        printf("Serial ID Byte [%u]: %X\n", i, packMonitor.serialId[i]);
     }
+
+    readPackMonitorConfigA(&packMonInfo, &packMonitor);
+    packMonitor.configGroupA.v4Reference = 1;
+    packMonitor.configGroupA.v6Reference = 1;
+    writePackMonitorConfigA(&packMonInfo, &packMonitor);
 
     static bool voltageAdcStarted = 0;
 
@@ -62,7 +73,9 @@ void runUpdatePackMonitorTask()
         voltageAdcStarted = 1;
     }
 
-    status = readVoltage1B(&packMonInfo, &packMonitor);
+    status = readVoltageAdc1(&packMonInfo, &packMonitor);
+
+    status = startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
 
     float linkPlusDivVoltage = packMonitor.voltageAdc[3];
     float linkMinusDivVoltage = packMonitor.voltageAdc[5];
@@ -70,5 +83,10 @@ void runUpdatePackMonitorTask()
     printf("Link+ Div Voltage: %f\n", linkPlusDivVoltage);
     printf("Link- Div Voltage: %f\n", linkMinusDivVoltage);
     // TODO: calculate using divider gain
+
+    float linkVoltage = (packMonitor.voltageAdc[3] - packMonitor.voltageAdc[5]) * LINK_DIV_GAIN;
+
+    printf("Link Voltage: %f\n", linkVoltage);
+
     
 }

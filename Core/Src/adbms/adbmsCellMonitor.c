@@ -234,13 +234,13 @@ TRANSACTION_STATUS_E clearCellMonitorFlags(CHAIN_INFO_S* chainInfo)
 {
     memset(transactionBuffer, 0xFF, (chainInfo->numDevs * REGISTER_SIZE_BYTES));
 
-    TRANSACTION_STATUS_E status = writeChain(CLRFLAG, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = writeChain(CLRFLAG, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     if(status != TRANSACTION_SUCCESS)
     {
         return status;
     }
 
-    status = writeChain(CLOVUV, chainInfo, transactionBuffer);
+    status = writeChain(CLOVUV, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     if(status != TRANSACTION_SUCCESS)
     {
         return status;
@@ -255,7 +255,7 @@ TRANSACTION_STATUS_E readCellMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_Cell
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSID, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -299,7 +299,7 @@ TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonito
         }
     }
 
-    TRANSACTION_STATUS_E status = writeChain(WRPWMA, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = writeChain(WRPWMA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     if(status != TRANSACTION_SUCCESS)
     {
         return status;
@@ -337,14 +337,14 @@ TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonito
         }
     }
 
-    return writeChain(WRPWMB, chainInfo, transactionBuffer);
+    return writeChain(WRPWMB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
 TRANSACTION_STATUS_E readPwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDPWMA, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDPWMA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -360,7 +360,7 @@ TRANSACTION_STATUS_E readPwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitor
 
     if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        status = readChain(RDPWMB, chainInfo, transactionBuffer);
+        status = readChain(RDPWMB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     }
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
@@ -391,14 +391,14 @@ TRANSACTION_STATUS_E writeNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* ce
         memcpy(transactionBuffer + (i * REGISTER_SIZE_BYTES), cellMonitor[i].retentionRegister, REGISTER_SIZE_BYTES);
     }
 
-    return writeChain(WRRR, chainInfo, transactionBuffer);
+    return writeChain(WRRR, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
 TRANSACTION_STATUS_E readNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDRR, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDRR, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -415,14 +415,14 @@ TRANSACTION_STATUS_E writeCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_Cell
         memcpy(transactionBuffer + (i * REGISTER_SIZE_BYTES), &cellMonitor[i].configGroupA, REGISTER_SIZE_BYTES);
     }
 
-    return writeChain(WRCFGA, chainInfo, transactionBuffer);
+    return writeChain(WRCFGA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
 TRANSACTION_STATUS_E readCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor)
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDCFGA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -504,7 +504,7 @@ TRANSACTION_STATUS_E writeCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_Cell
         deviceRegister[REGISTER_BYTE5] = (uint8_t)(dischargeMask >> BITS_IN_BYTE);
     }
 
-    return writeChain(WRCFGB, chainInfo, transactionBuffer);
+    return writeChain(WRCFGB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
 }
 
@@ -512,7 +512,7 @@ TRANSACTION_STATUS_E readCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellM
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDCFGB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -557,7 +557,7 @@ TRANSACTION_STATUS_E readStatusA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTATA, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTATA, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -572,7 +572,7 @@ TRANSACTION_STATUS_E readStatusB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTATB, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTATB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -588,7 +588,7 @@ TRANSACTION_STATUS_E readStatusC(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTATC, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTATC, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -613,7 +613,7 @@ TRANSACTION_STATUS_E readStatusD(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTATD, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTATD, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -642,7 +642,7 @@ TRANSACTION_STATUS_E readStatusE(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 {
     memset(transactionBuffer, 0x00, chainInfo->numDevs * REGISTER_SIZE_BYTES);
 
-    TRANSACTION_STATUS_E status = readChain(RDSTATE, chainInfo, transactionBuffer);
+    TRANSACTION_STATUS_E status = readChain(RDSTATE, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     for(uint32_t i = 0; i < (chainInfo->numDevs); i++)
     {
@@ -661,7 +661,7 @@ TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitor
     {
         if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            status = readChain(cellVoltageCode[cellVoltageType][i], chainInfo, transactionBuffer);
+            status = readChain(cellVoltageCode[cellVoltageType][i], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
         }
 
         for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -675,7 +675,7 @@ TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitor
 
     if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        status = readChain(cellVoltageCode[cellVoltageType][NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer);
+        status = readChain(cellVoltageCode[cellVoltageType][NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     }
 
     for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -695,7 +695,7 @@ TRANSACTION_STATUS_E readRedundantCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_Ce
     {
         if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            status = readChain(redundantCellVoltageCode[i], chainInfo, transactionBuffer);
+            status = readChain(redundantCellVoltageCode[i], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
         }
 
         for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -709,7 +709,7 @@ TRANSACTION_STATUS_E readRedundantCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_Ce
 
     if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        status = readChain(redundantCellVoltageCode[NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer);
+        status = readChain(redundantCellVoltageCode[NUM_CELLV_REGISTERS - 1], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     }
 
     for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -729,7 +729,7 @@ TRANSACTION_STATUS_E readAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorD
     {
         if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            status = readChain(auxVoltageCode[i], chainInfo, transactionBuffer);
+            status = readChain(auxVoltageCode[i], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
         }
 
         for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -743,7 +743,7 @@ TRANSACTION_STATUS_E readAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorD
 
     if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        status = readChain(auxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer);
+        status = readChain(auxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     }
 
     for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -765,7 +765,7 @@ TRANSACTION_STATUS_E readRedundantAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_Cel
     {
         if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            status = readChain(redundantAuxVoltageCode[i], chainInfo, transactionBuffer);
+            status = readChain(redundantAuxVoltageCode[i], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
         }
 
         for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
@@ -779,7 +779,7 @@ TRANSACTION_STATUS_E readRedundantAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_Cel
 
     if((status == TRANSACTION_SUCCESS) || (status == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        status = readChain(redundantAuxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer);
+        status = readChain(redundantAuxVoltageCode[NUM_AUXV_REGISTERS - 1], chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
     }
 
     for(uint32_t j = 0; j < (chainInfo->numDevs); j++)
