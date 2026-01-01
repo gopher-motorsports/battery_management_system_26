@@ -10,7 +10,10 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define LINK_DIV_GAIN 483.35f
+#define HV_DIV_GAIN                     247.0f
+#define LINK_DIV_GAIN                   483.35f
+
+#define SHUNT_REF_RESISTANCE_UOHM       100.0f
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -28,6 +31,49 @@ CHAIN_INFO_S packMonInfo;
 
 static ADBMS_PackMonitorData packMonitor;
 
+/* TEMP LOCAL FUNCTIONS */
+
+void printPackMonitor(ADBMS_PackMonitorData* packMonitor)
+{
+    printf("==== ADBMS2950 Pack Monitor ====\n");
+
+    /* ---------------- Current ADCs ---------------- */
+    printf("Current ADCs:\n");
+    printf("  I1: %ld uV\n", (long)packMonitor->currentAdc1_uV);
+    printf("  I2: %ld uV\n", (long)packMonitor->currentAdc2_uV);
+
+    /* ---------------- Battery Voltage ADCs ---------------- */
+    printf("Battery Voltage Adcs:\n");
+    printf("  VBAT1: %f V\n", packMonitor->batteryVoltage1);
+    printf("  VBAT2: %f V\n", packMonitor->batteryVoltage1);
+    printf("  Battery Voltage: %f V\n", (packMonitor->batteryVoltage1 * HV_DIV_GAIN));
+
+    /* ---------------- Voltage ADCs ---------------- */
+    printf("Voltage ADCs:\n");
+    for (uint16_t i = 0; i < NUM_VOLTAGE_ADC; i++)
+    {
+        printf("  V%u: %.3f V\n", (i + 1), packMonitor->voltageAdc[i]);
+    }
+
+    /* ---------------- Aux Voltages ---------------- */
+    printf("Aux Voltages:\n");
+    printf("  VREF:      %.3f V\n", packMonitor->referenceVoltage);
+    printf("  VREF_RED:  %.3f V\n", packMonitor->redundantReferenceVoltage);
+    printf("  VREF_1P25: %.3f V\n", packMonitor->referenceVoltage1P25);
+    printf("  VREG:      %.3f V\n", packMonitor->vregPowerSupply);
+    printf("  VDD:       %.3f V\n", packMonitor->vddPowerSupply);
+    printf("  VDIG:      %.3f V\n", packMonitor->digitalSupply);
+    printf("  EPAD:      %.3f V\n", packMonitor->exposedPadVoltage);
+    printf("  VREF_DIV:  %.3f V\n", packMonitor->dividedReferenceVoltage);
+
+    /* ---------------- Temperature Channels ---------------- */
+    printf("Temperature Channels:\n");
+    printf("  T_INT1:    %.2f C\n", packMonitor->primaryIntTemp);
+    printf("  T_INT2:    %.2f C\n", packMonitor->secondaryIntTemp);
+
+    printf("================================\n\n");
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -44,49 +90,83 @@ void initUpdatePackMonitorTask()
     packMonInfo.currentPort = PORTA;
     packMonInfo.chainStatus = CHAIN_COMPLETE;
 
+    readPackMonitorConfigA(&packMonInfo, &packMonitor);
+    packMonitor.configGroupA.v4Reference = 1;
+    packMonitor.configGroupA.v6Reference = 1;
+    packMonitor.configGroupA.gpo1HighZMode = 0;
+    writePackMonitorConfigA(&packMonInfo, &packMonitor);
+
+    startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    startAuxVoltageConversions(&packMonInfo);
 
 }
 
 void runUpdatePackMonitorTask()
 {
-    updateChainStatus(&packMonInfo);
+    static uint8_t updateCount = 0;
+    static uint8_t resetCount = 0;
+    static uint8_t stop = 0;
 
-    TRANSACTION_STATUS_E status = readPackMonitorSerialId(&packMonInfo, &packMonitor);
+    if(!stop)
+    {
+        readCurrentAdcs(&packMonInfo, &packMonitor);
+        readBatteryVoltageAdcs(&packMonInfo, &packMonitor);
+        readVoltageAdc1(&packMonInfo, &packMonitor);
+        readAuxiliaryVoltages(&packMonInfo, &packMonitor);
+    }
     
-    printf("Serial ID Transaction Status: %u\n", status);
 
-    for(uint8_t i = 0; i < REGISTER_SIZE_BYTES; i++)
+    updateCount++;
+    resetCount++;
+
+    if(updateCount > 4)
     {
-        printf("Serial ID Byte [%u]: %X\n", i, packMonitor.serialId[i]);
+        printPackMonitor(&packMonitor);
+        updateCount = 0;
     }
 
-    readPackMonitorConfigA(&packMonInfo, &packMonitor);
-    packMonitor.configGroupA.v4Reference = 1;
-    packMonitor.configGroupA.v6Reference = 1;
-    writePackMonitorConfigA(&packMonInfo, &packMonitor);
+    // if(resetCount > 30)
+    // {
+    //     stop = 1;
+    // }
 
-    static bool voltageAdcStarted = 0;
+    // clearPackMonitorVoltageRegisters(&packMonInfo);
+    
 
-    if(!voltageAdcStarted)
-    {
-        status = startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
-        voltageAdcStarted = 1;
-    }
+    // updateChainStatus(&packMonInfo);
 
-    status = readVoltageAdc1(&packMonInfo, &packMonitor);
+    // TRANSACTION_STATUS_E status = readPackMonitorSerialId(&packMonInfo, &packMonitor);
+    
+    // printf("Serial ID Transaction Status: %u\n", status);
 
-    status = startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    // for(uint8_t i = 0; i < REGISTER_SIZE_BYTES; i++)
+    // {
+    //     printf("Serial ID Byte [%u]: %X\n", i, packMonitor.serialId[i]);
+    // }
 
-    float linkPlusDivVoltage = packMonitor.voltageAdc[3];
-    float linkMinusDivVoltage = packMonitor.voltageAdc[5];
+    // static bool voltageAdcStarted = 0;
 
-    printf("Link+ Div Voltage: %f\n", linkPlusDivVoltage);
-    printf("Link- Div Voltage: %f\n", linkMinusDivVoltage);
-    // TODO: calculate using divider gain
+    // if(!voltageAdcStarted)
+    // {
+    //     status = startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    //     voltageAdcStarted = 1;
+    // }
 
-    float linkVoltage = (packMonitor.voltageAdc[3] - packMonitor.voltageAdc[5]) * LINK_DIV_GAIN;
+    // status = readVoltageAdc1(&packMonInfo, &packMonitor);
 
-    printf("Link Voltage: %f\n", linkVoltage);
+    // status = startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+
+    // float linkPlusDivVoltage = packMonitor.voltageAdc[3];
+    // float linkMinusDivVoltage = packMonitor.voltageAdc[5];
+
+    // printf("Link+ Div Voltage: %f\n", linkPlusDivVoltage);
+    // printf("Link- Div Voltage: %f\n", linkMinusDivVoltage);
+    // // TODO: calculate using divider gain
+
+    // float linkVoltage = (packMonitor.voltageAdc[3] - packMonitor.voltageAdc[5]) * LINK_DIV_GAIN;
+
+    // printf("Link Voltage: %f\n", linkVoltage);
 
     
 }

@@ -371,7 +371,7 @@ typedef struct __attribute__((packed))
     int32_t batteryVoltageAccumulator1_uV;
     int32_t batteryVoltageAccumulator2_uV;
 
-    float voltageAdc[NUM_VOLTAGE_ADC];
+    float voltageAdc[NUM_VOLTAGE_ADC]; // TODO: this is too long right now
     float redundantVoltageAdc[NUM_RD_VOLTAGE_ADC];
 
     float referenceVoltage;
@@ -445,10 +445,16 @@ TRANSACTION_STATUS_E writePackMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_Pack
 
 TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
+TRANSACTION_STATUS_E readAllCurrentAndBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readAllAccumulationRegisters(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
 TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
 TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E readAuxiliaryVoltages(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+
+TRANSACTION_STATUS_E readAllConfigFlagStatus(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
 #endif /* INC_ADBMS_PACK_MONITOR_H */

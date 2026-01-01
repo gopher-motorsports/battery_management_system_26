@@ -346,4 +346,10 @@ TRANSACTION_STATUS_E readStatusE(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 
 TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor, CELL_VOLTAGE_TYPE_E cellVoltageType);
 
+TRANSACTION_STATUS_E readRedundantCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readRedundantAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
 #endif /* INC_ADBMS_CELL_MONITOR_H_ */

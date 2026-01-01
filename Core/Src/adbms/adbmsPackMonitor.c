@@ -53,6 +53,7 @@
 #define WRCOMM      0x0721 // Write COMM Register Group
 #define STCOMM      0x0723 // Send COMM Register
 #define RDALLI      0x000C // Read IxADC and VBxADC Results
+#define RDALLA      0x004C // Read IxADC and VBxADC Accumulators
 #define RDALLV      0x0035 // Read All External Input V1ADC Results and V2ADC V9, V10 Results
 #define RDALLR      0x0011 // Read All External Input V2ADC Results and V1ADC V7, V8 Results
 #define RDALLX      0x0051 // Read All AUX ADC Results
@@ -384,7 +385,49 @@ TRANSACTION_STATUS_E writePackMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_Pack
     return writeChain(WRCFGB, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 }
 
-// TODO: Add RDALLI, RDALLA, and RDALLC
+TRANSACTION_STATUS_E readAllCurrentAndBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLI, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
+
+    packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->currentAdc2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
+    
+    packMonitor->batteryVoltage1 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_24BIT_SIZE_BYTES * 2)), VADC1_GAIN, VADC1_OFFSET);
+    packMonitor->batteryVoltage2 = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_24BIT_SIZE_BYTES * 2 + VOLTAGE_16BIT_SIZE_BYTES)), VADC2_GAIN, VADC2_OFFSET);
+
+    float oc1Gain = (packMonitor->configGroupB.oc1GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+    float oc2Gain = (packMonitor->configGroupB.oc2GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+    float oc3Gain = (packMonitor->configGroupB.oc3GainControl) ? (OVERCURRENT_GAIN2) : (OVERCURRENT_GAIN1);
+    packMonitor->overcurrentStatusGroup.overcurrentAdc1 = transactionBuffer[(REGISTER_BYTE0 + 10)] * oc1Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc2 = transactionBuffer[(REGISTER_BYTE1 + 10)] * oc2Gain;
+    packMonitor->overcurrentStatusGroup.overcurrentAdc3 = transactionBuffer[(REGISTER_BYTE2 + 10)] * oc3Gain;
+
+    memcpy(((&packMonitor->statGroup) + REGISTER_BYTE3), (transactionBuffer + 13), 1);
+
+    memcpy(&packMonitor->flagGroup, (transactionBuffer + 14), REGISTER_SIZE_BYTES);
+
+    return status;
+}
+
+TRANSACTION_STATUS_E readAllAccumulationRegisters(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLA, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
+
+    packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
+    packMonitor->currentAdcAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
+    packMonitor->batteryVoltageAccumulator1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + (VOLTAGE_24BIT_SIZE_BYTES * 2)), VADC1_GAIN);
+    packMonitor->batteryVoltageAccumulator2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + (VOLTAGE_24BIT_SIZE_BYTES * 3)), VADC2_GAIN);
+
+    memcpy(((&packMonitor->statGroup) + REGISTER_BYTE3), (transactionBuffer + 12), 2);
+
+    memcpy(&packMonitor->flagGroup, (transactionBuffer + 14), REGISTER_SIZE_BYTES);
+
+    return status;
+}
 
 TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
@@ -424,7 +467,7 @@ TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
     return status;
 }
 
-TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E readAuxiliaryVoltages(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 
@@ -449,5 +492,21 @@ TRANSACTION_STATUS_E readAuxVoltage(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorDa
         *auxVoltageAdc[i] = CONVERT_SIGNED_16_BIT_REGISTER((transactionBuffer + (VOLTAGE_16BIT_SIZE_BYTES * i)), auxVoltageConv[i][AUX_GAIN], auxVoltageConv[i][AUX_OFFSET]);
     }
 
+    return status;
+}
+
+TRANSACTION_STATUS_E readAllConfigFlagStatus(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+{
+    memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
+
+    TRANSACTION_STATUS_E status = readChain(RDALLC, chainInfo, transactionBuffer, EXTENDED_REGISTER_SIZE_BYTES);
+
+    memcpy(&packMonitor->configGroupA, transactionBuffer, REGISTER_SIZE_BYTES);
+    memcpy(&packMonitor->configGroupB, transactionBuffer, REGISTER_SIZE_BYTES);
+    memcpy((&packMonitor->statGroup + REGISTER_BYTE3), (transactionBuffer + 11), 2);
+    memcpy(&packMonitor->flagGroup, (transactionBuffer + 14), REGISTER_SIZE_BYTES);
+    packMonitor->flagGroup.conversionCounter1 = (((uint16_t)((transactionBuffer[REGISTER_BYTE2] + 14) & COUNTER1_MASK)) << BITS_IN_BYTE) | ((uint16_t)(transactionBuffer[REGISTER_BYTE3] + 14));
+    packMonitor->flagGroup.conversionCounter2 = (transactionBuffer[REGISTER_BYTE2] + 14) >> COUNTER2_BIT;
+ 
     return status;
 }
