@@ -237,7 +237,7 @@ TRANSACTION_STATUS_E readCurrentAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
     TRANSACTION_STATUS_E status = readChain(RDI, chainInfo, transactionBuffer, REGISTER_SIZE_BYTES);
 
     packMonitor->currentAdc1_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV(transactionBuffer, IADC1_GAIN_UV);
-    packMonitor->currentAdc2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC2_GAIN_UV);
+    packMonitor->currentAdc2_uV = CONVERT_SIGNED_24_BIT_REGISTER_UV((transactionBuffer + VOLTAGE_24BIT_SIZE_BYTES), IADC1_GAIN_UV);
 
     return status;
 }

@@ -3,7 +3,7 @@
 /* ==================================================================== */
 
 #include "updatePackMonitorTask.h"
-#include "adbms/adbmsPackMonitor.h"
+#include "packMonitorTelemetry.h"
 #include <stdio.h>
 
 /* ==================================================================== */
@@ -13,7 +13,7 @@
 #define HV_DIV_GAIN                     247.0f
 #define LINK_DIV_GAIN                   483.35f
 
-#define SHUNT_REF_RESISTANCE_UOHM       100.0f
+#define SHUNT_REF_RESISTANCE_UOHM       78.0f
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -27,9 +27,11 @@ PORT_INSTANCE_S packMonPort = {
     .csPin = PACK_MON_CS_N_Pin
 };
 
-CHAIN_INFO_S packMonInfo;
+static CHAIN_INFO_S packMonInfo;
 
-static ADBMS_PackMonitorData packMonitor;
+static ADBMS_PackMonitorData packMonitorData;
+
+static packMonitorTask_S taskData;
 
 /* TEMP LOCAL FUNCTIONS */
 
@@ -90,41 +92,68 @@ void initUpdatePackMonitorTask()
     packMonInfo.currentPort = PORTA;
     packMonInfo.chainStatus = CHAIN_COMPLETE;
 
-    readPackMonitorConfigA(&packMonInfo, &packMonitor);
-    packMonitor.configGroupA.v4Reference = 1;
-    packMonitor.configGroupA.v6Reference = 1;
-    packMonitor.configGroupA.gpo1HighZMode = 0;
-    writePackMonitorConfigA(&packMonInfo, &packMonitor);
+    // // Ready the device
+    // activatePort(&packMonInfo, TIME_WAKE_US);
 
-    startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
-    startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
-    startAuxVoltageConversions(&packMonInfo);
+    // readPackMonitorConfigA(&packMonInfo, &packMonitor);
+    // packMonitor.configGroupA.v4Reference = 1;
+    // packMonitor.configGroupA.v6Reference = 1;
+    // packMonitor.configGroupA.gpo1HighZMode = 0;
+    // writePackMonitorConfigA(&packMonInfo, &packMonitor);
+
+    // startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    // startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    // startAuxVoltageConversions(&packMonInfo);
 
 }
 
 void runUpdatePackMonitorTask()
 {
-    static uint8_t updateCount = 0;
-    static uint8_t resetCount = 0;
-    static uint8_t stop = 0;
+    TRANSACTION_STATUS_E telemetryStatus = updatePackTelemetry(&packMonInfo, &packMonitorData);
 
-    if(!stop)
+    if(telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR)
     {
-        readCurrentAdcs(&packMonInfo, &packMonitor);
-        readBatteryVoltageAdcs(&packMonInfo, &packMonitor);
-        readVoltageAdc1(&packMonInfo, &packMonitor);
-        readAuxiliaryVoltages(&packMonInfo, &packMonitor);
+        Debug("Chain Break!\n");
     }
-    
-
-    updateCount++;
-    resetCount++;
-
-    if(updateCount > 4)
+    else if(telemetryStatus == TRANSACTION_SPI_ERROR)
     {
-        printPackMonitor(&packMonitor);
-        updateCount = 0;
+        Debug("SPI Failure!\n");
     }
+    else if(telemetryStatus == TRANSACTION_POR_ERROR)
+    {
+        Debug("Failed to correct power on reset error!\n");
+    }
+    else if(telemetryStatus == TRANSACTION_COMMAND_COUNTER_ERROR)
+    {
+        Debug("Persistent Command Counter Error!\n");
+    }
+
+    if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        // Update task data
+        taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
+        taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
+        taskData.packPower = taskData.packCurrent * taskData.packVoltage;
+    }
+
+    static uint8_t counter = 0;
+
+    if(++counter > 8)
+    {
+        printf("\e[1;1H\e[2J");
+        Debug("Battery Current: %f A\n", taskData.packCurrent);
+        Debug("Battery Voltage: %f V\n", taskData.packVoltage);
+        Debug("Power: %f W\n", taskData.packPower);
+        counter = 0;
+    }
+
+
+
+
+    // Ready the device
+    // activatePort(&packMonInfo, TIME_READY_US);
+
+
 
     // if(resetCount > 30)
     // {
