@@ -181,7 +181,7 @@ typedef struct __attribute__((packed))
 
     // Byte 4
     uint8_t gpo9State : 1;
-    uint8_t gop10State : 1;
+    uint8_t gpo10State : 1;
     uint8_t reserved3 : 6;
 
     // Byte 5
