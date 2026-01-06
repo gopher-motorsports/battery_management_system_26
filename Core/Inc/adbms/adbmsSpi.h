@@ -17,8 +17,10 @@
 #define BYTE_SIZE_DEC       256
 #define BYTES_IN_WORD       2
 
-#define COMMAND_SIZE_BYTES       2
-#define REGISTER_SIZE_BYTES      6
+#define COMMAND_SIZE_BYTES              2
+#define LPCM_REGISTER_SIZE_BYTES        2
+#define REGISTER_SIZE_BYTES             6
+#define EXTENDED_REGISTER_SIZE_BYTES    20
 
 // Time for ADBMS device to wake
 #define TIME_WAKE_US            500
@@ -105,8 +107,14 @@ TRANSACTION_STATUS_E updateChainStatus(CHAIN_INFO_S *chainInfo);
 
 TRANSACTION_STATUS_E commandChain(uint16_t command, CHAIN_INFO_S *chainInfo);
 
-TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *txData);
+TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *txData, uint8_t registerSize);
 
-TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *rxData);
+TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *rxData, uint8_t registerSize);
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo);
 
 #endif /* INC_ADBMS_SPI_H_ */

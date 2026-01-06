@@ -40,6 +40,8 @@ void initUpdateCellMonitorTask()
     // Set both CS high upon start up
     HAL_GPIO_WritePin(PORTA_CS_GPIO_Port, PORTA_CS_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(PORTB_CS_GPIO_Port, PORTB_CS_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
 
     // Wake the device
     activatePort(&chainInfo, TIME_WAKE_US);
@@ -50,6 +52,7 @@ void initUpdateCellMonitorTask()
     chainInfo.numDevs = 1;
     chainInfo.currentPort = PORTA;
     chainInfo.chainStatus = CHAIN_COMPLETE;
+    // chainInfo.localCommandCounter = 0;
 
 }
 
@@ -58,12 +61,17 @@ void runUpdateCellMonitorTask()
     // Ready the device
     activatePort(&chainInfo, TIME_READY_US);
 
-    printf("Starting comms . . .\n");
-    TRANSACTION_STATUS_E status = readSerialId(&chainInfo, cellMonitor);
-    printf("Serial ID status: %u\n", status);
-    printf("Serial ID reading: %X\n", cellMonitor->serialId[0]);
+    updateChainStatus(&chainInfo);
 
-    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
+    printf("Starting comms . . .\n");
+    TRANSACTION_STATUS_E status = readCellMonitorSerialId(&chainInfo, cellMonitor);
+    printf("Serial ID status: %u\n", status);
+    for(uint8_t i = 0; i < 6; i++)
+    {
+        printf("Serial ID reading: %X\n", cellMonitor->serialId[i]);
+    }
+
+    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, NO_FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
     readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
     for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     {
@@ -102,4 +110,3 @@ void runUpdateCellMonitorTask()
     //     printf("index[%d]: %X\n", i, rxBuffer[i]);
     // }
 }
-

@@ -34,11 +34,13 @@
 #define COMMAND_PACKET_LENGTH    (COMMAND_SIZE_BYTES + CRC_SIZE_BYTES)
 #define REGISTER_PACKET_LENGTH   (REGISTER_SIZE_BYTES + CRC_SIZE_BYTES)
 
-// Read Serial ID Register Group
-#define RDSID 0x002C
+// ADBMS Shared register addresses
 
-// Reset Command Counter
-#define RSTCC 0x002E
+#define RDSID       0x002C // Read Serial ID Register Group
+#define RSTCC       0x002E // Reset Command Counter
+#define SNAP        0x002D // Snapshot
+#define UNSNAP      0x002F // Release Snapshot
+#define SRST        0x0027 // Soft Reset
 
 // Number of Read attempts before returning error
 #define TRANSACTION_ATTEMPTS    3
@@ -102,15 +104,15 @@ static uint16_t calculateDataCrc(uint8_t *packet, uint32_t numBytes, uint8_t com
 
 static void resetCommandCounter(CHAIN_INFO_S *chainInfo);
 
- static TRANSACTION_STATUS_E sendSPI(PORT_INSTANCE_S *portInstance, uint8_t *txBuffer, uint8_t *rxBuffer, uint8_t packetLength);
+static TRANSACTION_STATUS_E sendSPI(PORT_INSTANCE_S *portInstance, uint8_t *txBuffer, uint8_t *rxBuffer, uint8_t packetLength);
 
- static TRANSACTION_STATUS_E sendCommand(uint16_t command, PORT_INSTANCE_S *portInstance);
+static TRANSACTION_STATUS_E sendCommand(uint16_t command, PORT_INSTANCE_S *portInstance);
 
- static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint32_t numDevs, uint8_t *txBuff, PORT_INSTANCE_S *portInstance, PORT_E port);
+static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint8_t registerSize, uint32_t numDevs, uint8_t *txBuff, PORT_INSTANCE_S *portInstance, PORT_E port);
 
- static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *rxBuffer, uint8_t *rxData, uint8_t localCommandCounter, PORT_E port);
+static TRANSACTION_STATUS_E processReadRegisterCRCs(uint8_t registerSize, uint32_t numDevs, uint8_t *rxBuffer, uint8_t *rxData, uint8_t localCommandCounter, PORT_E port);
 
- static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uint8_t *rxData, PORT_INSTANCE_S *portInstance, uint8_t localCommandCounter, PORT_E port);
+static TRANSACTION_STATUS_E readRegister(uint16_t command, uint8_t registerSize, uint32_t numDevs, uint8_t *rxData, PORT_INSTANCE_S *portInstance, uint8_t localCommandCounter, PORT_E port);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -213,10 +215,10 @@ static TRANSACTION_STATUS_E sendCommand(uint16_t command, PORT_INSTANCE_S *portI
     return sendSPI(portInstance, txBuffer, NULL, COMMAND_PACKET_LENGTH);
 }
 
-static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint32_t numDevs, uint8_t *txBuff, PORT_INSTANCE_S *portInstance, PORT_E port)
+static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint8_t registerSize, uint32_t numDevs, uint8_t *txBuff, PORT_INSTANCE_S *portInstance, PORT_E port)
 {
     // Size in bytes: Command Word(2) + Command CRC(2) + [Register data(6) + Data CRC(2)] * numDevs
-    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * REGISTER_PACKET_LENGTH);
+    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * (registerSize + CRC_SIZE_BYTES));
 
     // Put txBuffer on heap
     uint8_t txBuffer[packetLength];
@@ -233,23 +235,23 @@ static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint32_t numDevs, ui
     // For each device, append a copy of the register data and corresponding CRC to the tx buffer
     for(uint32_t i = 0; i < numDevs; i++)
     {
-        // Calculate the CRC on the register data packet (2 byte CRC on 6 byte packet)
-        uint16_t dataCRC = calculateDataCrc(txBuff + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES, 0);
+        // Calculate the CRC on the register data packet (2 byte CRC on registerSize byte packet)
+        uint16_t dataCRC = calculateDataCrc(txBuff + (i * registerSize), registerSize, 0);
 
         // Copy the write data from the provided txBuff and the calculated crc into the txBuffer to be sent over SPI
         if(port == PORTB)
         {
             // The furthest device from portB in the chain receives the first indexed data from txBuff, so data is pasted big endian
-            memcpy(txBuffer + COMMAND_PACKET_LENGTH + (i * REGISTER_PACKET_LENGTH), txBuff + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES);
-            txBuffer[COMMAND_PACKET_LENGTH + (i * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES] = (uint8_t)(dataCRC >> BITS_IN_BYTE);
-            txBuffer[COMMAND_PACKET_LENGTH + (i * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES + 1] = (uint8_t)(dataCRC);
+            memcpy(txBuffer + COMMAND_PACKET_LENGTH + (i * (registerSize + CRC_SIZE_BYTES)), txBuff + (i * registerSize), registerSize);
+            txBuffer[COMMAND_PACKET_LENGTH + (i * (registerSize + CRC_SIZE_BYTES)) + registerSize] = (uint8_t)(dataCRC >> BITS_IN_BYTE);
+            txBuffer[COMMAND_PACKET_LENGTH + (i * (registerSize + CRC_SIZE_BYTES)) + registerSize + 1] = (uint8_t)(dataCRC);
         }
         else
         {
             // The furthest device from portA in the chain receives the first indexed data from txBuff, so data is pasted little endian
-            memcpy(txBuffer + COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * REGISTER_PACKET_LENGTH), txBuff + (i * REGISTER_SIZE_BYTES), REGISTER_SIZE_BYTES);
-            txBuffer[COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES] = (uint8_t)(dataCRC >> BITS_IN_BYTE);
-            txBuffer[COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES + 1] = (uint8_t)(dataCRC);
+            memcpy(txBuffer + COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * (registerSize + CRC_SIZE_BYTES)), txBuff + (i * registerSize), registerSize);
+            txBuffer[COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * (registerSize + CRC_SIZE_BYTES)) + registerSize] = (uint8_t)(dataCRC >> BITS_IN_BYTE);
+            txBuffer[COMMAND_PACKET_LENGTH + ((numDevs - i - 1) * (registerSize + CRC_SIZE_BYTES)) + registerSize + 1] = (uint8_t)(dataCRC);
         }
     }
 
@@ -257,24 +259,24 @@ static TRANSACTION_STATUS_E writeRegister(uint16_t command, uint32_t numDevs, ui
     return sendSPI(portInstance, txBuffer, NULL, packetLength);
 }
 
-static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *rxBuffer, uint8_t *rxData, uint8_t localCommandCounter, PORT_E port)
+static TRANSACTION_STATUS_E processReadRegisterCRCs(uint8_t registerSize, uint32_t numDevs, uint8_t *rxBuffer, uint8_t *rxData, uint8_t localCommandCounter, PORT_E port)
 {
     TRANSACTION_STATUS_E returnStatus = TRANSACTION_SUCCESS;
-    uint8_t registerData[REGISTER_SIZE_BYTES];
+    uint8_t registerData[registerSize];
 
     for(uint32_t j = 0; j < numDevs; j++)
     {
         // Extract the register data for each device into a temporary array
-        memcpy(registerData, rxBuffer + (COMMAND_PACKET_LENGTH + (j * REGISTER_PACKET_LENGTH)), REGISTER_SIZE_BYTES);
+        memcpy(registerData, rxBuffer + (COMMAND_PACKET_LENGTH + (j * (registerSize + CRC_SIZE_BYTES))), registerSize);
 
         // Extract the CRC and Command Counter sent with the corresponding register data
-        uint16_t pec0 = rxBuffer[COMMAND_PACKET_LENGTH + (j * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES];
-        uint16_t pec1 = rxBuffer[COMMAND_PACKET_LENGTH + (j * REGISTER_PACKET_LENGTH) + REGISTER_SIZE_BYTES + 1];
+        uint16_t pec0 = rxBuffer[COMMAND_PACKET_LENGTH + (j * (registerSize + CRC_SIZE_BYTES)) + registerSize];
+        uint16_t pec1 = rxBuffer[COMMAND_PACKET_LENGTH + (j * (registerSize + CRC_SIZE_BYTES)) + registerSize + 1];
         uint16_t registerCRC = ((pec0 << BITS_IN_BYTE) | (pec1)) & 0x03FF;
         uint8_t deviceCommandCounter = (uint8_t)pec0 >> (BITS_IN_BYTE - COMMAND_COUNTER_BITS);
 
         // If the CRC is incorrect for the data sent, retry the spi transaction
-        if(calculateDataCrc(registerData, REGISTER_SIZE_BYTES, deviceCommandCounter) == registerCRC)
+        if(calculateDataCrc(registerData, registerSize, deviceCommandCounter) == registerCRC)
         {
             // If there is a command counter error, track the error to be returned later
             // This allows us to finish checking if there is a chain break or crc error before returning
@@ -296,12 +298,12 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *r
             if(port == PORTA)
             {
                 // The first indexed data from the read is from the closest device to port A , so data is pasted big endian
-                memcpy(rxData + (j * REGISTER_SIZE_BYTES), registerData, REGISTER_SIZE_BYTES);
+                memcpy(rxData + (j * registerSize), registerData, registerSize);
             }
             else
             {
                 // The last indexed data from the read is from the closest device to port B , so data is pasted big endian
-                memcpy(rxData + ((numDevs - j - 1) * REGISTER_SIZE_BYTES), registerData, REGISTER_SIZE_BYTES);
+                memcpy(rxData + ((numDevs - j - 1) * registerSize), registerData, registerSize);
             }
         }
         else
@@ -314,10 +316,10 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint32_t numDevs, uint8_t *r
     return returnStatus;
 }
 
-static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uint8_t *rxData, PORT_INSTANCE_S *portInstance, uint8_t localCommandCounter, PORT_E port)
+static TRANSACTION_STATUS_E readRegister(uint16_t command, uint8_t registerSize, uint32_t numDevs, uint8_t *rxData, PORT_INSTANCE_S *portInstance, uint8_t localCommandCounter, PORT_E port)
 {
-    // Size in bytes: Command Word(2) + Command CRC(2) + [Register data(6) + Data CRC(2)] * numDevs
-    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * REGISTER_PACKET_LENGTH);
+    // Size in bytes: Command Word(2) + Command CRC(2) + [Register data(registerSize) + Data CRC(2)] * numDevs
+    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * registerSize + CRC_SIZE_BYTES);
 
     // Put txBuffer and rxBuffer on heap
     uint8_t txBuffer[packetLength];
@@ -343,7 +345,7 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint32_t numDevs, uin
             return TRANSACTION_SPI_ERROR;
         }
 
-        TRANSACTION_STATUS_E returnStatus = processReadRegisterCRCs(numDevs, rxBuffer, rxData, localCommandCounter, port);
+        TRANSACTION_STATUS_E returnStatus = processReadRegisterCRCs(registerSize, numDevs, rxBuffer, rxData, localCommandCounter, port);
         if(returnStatus != TRANSACTION_CHAIN_BREAK_ERROR)
         {
             return returnStatus;
@@ -396,7 +398,7 @@ TRANSACTION_STATUS_E updateChainStatus(CHAIN_INFO_S *chainInfo)
         // Starting with 1 device, increase the message size to the total number of device in the chain
         for(uint32_t devices = 1; devices <= chainInfo->numDevs; devices++)
         {
-            TRANSACTION_STATUS_E readStatus = readRegister(RDSID, devices, rxBuff, &chainInfo->commPorts[port], chainInfo->localCommandCounter, port);
+            TRANSACTION_STATUS_E readStatus = readRegister(RDSID, REGISTER_SIZE_BYTES, devices, rxBuff, &chainInfo->commPorts[port], chainInfo->localCommandCounter, port);
 
             // Handle read error
             if(readStatus == TRANSACTION_CHAIN_BREAK_ERROR)
@@ -453,6 +455,9 @@ TRANSACTION_STATUS_E commandChain(uint16_t command, CHAIN_INFO_S *chainInfo)
         // sendCommand will return either success or a spi error
         TRANSACTION_STATUS_E status = sendCommand(command, &chainInfo->commPorts[PORTA]);
 
+        // Increment local command counter
+        incCommandCounter(chainInfo);
+
         // Return transaction status
         return status;
     }
@@ -473,6 +478,9 @@ TRANSACTION_STATUS_E commandChain(uint16_t command, CHAIN_INFO_S *chainInfo)
         {
             portBStatus = sendCommand(command, &chainInfo->commPorts[PORTB]);
         }
+
+        // Increment local command counter
+        incCommandCounter(chainInfo);
 
         // The attempted transaction worked only if both ports return success
         if((portAStatus == TRANSACTION_SUCCESS) && (portBStatus == TRANSACTION_SUCCESS))
@@ -496,14 +504,17 @@ TRANSACTION_STATUS_E commandChain(uint16_t command, CHAIN_INFO_S *chainInfo)
     }
 }
 
-TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *txData)
+TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *txData, uint8_t registerSize)
 {
     // Check the current assumed chain status
     if(chainInfo->chainStatus == CHAIN_COMPLETE)
     {
         // When the chain is complete, send the command using the current chain port
         // writeRegister will return either success or spi error
-        TRANSACTION_STATUS_E status = writeRegister(command, chainInfo->numDevs, txData, &chainInfo->commPorts[chainInfo->currentPort], chainInfo->currentPort);
+        TRANSACTION_STATUS_E status = writeRegister(command, registerSize, chainInfo->numDevs, txData, &chainInfo->commPorts[chainInfo->currentPort], chainInfo->currentPort);
+        
+        // Increment local command counter
+        incCommandCounter(chainInfo);
 
         // Flip the chain port for the next chain transaction
         chainInfo->currentPort = !chainInfo->currentPort;
@@ -520,15 +531,18 @@ TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8
         // Only send a command if there are devices available on the port
         if(chainInfo->availableDevices[PORTA] > 0)
         {
-            portAStatus = writeRegister(command, chainInfo->availableDevices[PORTA], txData, &chainInfo->commPorts[PORTA], PORTA);
+            portAStatus = writeRegister(command, registerSize, chainInfo->availableDevices[PORTA], txData, &chainInfo->commPorts[PORTA], PORTA);
         }
 
         // Only send a command if there are devices available on the port
         if(chainInfo->availableDevices[PORTB] > 0)
         {
             // The txData pointer is shifted by the number of devices not available on the port, this allows data to populate in the appropriate index of txData
-            portBStatus = writeRegister(command, chainInfo->availableDevices[PORTB], txData + (REGISTER_SIZE_BYTES * (chainInfo->numDevs - chainInfo->availableDevices[PORTB])), &chainInfo->commPorts[PORTB], PORTB);
+            portBStatus = writeRegister(command, registerSize, chainInfo->availableDevices[PORTB], txData + (registerSize * (chainInfo->numDevs - chainInfo->availableDevices[PORTB])), &chainInfo->commPorts[PORTB], PORTB);
         }
+
+        // Increment local command counter
+        incCommandCounter(chainInfo);
 
         // The attempted transaction worked only if both ports return success
         if((portAStatus == TRANSACTION_SUCCESS) && (portBStatus == TRANSACTION_SUCCESS))
@@ -552,7 +566,7 @@ TRANSACTION_STATUS_E writeChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8
     }
 }
 
-TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *rxData)
+TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_t *rxData, uint8_t registerSize)
 {
     // This for loop allows the chain to attempt to correct itself once, but will end the fuction if it fails to update properly
     for(int32_t i = 0; i < 2; i++)
@@ -561,7 +575,7 @@ TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_
         if(chainInfo->chainStatus == CHAIN_COMPLETE)
         {
             // When the chain is complete, send the command using the current chain port
-            TRANSACTION_STATUS_E cmdStatus = readRegister(command, chainInfo->numDevs, rxData, &chainInfo->commPorts[chainInfo->currentPort], chainInfo->localCommandCounter, chainInfo->currentPort);
+            TRANSACTION_STATUS_E cmdStatus = readRegister(command, registerSize, chainInfo->numDevs, rxData, &chainInfo->commPorts[chainInfo->currentPort], chainInfo->localCommandCounter, chainInfo->currentPort);
 
             // On success, return success
             // On SPI error, power on reset error, or command counter error, return the error code
@@ -597,14 +611,14 @@ TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_
             if(chainInfo->availableDevices[PORTA] > 0)
             {
                 // Read from as many devices as are available
-                portAStatus = readRegister(command, chainInfo->availableDevices[PORTA], rxData, &chainInfo->commPorts[PORTA], chainInfo->localCommandCounter, PORTA);
+                portAStatus = readRegister(command, registerSize, chainInfo->availableDevices[PORTA], rxData, &chainInfo->commPorts[PORTA], chainInfo->localCommandCounter, PORTA);
             }
 
             // Only send a command if there are devices available on the port
             if(chainInfo->availableDevices[PORTB] > 0)
             {
                 // The rxData pointer is shifted by the number of devices not available on the port, this allows data to be be sent to the appropiate device index
-                portBStatus = readRegister(command, chainInfo->availableDevices[PORTB], rxData + REGISTER_SIZE_BYTES * (chainInfo->numDevs - chainInfo->availableDevices[PORTB]), &chainInfo->commPorts[PORTB], chainInfo->localCommandCounter, PORTB);
+                portBStatus = readRegister(command, registerSize, chainInfo->availableDevices[PORTB], rxData + registerSize * (chainInfo->numDevs - chainInfo->availableDevices[PORTB]), &chainInfo->commPorts[PORTB], chainInfo->localCommandCounter, PORTB);
             }
 
             // Check the status of both transactions
@@ -664,4 +678,21 @@ TRANSACTION_STATUS_E readChain(uint16_t command, CHAIN_INFO_S *chainInfo, uint8_
 
     // This should only be reached if the chain status does not get updated properly the first time
     return TRANSACTION_CHAIN_BREAK_ERROR;
+}
+
+// Shared cell monitor and pack monitor functions
+
+TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(UNSNAP, chainInfo);
+}
+
+TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo)
+{
+    return commandChain(SRST, chainInfo);
 }

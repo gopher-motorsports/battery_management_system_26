@@ -291,7 +291,7 @@ typedef struct __attribute__((packed))
 } ADBMS_CellMonitorData;
 
 /* ==================================================================== */
-/* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
+/* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
 TRANSACTION_STATUS_E startCellConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MODE_CONTINUOUS_E continuousMode, ADC_MODE_DISCHARGE_E dischargeMode, ADC_MODE_FILTER_E filterMode, ADC_MODE_CELL_OPEN_WIRE_E openWireMode);
@@ -312,11 +312,11 @@ TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
 
 TRANSACTION_STATUS_E softReset(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E clearAllVoltageRegisters(CHAIN_INFO_S* chainInfo);
+TRANSACTION_STATUS_E clearCellMonitorCellMonitorVoltageRegisters(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E clearAllFlags(CHAIN_INFO_S* chainInfo);
+TRANSACTION_STATUS_E clearCellMonitorFlags(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E readSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E readCellMonitorSerialId(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
 TRANSACTION_STATUS_E writePwmRegisters(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
@@ -326,13 +326,13 @@ TRANSACTION_STATUS_E writeNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* ce
 
 TRANSACTION_STATUS_E readNVM(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
-TRANSACTION_STATUS_E writeConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E writeCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
-TRANSACTION_STATUS_E readConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E readCellMonitorConfigA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
-TRANSACTION_STATUS_E writeConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E writeCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
-TRANSACTION_STATUS_E readConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+TRANSACTION_STATUS_E readCellMonitorConfigB(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
 TRANSACTION_STATUS_E readStatusA(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
@@ -345,5 +345,11 @@ TRANSACTION_STATUS_E readStatusD(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData*
 TRANSACTION_STATUS_E readStatusE(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
 TRANSACTION_STATUS_E readCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor, CELL_VOLTAGE_TYPE_E cellVoltageType);
+
+TRANSACTION_STATUS_E readRedundantCellVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
+
+TRANSACTION_STATUS_E readRedundantAuxVoltages(CHAIN_INFO_S* chainInfo, ADBMS_CellMonitorData* cellMonitor);
 
 #endif /* INC_ADBMS_CELL_MONITOR_H_ */
