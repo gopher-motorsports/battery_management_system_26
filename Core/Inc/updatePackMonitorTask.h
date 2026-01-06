@@ -7,10 +7,21 @@
 
 typedef struct {
 
-    // Primary pack measurements
+    // Pack measurements
+
     float packCurrent;
     float packVoltage;
     float packPower;
+
+    float shuntTemp1;
+    float prechargeTemp;
+    float dischargeTemp;
+
+    float linkVoltage;
+
+    // Calculated values
+
+    float shuntResistanceMicroOhms;
     
 } packMonitorTask_S;
 

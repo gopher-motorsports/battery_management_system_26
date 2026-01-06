@@ -429,7 +429,7 @@ TRANSACTION_STATUS_E readAllAccumulationRegisters(CHAIN_INFO_S* chainInfo, ADBMS
     return status;
 }
 
-TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E readVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 
@@ -448,7 +448,7 @@ TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorD
     return status;
 }
 
-TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
+TRANSACTION_STATUS_E readSecondaryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor)
 {
     memset(transactionBuffer, 0x00, EXTENDED_REGISTER_SIZE_BYTES);
 

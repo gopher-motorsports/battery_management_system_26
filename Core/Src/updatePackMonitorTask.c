@@ -4,6 +4,7 @@
 
 #include "updatePackMonitorTask.h"
 #include "packMonitorTelemetry.h"
+#include "packData.h"
 #include <stdio.h>
 
 /* ==================================================================== */
@@ -13,7 +14,19 @@
 #define HV_DIV_GAIN                     247.0f
 #define LINK_DIV_GAIN                   483.35f
 
+// Shunt characteristics
 #define SHUNT_REF_RESISTANCE_UOHM       78.0f
+#define SHUNT_REF_TEMP_C                25.0f
+#define SHUNT_RESISTANCE_GAIN_UOHM      0.005f
+
+// Mapping of pack monitor voltage inputs
+#define SHUNT_TEMP1_INDEX      1
+#define PRECHARGE_TEMP_INDEX    2
+#define LINK_PLUS_DIV_INDEX     3
+#define SHUNT_TEMP2_INDEX      4
+#define LINK_MINUS_DIV_INDEX    5
+#define REF_1P25_INDEX          6
+#define DISCHARGE_TEMP_INDEX    7
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -134,6 +147,15 @@ void runUpdatePackMonitorTask()
         taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
         taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
         taskData.packPower = taskData.packCurrent * taskData.packVoltage;
+
+        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
+        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
+        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
+
+        taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
+
+        taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
+
     }
 
     static uint8_t counter = 0;
@@ -144,6 +166,11 @@ void runUpdatePackMonitorTask()
         Debug("Battery Current: %f A\n", taskData.packCurrent);
         Debug("Battery Voltage: %f V\n", taskData.packVoltage);
         Debug("Power: %f W\n", taskData.packPower);
+        Debug("Shunt Temp: %f C\n", taskData.shuntTemp1);
+        Debug("Precharge Temp: %f C\n", taskData.prechargeTemp);
+        Debug("Discharge Temp: %f C\n", taskData.dischargeTemp);
+        Debug("Link Voltage: %f V\n", taskData.linkVoltage);
+        Debug("Shunt Resistance: %f uOhms\n", taskData.shuntResistanceMicroOhms);
         counter = 0;
     }
 

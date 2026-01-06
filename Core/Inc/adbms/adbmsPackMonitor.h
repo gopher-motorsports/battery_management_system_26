@@ -449,9 +449,9 @@ TRANSACTION_STATUS_E readAllCurrentAndBatteryVoltageAdcs(CHAIN_INFO_S* chainInfo
 
 TRANSACTION_STATUS_E readAllAccumulationRegisters(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E readVoltageAdc1(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E readVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
-TRANSACTION_STATUS_E readVoltageAdc2(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
+TRANSACTION_STATUS_E readSecondaryVoltageAdcs(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 
 TRANSACTION_STATUS_E readAuxiliaryVoltages(CHAIN_INFO_S* chainInfo, ADBMS_PackMonitorData* packMonitor);
 

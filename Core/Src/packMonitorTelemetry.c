@@ -20,7 +20,7 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
 
 static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
-static TRANSACTION_STATUS_E updatePrimaryAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
+static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -126,7 +126,7 @@ static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS
     return readPackMonitorSerialId(chainInfoData, packMonitorData);
 }
 
-static TRANSACTION_STATUS_E updatePrimaryAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
+static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
     TRANSACTION_STATUS_E status = readFlagRegister(chainInfoData, packMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
@@ -145,7 +145,19 @@ static TRANSACTION_STATUS_E updatePrimaryAdcs(CHAIN_INFO_S* chainInfoData, ADBMS
         return status;
     }
 
-    return readPrimaryAccumulators(chainInfoData, packMonitorData);
+    status = readPrimaryAccumulators(chainInfoData, packMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = readVoltageAdcs(chainInfoData, packMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    return readAuxiliaryVoltages(chainInfoData, packMonitorData);
 }
 
 /* ==================================================================== */
@@ -164,9 +176,8 @@ TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
 
         if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            telemetryStatus = runPackMonitorCommandBlock(updatePrimaryAdcs, chainInfoData, packMonitorData);
+            telemetryStatus = runPackMonitorCommandBlock(updatePackTelemetry, chainInfoData, packMonitorData);
         }
-
 
     }
 
