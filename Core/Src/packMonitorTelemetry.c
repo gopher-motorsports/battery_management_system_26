@@ -36,7 +36,7 @@ static TRANSACTION_STATUS_E runPackMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 
 static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
-static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
+static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
 static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
@@ -118,7 +118,7 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
 
 }
 
-static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
+static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
     activatePort(chainInfoData, TIME_READY_US);
 
@@ -199,7 +199,7 @@ TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
 
     if(initialized)
     {
-        telemetryStatus = runPackMonitorCommandBlock(startNewReadCycle, chainInfoData, packMonitorData);
+        telemetryStatus = runPackMonitorCommandBlock(startNewPackReadCycle, chainInfoData, packMonitorData);
 
         if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
         {
