@@ -19,11 +19,16 @@
 #define SHUNT_REF_TEMP_C                25.0f
 #define SHUNT_RESISTANCE_GAIN_UOHM      0.005f
 
+// Windowed (256 samples @ 1 kHz) conversion time measurement with 0.5 Hz IIR low-pass filtering
+#define CONV_COUNT_IIR_FILTER       553
+#define CONV_UPPER_BOUND            1500
+#define CONV_LOWER_BOUND            500
+
 // Mapping of pack monitor voltage inputs
-#define SHUNT_TEMP1_INDEX      1
+#define SHUNT_TEMP1_INDEX       1
 #define PRECHARGE_TEMP_INDEX    2
 #define LINK_PLUS_DIV_INDEX     3
-#define SHUNT_TEMP2_INDEX      4
+#define SHUNT_TEMP2_INDEX       4
 #define LINK_MINUS_DIV_INDEX    5
 #define REF_1P25_INDEX          6
 #define DISCHARGE_TEMP_INDEX    7
@@ -79,6 +84,44 @@ void printPackMonitor(ADBMS_PackMonitorData* packMonitor)
     printf("  T_INT2:    %.2f C\n", packMonitor->secondaryIntTemp);
 
     printf("================================\n\n");
+}
+
+static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData)
+{
+    static uint32_t conversionCounterSum = 0;
+    static uint32_t lastConversionCounter = 0;
+    
+    uint32_t deltaConversions = (packMonitorData->flagGroup.conversionCounter1 - lastConversionCounter) & (0x1FFF);
+
+    if((deltaConversions == 0) || (packMonitorData->statGroup.currentAdc1Initialized == 0))
+    {
+        conversionCounterSum = 0;
+        lastConversionCounter = packMonitorData->flagGroup.conversionCounter1;
+        packMonitorData->convCountTimer = 0;
+    }
+    else
+    {
+        conversionCounterSum += deltaConversions;
+        lastConversionCounter = packMonitorData->flagGroup.conversionCounter1;
+
+        if(conversionCounterSum >= 1024)
+        {
+            uint32_t conversionTimeRaw = (packMonitorData->convCountTimer * 4) / conversionCounterSum;
+            conversionCounterSum = 0;
+            packMonitorData->convCountTimer = 0;
+            taskData->conversionTime = (((conversionTimeRaw * CONV_COUNT_IIR_FILTER) + (taskData->conversionTime * (1000 - CONV_COUNT_IIR_FILTER))) / 1000);
+            
+            if(taskData->conversionTime > CONV_UPPER_BOUND)
+            {
+                taskData->conversionTime == CONV_UPPER_BOUND;
+            }
+            else if(taskData->conversionTime < CONV_LOWER_BOUND)
+            {
+                taskData->conversionTime == CONV_LOWER_BOUND;
+            }
+        }
+    }
+    
 }
 
 /* ==================================================================== */
@@ -141,13 +184,14 @@ void runUpdatePackMonitorTask()
 
         taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
 
+        calculatePackParameters(&packMonitorData, &taskData);
     }
 
     static uint8_t counter = 0;
 
     if(++counter > 8)
     {
-        printf("\e[1;1H\e[2J");
+        // printf("\e[1;1H\e[2J");
         Debug("Battery Current: %f A\n", taskData.packCurrent);
         Debug("Battery Voltage: %f V\n", taskData.packVoltage);
         Debug("Power: %f W\n", taskData.packPower);

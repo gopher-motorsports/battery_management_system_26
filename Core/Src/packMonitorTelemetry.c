@@ -14,6 +14,7 @@
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
+extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim14;
 
 extern SPI_HandleTypeDef hspi2;
@@ -114,8 +115,19 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
         return status;
     }
 
-    return readPackMonitorSerialId(chainInfoData, packMonitorData);
+    status = startVoltageConversions(chainInfoData, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
 
+    status = startAuxVoltageConversions(chainInfoData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    return readPackMonitorSerialId(chainInfoData, packMonitorData);
 }
 
 static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
@@ -145,6 +157,24 @@ static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, A
 
     // Freeze read registers for new read cycle
     status = freezeRegisters(chainInfoData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    // Record elapsed time to use later for calculating conversion counter
+    static uint32_t lastTimerValue = 0;
+    uint32_t currentTimerValue = htim2.Instance->CNT;
+    packMonitorData->convCountTimer += (currentTimerValue - lastTimerValue);
+    lastTimerValue = currentTimerValue;
+
+    status = startVoltageConversions(chainInfoData, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = startAuxVoltageConversions(chainInfoData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
@@ -184,7 +214,13 @@ static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
         return status;
     }
 
-    return readAuxiliaryVoltages(chainInfoData, packMonitorData);
+    status = readAuxiliaryVoltages(chainInfoData, packMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+    
+    return readStatRegister(chainInfoData, packMonitorData);
 }
 
 /* ==================================================================== */
