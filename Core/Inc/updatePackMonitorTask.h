@@ -29,7 +29,7 @@ typedef struct
 
     float shuntResistanceMicroOhms;
 
-    uint16_t conversionTime;
+    uint16_t conversionTime_us;
     
 } packMonitorTask_S;
 
