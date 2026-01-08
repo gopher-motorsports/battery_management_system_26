@@ -6,6 +6,7 @@
 #include "packMonitorTelemetry.h"
 #include "packData.h"
 #include <stdio.h>
+#include <math.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -15,7 +16,7 @@
 #define LINK_DIV_GAIN                   483.35f
 
 // Shunt characteristics
-#define SHUNT_REF_RESISTANCE_UOHM       78.0f
+#define SHUNT_REF_RESISTANCE_NANO_OHMS  78000
 #define SHUNT_REF_TEMP_C                25.0f
 #define SHUNT_RESISTANCE_GAIN_UOHM      0.005f
 
@@ -117,17 +118,35 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
             uint32_t conversionTimeRaw = (packMonitorData->convCountTimer * 4) / conversionCounterSum;
             conversionCounterSum = 0;
             packMonitorData->convCountTimer = 0;
-            taskData->conversionTime = (((conversionTimeRaw * CONV_COUNT_IIR_FILTER) + (taskData->conversionTime * (1000 - CONV_COUNT_IIR_FILTER))) / 1000);
+            taskData->conversionTime_us = (((conversionTimeRaw * CONV_COUNT_IIR_FILTER) + (taskData->conversionTime_us * (1000 - CONV_COUNT_IIR_FILTER))) / 1000);
             
-            if(taskData->conversionTime > CONV_UPPER_BOUND)
+            if(taskData->conversionTime_us > CONV_UPPER_BOUND)
             {
-                taskData->conversionTime == CONV_UPPER_BOUND;
+                taskData->conversionTime_us = CONV_UPPER_BOUND;
             }
-            else if(taskData->conversionTime < CONV_LOWER_BOUND)
+            else if(taskData->conversionTime_us < CONV_LOWER_BOUND)
             {
-                taskData->conversionTime == CONV_LOWER_BOUND;
+                taskData->conversionTime_us = CONV_LOWER_BOUND;
             }
         }
+
+        static uint8_t accCount = 0;
+        static int32_t milliCoulombCounter = 0;
+
+        accCount += deltaConversions;
+        if(accCount >= 16)
+        {
+            accCount %= 16;
+            if(abs(packMonitorData->currentAdcAccumulator1_uV) >= 10)
+            {
+                int32_t picoVoltSeconds = -1 * packMonitorData->currentAdcAccumulator1_uV * taskData->conversionTime_us;
+                milliCoulombCounter += picoVoltSeconds / SHUNT_REF_RESISTANCE_NANO_OHMS;
+            }
+            
+        }
+
+        printf("Battery Current: %f A\n", ((float)(-1000 * packMonitorData->currentAdc1_uV)) / ((float)(SHUNT_REF_RESISTANCE_NANO_OHMS)));
+        printf("MilliCoulombCounter: %li\n\n", milliCoulombCounter);
     }
     
 }
@@ -187,17 +206,17 @@ void runUpdatePackMonitorTask()
     if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
     {
         // Update task data
-        taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
-        taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
-        taskData.packPower = taskData.packCurrent * taskData.packVoltage;
+        // taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
+        // taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
+        // taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
-        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
-        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
-        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
+        // taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
+        // taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
+        // taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
 
-        taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
+        // taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
-        taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
+        // taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
 
         calculatePackParameters(&packMonitorData, &taskData);
     }

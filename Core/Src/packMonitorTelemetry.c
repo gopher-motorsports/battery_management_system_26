@@ -80,6 +80,7 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
 
     packMonitorData->configGroupA.gpo1HighZMode = 0;
     packMonitorData->configGroupA.gpo1State = 1;
+    packMonitorData->configGroupA.accumulationSetting = ACCUMULATE_4_SAMPLES;
 
     status = writePackMonitorConfigA(chainInfoData, packMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
@@ -197,7 +198,7 @@ static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
     {
         return status;
     }
-    
+
     return readStatRegister(chainInfoData, packMonitorData);
 }
 

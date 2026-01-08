@@ -362,7 +362,7 @@ typedef struct __attribute__((packed))
     int32_t currentAdc1_uV;
     int32_t currentAdc2_uV;
 
-    float batteryVoltage1; // Why are these floats instead of int32_t?
+    float batteryVoltage1;
     float batteryVoltage2;
 
     int32_t currentAdcAccumulator1_uV;
@@ -371,7 +371,7 @@ typedef struct __attribute__((packed))
     int32_t batteryVoltageAccumulator1_uV;
     int32_t batteryVoltageAccumulator2_uV;
 
-    float voltageAdc[NUM_VOLTAGE_ADC]; // TODO: this is too long right now
+    float voltageAdc[NUM_VOLTAGE_ADC];
     float redundantVoltageAdc[NUM_RD_VOLTAGE_ADC];
 
     float referenceVoltage;
