@@ -70,15 +70,14 @@ static TRANSACTION_STATUS_E runPackMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 
 static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
-    activatePort(chainInfoData, TIME_WAKE_US);
-
-    // Init chain to default values (this will become initChain function)
     chainInfoData->commPorts[PORTA] = packMonPort;
     chainInfoData->commPorts[PORTB] = packMonPort;
     chainInfoData->numDevs = 1;
     chainInfoData->currentPort = PORTA;
     chainInfoData->chainStatus = CHAIN_COMPLETE;
     chainInfoData->delayTimerHandle = &htim14;
+
+    activatePort(chainInfoData, TIME_WAKE_US);
 
     TRANSACTION_STATUS_E status;
 

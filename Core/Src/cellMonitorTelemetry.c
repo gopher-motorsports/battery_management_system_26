@@ -78,10 +78,6 @@ static TRANSACTION_STATUS_E runCellMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 
 static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
 {
-    activatePort(chainInfoData, TIME_WAKE_US);
-
-    TRANSACTION_STATUS_E status;
-
     // Reset chain info struct to default values
     chainInfoData->commPorts[PORTA] = port1;
     chainInfoData->commPorts[PORTB] = port2;
@@ -91,6 +87,10 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
     chainInfoData->availableDevices[PORTB] = NUM_CELL_MON;
     chainInfoData->currentPort = PORTA;
     chainInfoData->delayTimerHandle = &htim7;
+    
+    activatePort(chainInfoData, TIME_WAKE_US);
+
+    TRANSACTION_STATUS_E status;
 
     if(chainInfoData->chainStatus != CHAIN_COMPLETE)
     {
