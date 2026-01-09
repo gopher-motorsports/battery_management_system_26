@@ -600,7 +600,7 @@ void startUpdateCellMon(void const * argument)
   for(;;)
   {
     // runUpdateCellMonitorTask();
-    osDelay(1000);
+    osDelay(100);
   }
   /* USER CODE END startUpdateCellMon */
 }
@@ -646,7 +646,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     usDelayActive = false;
     HAL_TIM_Base_Stop_IT(&htim7);
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-		xTaskNotifyFromISR(printTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+		xTaskNotifyFromISR(updateCellMonHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
   }
   /* USER CODE END Callback 1 */

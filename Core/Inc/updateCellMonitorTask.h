@@ -15,6 +15,9 @@ typedef struct
     // Cell temp array
     float cellTemp[14];
 
+    float boardTemp1;
+    float boardTemp2;
+
     // Calculated values
 
     float maxCellVoltage;

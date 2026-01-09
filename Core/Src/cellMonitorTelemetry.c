@@ -16,7 +16,13 @@
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
+static TRANSACTION_STATUS_E runCellMonitorCommandBlock(TRANSACTION_STATUS_E (*telemetryFunction)(CHAIN_INFO_S*, ADBMS_CellMonitorData*), CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
 
+static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+
+static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+
+static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -141,7 +147,39 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
         return status;
     }
 
+    // Toggle temperature sensor mux
+    cellMonitorData->configGroupA.gpo10State ^= 1;
+    
+    status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }    
+
     return readCellMonitorSerialId(chainInfoData, cellMonitorData);
+}
+
+static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
+{
+    TRANSACTION_STATUS_E status = readStatusC(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }    
+
+    // Check for sleepy BMBs
+    if(cellMonitorData->statusGroupC.sleepDetected)
+    {
+        return TRANSACTION_POR_ERROR;
+    }
+
+    status = readCellVoltages(chainInfoData, cellMonitorData, FILTERED_CELL_VOLTAGE);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    return readAuxVoltages(chainInfoData, cellMonitorData);
 }
 
 /* ==================================================================== */
@@ -150,5 +188,38 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
 
 TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
 {
+    TRANSACTION_STATUS_E telemetryStatus;
 
+    static bool initialized = false;
+
+    if(initialized)
+    {
+        telemetryStatus = runCellMonitorCommandBlock(startNewCellReadCycle, chainInfoData, cellMonitorData);
+
+        if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            telemetryStatus = runCellMonitorCommandBlock(readCellAdcs, chainInfoData, cellMonitorData);
+        }
+
+    }
+
+    if((!initialized) || (telemetryStatus == TRANSACTION_POR_ERROR))
+    {
+        Debug("Initializing chain...\n");
+
+        telemetryStatus = runCellMonitorCommandBlock(initCellMonitor, chainInfoData, cellMonitorData);
+
+        if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            Debug("Chain initialization successful!\n");
+            initialized = true;
+        }
+        else
+        {
+            Debug("Chain failed to initialize!\n");
+            initialized = false;
+        }
+    }
+
+    return telemetryStatus;
 }
