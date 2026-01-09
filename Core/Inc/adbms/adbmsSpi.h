@@ -92,6 +92,10 @@ typedef struct
 
     // The command counter
     uint8_t localCommandCounter;
+
+    // Timer used for delay in activatePort function
+    TIM_HandleTypeDef *delayTimerHandle;
+
 } CHAIN_INFO_S;
 
 

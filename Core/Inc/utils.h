@@ -48,7 +48,7 @@ typedef enum
 /* ==================================================================== */
 
 
-void delayMicroseconds(uint32_t us);
+void delayMicroseconds(uint32_t us, TIM_HandleTypeDef* timerHandle);
 
 SPI_STATUS_E taskNotifySPI(SPI_HandleTypeDef* hspi, uint8_t* txBuffer, uint8_t* rxBuffer, uint16_t size, uint32_t timeout);
 

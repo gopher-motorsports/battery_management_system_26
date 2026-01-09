@@ -18,20 +18,6 @@
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-extern SPI_HandleTypeDef hspi1;
-
-PORT_INSTANCE_S port1 = {
-    .spiHandle = &hspi1,
-    .csPort = PORTA_CS_GPIO_Port,
-    .csPin = PORTA_CS_Pin
-};
-
-PORT_INSTANCE_S port2 = {
-    .spiHandle = &hspi1,
-    .csPort = PORTB_CS_GPIO_Port,
-    .csPin = PORTB_CS_Pin
-};
-
 CHAIN_INFO_S chainInfo;
 
 static ADBMS_CellMonitorData cellMonitorData;

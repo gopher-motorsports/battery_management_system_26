@@ -13,6 +13,30 @@
 #define NUM_CELL_MON    10
 
 /* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern TIM_HandleTypeDef htim7;
+
+extern SPI_HandleTypeDef hspi1;
+
+/* ==================================================================== */
+/* ========================= LOCAL VARIABLES ========================== */
+/* ==================================================================== */
+
+PORT_INSTANCE_S port1 = {
+    .spiHandle = &hspi1,
+    .csPort = PORTA_CS_GPIO_Port,
+    .csPin = PORTA_CS_Pin
+};
+
+PORT_INSTANCE_S port2 = {
+    .spiHandle = &hspi1,
+    .csPort = PORTB_CS_GPIO_Port,
+    .csPin = PORTB_CS_Pin
+};
+
+/* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
@@ -59,12 +83,15 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
     TRANSACTION_STATUS_E status;
 
     // Reset chain info struct to default values
+    chainInfoData->commPorts[PORTA] = port1;
+    chainInfoData->commPorts[PORTB] = port2;
     chainInfoData->numDevs = NUM_CELL_MON;
     chainInfoData->chainStatus = MULTIPLE_CHAIN_BREAK;
     chainInfoData->availableDevices[PORTA] = NUM_CELL_MON;
     chainInfoData->availableDevices[PORTB] = NUM_CELL_MON;
     chainInfoData->currentPort = PORTA;
     chainInfoData->localCommandCounter = 0;
+    chainInfoData->delayTimerHandle = &htim7;
 
     if(chainInfoData->chainStatus != CHAIN_COMPLETE)
     {
@@ -149,7 +176,7 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
 
     // Toggle temperature sensor mux
     cellMonitorData->configGroupA.gpo10State ^= 1;
-    
+
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {

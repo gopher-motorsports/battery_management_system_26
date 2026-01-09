@@ -1,6 +1,7 @@
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
+
 #include "adbms/adbmsSpi.h"
 #include "utils.h"
 #include <string.h>
@@ -359,14 +360,13 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint8_t registerSize,
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-
 void activatePort(CHAIN_INFO_S* chainInfo, uint32_t usDelay)
 {
     for(uint8_t i = 0; i < (chainInfo->numDevs + 1); i++)
     {
         HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_SET);
-        delayMicroseconds(usDelay);
+        delayMicroseconds(usDelay, chainInfo->delayTimerHandle);
     }
 
 }

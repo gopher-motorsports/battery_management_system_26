@@ -24,19 +24,18 @@
 /* ==================================================================== */
 
 extern bool usDelayActive;
-extern TIM_HandleTypeDef htim7;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-void delayMicroseconds(uint32_t us)
+void delayMicroseconds(uint32_t us, TIM_HandleTypeDef* timerHandle)
 {
     if(!usDelayActive)
     {
         usDelayActive = true;
-        __HAL_TIM_SET_AUTORELOAD(&htim7, us - 1);
-        HAL_TIM_Base_Start_IT(&htim7);
+        __HAL_TIM_SET_AUTORELOAD(timerHandle, us - 1);
+        HAL_TIM_Base_Start_IT(timerHandle);
         xTaskNotifyWait(0, 0, NULL, US_DELAY_TIMEOUT);
     }
 }

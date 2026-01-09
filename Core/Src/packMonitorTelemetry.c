@@ -11,6 +11,24 @@
 #define NUM_COMMAND_BLOCK_RETRYS    3
 
 /* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern TIM_HandleTypeDef htim14;
+
+extern SPI_HandleTypeDef hspi2;
+
+/* ==================================================================== */
+/* ========================= LOCAL VARIABLES ========================== */
+/* ==================================================================== */
+
+PORT_INSTANCE_S packMonPort = {
+    .spiHandle = &hspi2,
+    .csPort = PACK_MON_CS_N_GPIO_Port,
+    .csPin = PACK_MON_CS_N_Pin
+};
+
+/* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
@@ -53,6 +71,14 @@ static TRANSACTION_STATUS_E runPackMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
     activatePort(chainInfoData, TIME_WAKE_US);
+
+    // Init chain to default values (this will become initChain function)
+    chainInfoData->commPorts[PORTA] = packMonPort;
+    chainInfoData->commPorts[PORTB] = packMonPort;
+    chainInfoData->numDevs = 1;
+    chainInfoData->currentPort = PORTA;
+    chainInfoData->chainStatus = CHAIN_COMPLETE;
+    chainInfoData->delayTimerHandle = &htim14;
 
     TRANSACTION_STATUS_E status;
 
