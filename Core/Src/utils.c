@@ -19,11 +19,8 @@
 // Number of SPI retry events
 #define NUM_SPI_RETRY       3
 
-/* ==================================================================== */
-/* ======================= EXTERNAL VARIABLES ========================= */
-/* ==================================================================== */
-
-extern bool usDelayActive;
+extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim14;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
@@ -31,13 +28,9 @@ extern bool usDelayActive;
 
 void delayMicroseconds(uint32_t us, TIM_HandleTypeDef* timerHandle)
 {
-    if(!usDelayActive)
-    {
-        usDelayActive = true;
-        __HAL_TIM_SET_AUTORELOAD(timerHandle, us - 1);
-        HAL_TIM_Base_Start_IT(timerHandle);
-        xTaskNotifyWait(0, 0, NULL, US_DELAY_TIMEOUT);
-    }
+    __HAL_TIM_SET_AUTORELOAD(&htim7, us - 1);
+    HAL_TIM_Base_Start_IT(&htim7);
+    xTaskNotifyWait(0, 0, NULL, US_DELAY_TIMEOUT);
 }
 
 SPI_STATUS_E taskNotifySPI(SPI_HandleTypeDef* hspi, uint8_t* txBuffer, uint8_t* rxBuffer, uint16_t size, uint32_t timeout)

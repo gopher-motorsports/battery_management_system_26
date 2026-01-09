@@ -10,7 +10,7 @@
 
 #define NUM_COMMAND_BLOCK_RETRYS    3
 
-#define NUM_CELL_MON    10
+#define NUM_CELL_MON    1
 
 /* ==================================================================== */
 /* ======================= EXTERNAL VARIABLES ========================= */
@@ -90,7 +90,6 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
     chainInfoData->availableDevices[PORTA] = NUM_CELL_MON;
     chainInfoData->availableDevices[PORTB] = NUM_CELL_MON;
     chainInfoData->currentPort = PORTA;
-    chainInfoData->localCommandCounter = 0;
     chainInfoData->delayTimerHandle = &htim7;
 
     if(chainInfoData->chainStatus != CHAIN_COMPLETE)
@@ -101,6 +100,12 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         {
             return status;
         }
+    }
+
+    status = clearCellMonitorFlags(chainInfoData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
     }
 
     // Set configuration for Group A
@@ -175,7 +180,7 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
     }
 
     // Toggle temperature sensor mux
-    cellMonitorData->configGroupA.gpo10State ^= 1;
+    cellMonitorData[0].configGroupA.gpo10State ^= 1;
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
@@ -195,7 +200,7 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }    
 
     // Check for sleepy BMBs
-    if(cellMonitorData->statusGroupC.sleepDetected)
+    if(cellMonitorData[0].statusGroupC.sleepDetected)
     {
         return TRANSACTION_POR_ERROR;
     }

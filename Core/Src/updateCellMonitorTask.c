@@ -20,7 +20,7 @@
 
 CHAIN_INFO_S chainInfo;
 
-static ADBMS_CellMonitorData cellMonitorData;
+static ADBMS_CellMonitorData cellMonitorData[1];
 
 static cellMonitorTask_S taskData;
 
@@ -43,7 +43,7 @@ void initUpdateCellMonitorTask()
 
 void runUpdateCellMonitorTask()
 {
-    TRANSACTION_STATUS_E telemetryStatus = updateCellTelemetry(&chainInfo, &cellMonitorData);
+    TRANSACTION_STATUS_E telemetryStatus = updateCellTelemetry(&chainInfo, cellMonitorData);
 
     if(telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR)
     {
@@ -65,25 +65,25 @@ void runUpdateCellMonitorTask()
     // Assign all cell voltages
     for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     {
-        taskData.cellVoltage[i] = cellMonitorData.cellVoltage[i];
+        taskData.cellVoltage[i] = cellMonitorData[0].cellVoltage[i];
     }
 
     // Filter and assign all cell temps
     // Cell indexes are offset depending on the mux state, which is set by gpio10
-    uint32_t cellOffset = cellMonitorData.configGroupA.gpo10State;
+    uint32_t cellOffset = cellMonitorData[0].configGroupA.gpo10State;
 
     for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
     {
-        float cellTemp = lookup(cellMonitorData.auxVoltage[j], &cellMonTempTable);
+        float cellTemp = lookup(cellMonitorData[0].auxVoltage[j], &cellMonTempTable);
         taskData.cellTemp[(j * 2) + cellOffset] = cellTemp;
     }
 
-    float boardTemp = lookup(cellMonitorData.auxVoltage[8], &cellMonTempTable);
-    if(cellMonitorData.configGroupA.gpo10State == 0)
+    float boardTemp = lookup(cellMonitorData[0].auxVoltage[8], &cellMonTempTable);
+    if(cellMonitorData[0].configGroupA.gpo10State == 0)
     {
         taskData.boardTemp1 = boardTemp;
     }
-    else if(cellMonitorData.configGroupA.gpo10State == 1)
+    else if(cellMonitorData[0].configGroupA.gpo10State == 1)
     {
         taskData.boardTemp2 = boardTemp;
     }
@@ -92,8 +92,8 @@ void runUpdateCellMonitorTask()
     {
         printf("Cell Voltage %u: %f V\n", i, taskData.cellVoltage[i]);
         printf("Cell Temp %u: %f C\n", i, taskData.cellTemp[i]);
-        printf("Board Temp 1: %f\n", taskData.boardTemp1);
-        printf("Board Temp 2: %f\n", taskData.boardTemp2);
     }
+    printf("Board Temp 1: %f\n", taskData.boardTemp1);
+    printf("Board Temp 2: %f\n", taskData.boardTemp2);
 
 }

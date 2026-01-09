@@ -72,8 +72,6 @@ uint32_t updatePackMonBuffer[ 1024 ];
 osStaticThreadDef_t updatePackMonControlBlock;
 /* USER CODE BEGIN PV */
 
-volatile bool usDelayActive;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -633,8 +631,8 @@ void startUpdateCellMon(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    // runUpdateCellMonitorTask();
-    osDelay(100);
+    runUpdateCellMonitorTask();
+    osDelay(1000);
   }
   /* USER CODE END startUpdateCellMon */
 }
@@ -649,11 +647,11 @@ void startUpdateCellMon(void const * argument)
 void startUpdatePackMon(void const * argument)
 {
   /* USER CODE BEGIN startUpdatePackMon */
-  initUpdatePackMonitorTask();
+  // initUpdatePackMonitorTask();
   /* Infinite loop */
   for(;;)
   {
-    runUpdatePackMonitorTask();
+    // runUpdatePackMonitorTask();
     osDelay(100);
   }
   /* USER CODE END startUpdatePackMon */
@@ -677,14 +675,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
   /* USER CODE BEGIN Callback 1 */
   if (htim->Instance == TIM7) {
-    usDelayActive = false;
     HAL_TIM_Base_Stop_IT(&htim7);
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updateCellMonHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
 		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
   }
   if (htim->Instance == TIM14) {
-    usDelayActive = false;
     HAL_TIM_Base_Stop_IT(&htim14);
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updatePackMonHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
