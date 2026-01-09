@@ -3,8 +3,16 @@
 /* ==================================================================== */
 
 #include "updateCellMonitorTask.h"
+#include "cellMonitorTelemetry.h"
 #include "adbms/adbmsCellMonitor.h"
+#include "packData.h"
 #include <stdio.h>
+
+/* ==================================================================== */
+/* ============================= DEFINES ============================== */
+/* ==================================================================== */
+
+#define NUM_CELL_TEMP_ADCS      7
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -26,8 +34,9 @@ PORT_INSTANCE_S port2 = {
 
 CHAIN_INFO_S chainInfo;
 
-// Do something like this to replace ADBMS_BatteryData??
-static ADBMS_CellMonitorData cellMonitor[1];
+static ADBMS_CellMonitorData cellMonitorData;
+
+static cellMonitorTask_S taskData;
 
 uint8_t txBuffer[6] = {0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
 
@@ -43,70 +52,62 @@ void initUpdateCellMonitorTask()
     HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
 
-    // Wake the device
-    activatePort(&chainInfo, TIME_WAKE_US);
-
-    // Init chain to default values (this will become initChain function)
-    chainInfo.commPorts[PORTA] = port1;
-    chainInfo.commPorts[PORTB] = port2;
-    chainInfo.numDevs = 1;
-    chainInfo.currentPort = PORTA;
-    chainInfo.chainStatus = CHAIN_COMPLETE;
-    // chainInfo.localCommandCounter = 0;
 
 }
 
 void runUpdateCellMonitorTask()
 {
-    // Ready the device
-    activatePort(&chainInfo, TIME_READY_US);
+    TRANSACTION_STATUS_E telemetryStatus = updateCellTelemetry(&chainInfo, &cellMonitorData);
 
-    updateChainStatus(&chainInfo);
-
-    printf("Starting comms . . .\n");
-    TRANSACTION_STATUS_E status = readCellMonitorSerialId(&chainInfo, cellMonitor);
-    printf("Serial ID status: %u\n", status);
-    for(uint8_t i = 0; i < 6; i++)
+    if(telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR)
     {
-        printf("Serial ID reading: %X\n", cellMonitor->serialId[i]);
+        Debug("Chain Break!\n");
+    }
+    else if(telemetryStatus == TRANSACTION_SPI_ERROR)
+    {
+        Debug("SPI Failure!\n");
+    }
+    else if(telemetryStatus == TRANSACTION_POR_ERROR)
+    {
+        Debug("Failed to correct power on reset error!\n");
+    }
+    else if(telemetryStatus == TRANSACTION_COMMAND_COUNTER_ERROR)
+    {
+        Debug("Persistent Command Counter Error!\n");
     }
 
-    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, NO_FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
-    readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
+    // Assign all cell voltages
     for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     {
-        printf("Cell Voltage %u: %f\n", i, cellMonitor->cellVoltage[i]);
+        taskData.cellVoltage[i] = cellMonitorData.cellVoltage[i];
     }
 
+    // Filter and assign all cell temps
+    // Cell indexes are offset depending on the mux state, which is set by gpio10
+    uint32_t cellOffset = cellMonitorData.configGroupA.gpo10State;
 
-    // writeRegister(0x0024, 1, txBuffer, &port1);
-    // port1.localCommandCounter++;
-    // if(port1.localCommandCounter > 63)
-    // {
-    //     port1.localCommandCounter = 1;
-    // }
-    // static uint8_t rxBuffer[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    // printf("\e[1;1H\e[2J");
+    for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+    {
+        float cellTemp = lookup(cellMonitorData.auxVoltage[j], &cellMonTempTable);
+        taskData.cellTemp[(j * 2) + cellOffset] = cellTemp;
+    }
 
-    // // start s-adc conversion, read register
-    // sendCommand(0x2C0, &port1); // ADCV command
-    // // sendCommand(PLCADC); how is polling done?
-    // printf("return status: %lu\n", (uint32_t)readRegister(RDCVA, 1, rxBuffer, &port1));
-    // printf("rxBuffer: \n");
-    // for (uint8_t i = 0; i < 6; i++) {
-    //     printf("index[%d]: %X\n", i, rxBuffer[i]);
-    // }
-    // printf("return status: %lu\n", (uint32_t)readRegister(RDAUXD, 1, rxBuffer, &port1));
-    // printf("rxBuffer: \n");
-    // for (uint8_t i = 0; i < 6; i++) {
-    //     printf("index[%d]: %X\n", i, rxBuffer[i]);
-    // }
+    float boardTemp = lookup(cellMonitorData.auxVoltage[8], &cellMonTempTable);
+    if(cellMonitorData.configGroupA.gpo10State == 0)
+    {
+        taskData.boardTemp1 = boardTemp;
+    }
+    else if(cellMonitorData.configGroupA.gpo10State == 1)
+    {
+        taskData.boardTemp2 = boardTemp;
+    }
 
+    for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    {
+        printf("Cell Voltage %u: %f V\n", i, taskData.cellVoltage[i]);
+        printf("Cell Temp %u: %f C\n", i, taskData.cellTemp[i]);
+        printf("Board Temp 1: %f\n", taskData.boardTemp1);
+        printf("Board Temp 2: %f\n", taskData.boardTemp2);
+    }
 
-    // read register
-    // printf("return status: %lu\n", (uint32_t)readRegister(RDCFGB, 1, rxBuffer, &port1));
-    // printf("rxBuffer: \n");
-    // for (uint8_t i = 0; i < 6; i++) {
-    //     printf("index[%d]: %X\n", i, rxBuffer[i]);
-    // }
 }
