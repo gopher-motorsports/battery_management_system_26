@@ -4,7 +4,6 @@
 
 #include "updateCellMonitorTask.h"
 #include "cellMonitorTelemetry.h"
-#include "adbms/adbmsCellMonitor.h"
 #include "packData.h"
 #include <stdio.h>
 
@@ -24,8 +23,6 @@ static ADBMS_CellMonitorData cellMonitorData[1];
 
 static cellMonitorTask_S taskData;
 
-uint8_t txBuffer[6] = {0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
-
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -35,9 +32,10 @@ void initUpdateCellMonitorTask()
     // Set both CS high upon start up
     HAL_GPIO_WritePin(PORTA_CS_GPIO_Port, PORTA_CS_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(PORTB_CS_GPIO_Port, PORTB_CS_Pin, GPIO_PIN_SET);
+
+    // TODO: Alerts
     HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
-
 
 }
 

@@ -14,8 +14,8 @@
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim14;
+extern TIM_HandleTypeDef htim2;     // For coulomb counting
+extern TIM_HandleTypeDef htim14;    // For spi microseconds delay
 
 extern SPI_HandleTypeDef hspi2;
 

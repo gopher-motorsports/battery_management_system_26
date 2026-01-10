@@ -2,6 +2,12 @@
 #define INC_UPDATE_CELL_MONITOR_TASK_H_
 
 /* ==================================================================== */
+/* ============================= INCLUDES ============================= */
+/* ==================================================================== */
+
+#include "adbms/adbmsCellMonitor.h"
+
+/* ==================================================================== */
 /* ============================== STRUCTS ============================= */
 /* ==================================================================== */
 
@@ -10,10 +16,10 @@ typedef struct
     // Module measurements
 
     // Cell voltage array
-    float cellVoltage[14]; // TODO: what is the correct way to include NUM_CELLS_PER_CELL_MONITOR from adbmsCellMonitor.h?
+    float cellVoltage[NUM_CELLS_PER_CELL_MONITOR];
 
     // Cell temp array
-    float cellTemp[14];
+    float cellTemp[NUM_CELLS_PER_CELL_MONITOR];
 
     float boardTemp1;
     float boardTemp2;

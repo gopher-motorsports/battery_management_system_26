@@ -44,48 +44,15 @@ static ADBMS_PackMonitorData packMonitorData;
 
 static packMonitorTask_S taskData;
 
-/* TEMP LOCAL FUNCTIONS */
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DECLARATIONS ==================== */
+/* ==================================================================== */
 
-void printPackMonitor(ADBMS_PackMonitorData* packMonitor)
-{
-    printf("==== ADBMS2950 Pack Monitor ====\n");
+static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData);
 
-    /* ---------------- Current ADCs ---------------- */
-    printf("Current ADCs:\n");
-    printf("  I1: %ld uV\n", (long)packMonitor->currentAdc1_uV);
-    printf("  I2: %ld uV\n", (long)packMonitor->currentAdc2_uV);
-
-    /* ---------------- Battery Voltage ADCs ---------------- */
-    printf("Battery Voltage Adcs:\n");
-    printf("  VBAT1: %f V\n", packMonitor->batteryVoltage1);
-    printf("  VBAT2: %f V\n", packMonitor->batteryVoltage1);
-    printf("  Battery Voltage: %f V\n", (packMonitor->batteryVoltage1 * HV_DIV_GAIN));
-
-    /* ---------------- Voltage ADCs ---------------- */
-    printf("Voltage ADCs:\n");
-    for (uint16_t i = 0; i < NUM_VOLTAGE_ADC; i++)
-    {
-        printf("  V%u: %.3f V\n", (i + 1), packMonitor->voltageAdc[i]);
-    }
-
-    /* ---------------- Aux Voltages ---------------- */
-    printf("Aux Voltages:\n");
-    printf("  VREF:      %.3f V\n", packMonitor->referenceVoltage);
-    printf("  VREF_RED:  %.3f V\n", packMonitor->redundantReferenceVoltage);
-    printf("  VREF_1P25: %.3f V\n", packMonitor->referenceVoltage1P25);
-    printf("  VREG:      %.3f V\n", packMonitor->vregPowerSupply);
-    printf("  VDD:       %.3f V\n", packMonitor->vddPowerSupply);
-    printf("  VDIG:      %.3f V\n", packMonitor->digitalSupply);
-    printf("  EPAD:      %.3f V\n", packMonitor->exposedPadVoltage);
-    printf("  VREF_DIV:  %.3f V\n", packMonitor->dividedReferenceVoltage);
-
-    /* ---------------- Temperature Channels ---------------- */
-    printf("Temperature Channels:\n");
-    printf("  T_INT1:    %.2f C\n", packMonitor->primaryIntTemp);
-    printf("  T_INT2:    %.2f C\n", packMonitor->secondaryIntTemp);
-
-    printf("================================\n\n");
-}
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DEFINITIONS ===================== */
+/* ==================================================================== */
 
 static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData)
 {
@@ -152,19 +119,6 @@ void initUpdatePackMonitorTask()
     // Set CS high upon start up
     HAL_GPIO_WritePin(PACK_MON_CS_N_GPIO_Port, PACK_MON_CS_N_Pin, GPIO_PIN_SET);
 
-    // // Ready the device
-    // activatePort(&packMonInfo, TIME_WAKE_US);
-
-    // readPackMonitorConfigA(&packMonInfo, &packMonitor);
-    // packMonitor.configGroupA.v4Reference = 1;
-    // packMonitor.configGroupA.v6Reference = 1;
-    // packMonitor.configGroupA.gpo1HighZMode = 0;
-    // writePackMonitorConfigA(&packMonInfo, &packMonitor);
-
-    // startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
-    // startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
-    // startAuxVoltageConversions(&packMonInfo);
-
 }
 
 void runUpdatePackMonitorTask()
@@ -210,7 +164,7 @@ void runUpdatePackMonitorTask()
 
     if(++counter > 8)
     {
-        // printf("\e[1;1H\e[2J");
+        printf("\e[1;1H\e[2J");
         Debug("Battery Current: %f A\n", taskData.packCurrent);
         Debug("Battery Voltage: %f V\n", taskData.packVoltage);
         Debug("Power: %f W\n", taskData.packPower);
@@ -220,56 +174,5 @@ void runUpdatePackMonitorTask()
         Debug("Link Voltage: %f V\n", taskData.linkVoltage);
         counter = 0;
     }
-
-
-
-
-    // Ready the device
-    // activatePort(&packMonInfo, TIME_READY_US);
-
-
-
-    // if(resetCount > 30)
-    // {
-    //     stop = 1;
-    // }
-
-    // clearPackMonitorVoltageRegisters(&packMonInfo);
-    
-
-    // updateChainStatus(&packMonInfo);
-
-    // TRANSACTION_STATUS_E status = readPackMonitorSerialId(&packMonInfo, &packMonitor);
-    
-    // printf("Serial ID Transaction Status: %u\n", status);
-
-    // for(uint8_t i = 0; i < REGISTER_SIZE_BYTES; i++)
-    // {
-    //     printf("Serial ID Byte [%u]: %X\n", i, packMonitor.serialId[i]);
-    // }
-
-    // static bool voltageAdcStarted = 0;
-
-    // if(!voltageAdcStarted)
-    // {
-    //     status = startAdcConversions(&packMonInfo, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
-    //     voltageAdcStarted = 1;
-    // }
-
-    // status = readVoltageAdc1(&packMonInfo, &packMonitor);
-
-    // status = startVoltageConversions(&packMonInfo, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
-
-    // float linkPlusDivVoltage = packMonitor.voltageAdc[3];
-    // float linkMinusDivVoltage = packMonitor.voltageAdc[5];
-
-    // printf("Link+ Div Voltage: %f\n", linkPlusDivVoltage);
-    // printf("Link- Div Voltage: %f\n", linkMinusDivVoltage);
-    // // TODO: calculate using divider gain
-
-    // float linkVoltage = (packMonitor.voltageAdc[3] - packMonitor.voltageAdc[5]) * LINK_DIV_GAIN;
-
-    // printf("Link Voltage: %f\n", linkVoltage);
-
     
 }
