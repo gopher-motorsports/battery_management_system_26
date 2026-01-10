@@ -74,7 +74,9 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
     chainInfoData->commPorts[PORTB] = packMonPort;
     chainInfoData->numDevs = 1;
     chainInfoData->currentPort = PORTA;
-    chainInfoData->chainStatus = CHAIN_COMPLETE;
+    chainInfoData->chainStatus = MULTIPLE_CHAIN_BREAK;
+    chainInfoData->availableDevices[PORTA] = 1;
+    chainInfoData->availableDevices[PORTB] = 1;
     chainInfoData->delayTimerHandle = &htim14;
 
     activatePort(chainInfoData, TIME_WAKE_US);
@@ -201,7 +203,7 @@ TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
 
         if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            telemetryStatus = runPackMonitorCommandBlock(updatePackTelemetry, chainInfoData, packMonitorData);
+            telemetryStatus = runPackMonitorCommandBlock(readPackAdcs, chainInfoData, packMonitorData);
         }
 
     }

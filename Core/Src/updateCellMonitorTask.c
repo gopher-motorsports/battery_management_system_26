@@ -88,12 +88,12 @@ void runUpdateCellMonitorTask()
         taskData.boardTemp2 = boardTemp;
     }
 
-    for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
-    {
-        printf("Cell Voltage %u: %f V\n", i, taskData.cellVoltage[i]);
-        printf("Cell Temp %u: %f C\n", i, taskData.cellTemp[i]);
-    }
-    printf("Board Temp 1: %f\n", taskData.boardTemp1);
-    printf("Board Temp 2: %f\n", taskData.boardTemp2);
+    // for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    // {
+    //     printf("Cell Voltage %u: %f V\n", i, taskData.cellVoltage[i]);
+    //     printf("Cell Temp %u: %f C\n", i, taskData.cellTemp[i]);
+    // }
+    // printf("Board Temp 1: %f\n", taskData.boardTemp1);
+    // printf("Board Temp 2: %f\n", taskData.boardTemp2);
 
 }

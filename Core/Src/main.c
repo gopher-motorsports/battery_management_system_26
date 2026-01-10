@@ -127,34 +127,34 @@ GETCHAR_PROTOTYPE
 */
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
 	if (hspi == &hspi1)
 	{
-		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
   if (hspi == &hspi2)
   {
-		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updatePackMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);    
   }
+
+  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
 	if (hspi == &hspi1)
 	{
-		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updateCellMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
   if (hspi == &hspi2)
   {
-		static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 		xTaskNotifyFromISR(updatePackMonHandle, SPI_SUCCESS, eSetBits, &xHigherPriorityTaskWoken);
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);    
   }
+
+  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 0 */
 
@@ -647,11 +647,11 @@ void startUpdateCellMon(void const * argument)
 void startUpdatePackMon(void const * argument)
 {
   /* USER CODE BEGIN startUpdatePackMon */
-  // initUpdatePackMonitorTask();
+  initUpdatePackMonitorTask();
   /* Infinite loop */
   for(;;)
   {
-    // runUpdatePackMonitorTask();
+    runUpdatePackMonitorTask();
     osDelay(100);
   }
   /* USER CODE END startUpdatePackMon */

@@ -41,6 +41,9 @@ SPI_STATUS_E taskNotifySPI(SPI_HandleTypeDef* hspi, uint8_t* txBuffer, uint8_t* 
 {
     for(uint32_t attemptNum = 0; attemptNum < NUM_SPI_RETRY; attemptNum++)
     {
+        // Clear stale task notifications to prevent xTaskNotifyWait() from immediatley returning due to previous SPI error
+        xTaskNotifyStateClear(NULL);
+
         // Attempt to start SPI transaction
         if(rxBuffer == NULL)
         {
