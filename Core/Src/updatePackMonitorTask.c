@@ -155,6 +155,14 @@ void runUpdatePackMonitorTask()
 
         taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
+        if((taskData.linkVoltage < (0.93f * taskData.packVoltage)) || (taskData.linkVoltage < 10.0f))
+        {
+            HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_RESET);
+        } else 
+        {
+            HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_SET);
+        }
+
         // taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
 
         calculatePackParameters(&packMonitorData, &taskData);

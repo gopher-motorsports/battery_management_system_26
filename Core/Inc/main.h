@@ -73,6 +73,8 @@ void Error_Handler(void);
 #define ISO_SPI_MISO_GPIO_Port GPIOA
 #define ISO_SPI_MOSI_Pin GPIO_PIN_7
 #define ISO_SPI_MOSI_GPIO_Port GPIOA
+#define PRECHARGE_DONE_Pin GPIO_PIN_10
+#define PRECHARGE_DONE_GPIO_Port GPIOB
 #define PACK_MON_CS_N_Pin GPIO_PIN_12
 #define PACK_MON_CS_N_GPIO_Port GPIOB
 #define PACK_MON_MISO_Pin GPIO_PIN_14

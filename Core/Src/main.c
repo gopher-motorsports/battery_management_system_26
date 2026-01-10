@@ -571,7 +571,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, MCU_FAULT_Pin|MCU_HEART_Pin|PORTB_CS_Pin|PORTA_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(PACK_MON_CS_N_GPIO_Port, PACK_MON_CS_N_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, PRECHARGE_DONE_Pin|PACK_MON_CS_N_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
@@ -592,12 +592,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PACK_MON_CS_N_Pin */
-  GPIO_InitStruct.Pin = PACK_MON_CS_N_Pin;
+  /*Configure GPIO pins : PRECHARGE_DONE_Pin PACK_MON_CS_N_Pin */
+  GPIO_InitStruct.Pin = PRECHARGE_DONE_Pin|PACK_MON_CS_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PACK_MON_CS_N_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BMS_FAULT_Pin */
   GPIO_InitStruct.Pin = BMS_FAULT_Pin;
