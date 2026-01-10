@@ -83,8 +83,8 @@ static void MX_SPI1_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_TIM14_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM14_Init(void);
 void startPrintTask(void const * argument);
 void startIdleTask(void const * argument);
 void startUpdateCellMon(void const * argument);
@@ -194,8 +194,8 @@ int main(void)
   MX_TIM7_Init();
   MX_USART1_UART_Init();
   MX_SPI2_Init();
-  MX_TIM14_Init();
   MX_TIM2_Init();
+  MX_TIM14_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
   

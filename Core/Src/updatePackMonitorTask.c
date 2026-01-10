@@ -137,8 +137,8 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
             
         }
 
-        printf("Battery Current: %f A\n", ((float)(-1000 * packMonitorData->currentAdc1_uV)) / ((float)(SHUNT_REF_RESISTANCE_NANO_OHMS)));
-        printf("MilliCoulombCounter: %li\n\n", milliCoulombCounter);
+        // printf("Battery Current: %f A\n", ((float)(-1000 * packMonitorData->currentAdc1_uV)) / ((float)(SHUNT_REF_RESISTANCE_NANO_OHMS)));
+        // printf("MilliCoulombCounter: %li\n\n", milliCoulombCounter);
     }
     
 }
@@ -192,14 +192,14 @@ void runUpdatePackMonitorTask()
     {
         // Update task data
         // taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
-        // taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
-        // taskData.packPower = taskData.packCurrent * taskData.packVoltage;
+        taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
+        taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
-        // taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
-        // taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
-        // taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
+        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
+        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
+        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
 
-        // taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
+        taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
         // taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
 
@@ -218,7 +218,6 @@ void runUpdatePackMonitorTask()
         Debug("Precharge Temp: %f C\n", taskData.prechargeTemp);
         Debug("Discharge Temp: %f C\n", taskData.dischargeTemp);
         Debug("Link Voltage: %f V\n", taskData.linkVoltage);
-        Debug("Shunt Resistance: %f uOhms\n", taskData.shuntResistanceMicroOhms);
         counter = 0;
     }
 
