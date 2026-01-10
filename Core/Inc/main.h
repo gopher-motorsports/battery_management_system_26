@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SDC2_Pin GPIO_PIN_14
+#define SDC2_GPIO_Port GPIOC
 #define MCU_FAULT_Pin GPIO_PIN_0
 #define MCU_FAULT_GPIO_Port GPIOA
 #define MCU_HEART_Pin GPIO_PIN_2
