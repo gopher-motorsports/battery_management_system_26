@@ -632,11 +632,14 @@ void startPrintTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   initPrintTask();
+  TickType_t lastPrintTaskTick;
+  const TickType_t printTaskPeriod = pdMS_TO_TICKS(1000);
+
   /* Infinite loop */
   for(;;)
   {
     runPrintTask();
-    osDelay(100);
+    vTaskDelayUntil(&lastPrintTaskTick, printTaskPeriod);
   }
   /* USER CODE END 5 */
 }
@@ -651,6 +654,9 @@ void startPrintTask(void const * argument)
 void startIdleTask(void const * argument)
 {
   /* USER CODE BEGIN startIdleTask */
+  TickType_t lastIdleTaskTick;
+  const TickType_t idleTaskPeriod = pdMS_TO_TICKS(100);
+
   static uint32_t lastHeartbeatUpdate = 0;
   HAL_GPIO_WritePin(MCU_HEART_GPIO_Port, MCU_HEART_Pin, GPIO_PIN_RESET);
   /* Infinite loop */
@@ -661,7 +667,7 @@ void startIdleTask(void const * argument)
       HAL_GPIO_TogglePin(MCU_HEART_GPIO_Port, MCU_HEART_Pin);
       lastHeartbeatUpdate = HAL_GetTick();
     }
-    osDelay(100);
+    vTaskDelayUntil(&lastIdleTaskTick, idleTaskPeriod);
   }
   /* USER CODE END startIdleTask */
 }
@@ -677,11 +683,14 @@ void startUpdateCellMon(void const * argument)
 {
   /* USER CODE BEGIN startUpdateCellMon */
   initUpdateCellMonitorTask();
+  TickType_t lastUpdateCellMonitorTaskTick;
+  const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(100);
+
   /* Infinite loop */
   for(;;)
   {
     runUpdateCellMonitorTask();
-    osDelay(1000);
+    vTaskDelayUntil(&lastUpdateCellMonitorTaskTick, updateCellMonitorTaskPeriod);
   }
   /* USER CODE END startUpdateCellMon */
 }
