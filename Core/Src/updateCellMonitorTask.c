@@ -19,7 +19,7 @@
 
 CHAIN_INFO_S chainInfo;
 
-static ADBMS_CellMonitorData cellMonitorData[1];
+static ADBMS_CellMonitorData cellMonitorData[NUM_CELL_MON];
 
 static cellMonitorTask_S taskData;
 

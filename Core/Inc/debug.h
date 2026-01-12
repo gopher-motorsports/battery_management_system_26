@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define DEBUG_ON 0
+#define DEBUG_ON 1
 #if DEBUG_ON
 	#define Debug(__info,...) printf("Debug: " __info,##__VA_ARGS__)
 #else

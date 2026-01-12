@@ -87,7 +87,7 @@ static void printCellTemps(cellMonitorTask_S* cellTaskPrintData)
     printf("|  Board   |");
     for(int32_t j = 0; j < NUM_CELL_MON; j++)
     {
-        printf("   %3.1f    |", (double)cellTaskPrintData->boardTemp1);
+        printf("    %3.1f   |", (double)cellTaskPrintData->boardTemp1);
     }
 	printf("\n\n");
     // printf("|   Die   |");
@@ -117,13 +117,13 @@ static void printPackMonData(packMonitorTask_S* packTaskPrintData)
 {
     printf("// Pack Parameters //\n");
     printf("Battery Current: %f A,    ", packTaskPrintData->packCurrent);
-    printf("Battery Voltage: %f V\n", packTaskPrintData->packVoltage);
+    printf("Battery Voltage: %f V,    ", packTaskPrintData->packVoltage);
     printf("Power: %f W\n", packTaskPrintData->packPower);
-    printf("Shunt Temp: %f C,    ", packTaskPrintData->shuntTemp1);
+    printf("Shunt Temp: %f C,        ", packTaskPrintData->shuntTemp1);
     printf("Shunt Resistance: %li nOhms\n", packTaskPrintData->shuntResistance_nOhms);
-    printf("Precharge Temp: %f C,    ", packTaskPrintData->prechargeTemp);
+    printf("Precharge Temp: %f C,   ", packTaskPrintData->prechargeTemp);
     printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
-    printf("Link Voltage: %f V\n", packTaskPrintData->linkVoltage);
+    printf("Link Voltage: %f V,       ", packTaskPrintData->linkVoltage);
     printf("Conversion Time: %hu us\n", packTaskPrintData->conversionTime_us);
 }
 
