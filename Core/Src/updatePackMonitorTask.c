@@ -111,7 +111,7 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
             if(abs(packMonitorData->currentAdcAccumulator1_uV) >= MIN_VALID_IADC_READING)
             {
                 int32_t picoVoltSeconds = -1 * packMonitorData->currentAdcAccumulator1_uV * taskData->conversionTime_us;
-                milliCoulombCounter += picoVoltSeconds / SHUNT_REF_RESISTANCE_NANO_OHMS;
+                milliCoulombCounter += picoVoltSeconds / taskData->shuntResistance_nOhms;
             }
             
         }
@@ -157,13 +157,15 @@ void runUpdatePackMonitorTask()
     if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
     {
         // Update task data
-        // taskData.packCurrent = packMonitorData.currentAdc1_uV / SHUNT_REF_RESISTANCE_UOHM;
-        taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
-        taskData.packPower = taskData.packCurrent * taskData.packVoltage;
-
         taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntTempTable);
         taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &shuntTempTable);
         taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &shuntTempTable);
+
+        taskData.shuntResistance_nOhms = lroundf(lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntResistanceTable));
+
+        taskData.packCurrent = packMonitorData.currentAdc1_uV * 1000 / taskData.shuntResistance_nOhms;
+        taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
+        taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
         taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
@@ -175,17 +177,7 @@ void runUpdatePackMonitorTask()
             HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_SET);
         }
 
-        // taskData.shuntResistanceMicroOhms = SHUNT_REF_RESISTANCE_UOHM + SHUNT_RESISTANCE_GAIN_UOHM * (taskData.shuntTemp1 - SHUNT_REF_TEMP_C);
-
         calculatePackParameters(&packMonitorData, &taskData);
-    }
-
-    // Calibration test code
-    static float nextV = 1.2f;
-    if(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX] <= nextV)
-    {
-        printf("Shunt NTC Voltage: %f, Shunt Temp: %f I1ADC Voltage: %li\n", packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], taskData.shuntTemp1, packMonitorData.currentAdc1_uV);
-        nextV -= 0.05f;
     }
 
     static uint8_t counter = 0;

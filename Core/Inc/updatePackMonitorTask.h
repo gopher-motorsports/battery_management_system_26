@@ -27,7 +27,7 @@ typedef struct
 
     // Calculated values
 
-    float shuntResistanceMicroOhms;
+    int32_t shuntResistance_nOhms;
 
     uint16_t conversionTime_us;
     

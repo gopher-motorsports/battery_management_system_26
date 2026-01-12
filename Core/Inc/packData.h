@@ -48,6 +48,6 @@
 
 extern const LookupTable_S prechargeDischargeTempTable;
 extern const LookupTable_S shuntTempTable;
-extern const LookupTable_S shuntVoltageTable;
+extern const LookupTable_S shuntResistanceTable;
 
 #endif /* INC_PACKDATA_H_ */

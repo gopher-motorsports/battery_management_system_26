@@ -21,7 +21,7 @@ const float prechargeDischargeTemp[TEMP_LUT_LENGTH] = {138.573, 105.208, 87.343,
 
 const float shuntTemp[TEMP_LUT_LENGTH] = {141.141, 106.872, 88.574, 76.083, 66.539, 58.747, 52.097, 46.236, 40.941, 36.059, 31.480, 27.120, 22.910, 18.790, 14.705, 10.599, 6.412, 2.071, -2.517, -7.487, -13.046, -19.568, -27.848, -40.281};
 
-const int32_t shuntVoltage[VOLT_LUT_LENGTH] = {-844, -831, -822, -813, -810, -801, -804, -800, -795, -796, -791, -789, -787, -786};
+const int32_t shuntResistance_nOhm[VOLT_LUT_LENGTH] = {84400, 83100, 82200, 81300, 81000, 80100, 80400, 80000, 79500, 79600, 79100, 78900, 78700, 78600};
 
 const LookupTable_S prechargeDischangeTempTable = { 
     .xScale = TEMP_SCALE,
@@ -37,9 +37,9 @@ const LookupTable_S shuntTempTable = {
     .size = TEMP_LUT_LENGTH
 };
 
-const LookupTable_S shuntVoltageTable = {
+const LookupTable_S shuntResistanceTable = {
     .xScale = TEMP_SCALE,
     .xOffset = TEMP_OFFSET,
-    .y = shuntVoltage,
+    .y = shuntResistance_nOhm,
     .size = VOLT_LUT_LENGTH
 };
