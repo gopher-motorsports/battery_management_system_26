@@ -161,9 +161,9 @@ void runUpdatePackMonitorTask()
         taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
         taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
-        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &packMonTempTable);
-        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &packMonTempTable);
-        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &packMonTempTable);
+        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntTempTable);
+        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &shuntTempTable);
+        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &shuntTempTable);
 
         taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
@@ -180,11 +180,19 @@ void runUpdatePackMonitorTask()
         calculatePackParameters(&packMonitorData, &taskData);
     }
 
+    // Calibration test code
+    static float nextV = 1.2f;
+    if(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX] <= nextV)
+    {
+        printf("Shunt NTC Voltage: %f, Shunt Temp: %f I1ADC Voltage: %li\n", packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], taskData.shuntTemp1, packMonitorData.currentAdc1_uV);
+        nextV -= 0.05f;
+    }
+
     static uint8_t counter = 0;
 
     if(++counter > 8)
     {
-        printf("\e[1;1H\e[2J");
+        // printf("\e[1;1H\e[2J");
         Debug("Battery Current: %f A\n", taskData.packCurrent);
         Debug("Battery Voltage: %f V\n", taskData.packVoltage);
         Debug("Power: %f W\n", taskData.packPower);

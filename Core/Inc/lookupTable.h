@@ -14,9 +14,10 @@
 // Generic Lookup Table
 typedef struct
 {
-    const uint32_t length;
-    const float* x;			// Pointer to x array
-    const float* y;			// Pointer to y array
+    const float xScale;
+    const float xOffset;
+    const float* y;
+    const uint16_t size;
 } LookupTable_S;
 
 /* ==================================================================== */

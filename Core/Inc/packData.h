@@ -46,7 +46,8 @@
 
 // Structs
 
-extern LookupTable_S cellMonTempTable;
-extern LookupTable_S packMonTempTable;
+extern const LookupTable_S prechargeDischargeTempTable;
+extern const LookupTable_S shuntTempTable;
+extern const LookupTable_S shuntVoltageTable;
 
 #endif /* INC_PACKDATA_H_ */

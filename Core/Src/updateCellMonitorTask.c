@@ -72,19 +72,19 @@ void runUpdateCellMonitorTask()
 
     for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
     {
-        float cellTemp = lookup(cellMonitorData[0].auxVoltage[j], &cellMonTempTable);
-        taskData.cellTemp[(j * 2) + cellOffset] = cellTemp;
+        // float cellTemp = lookup(cellMonitorData[0].auxVoltage[j], &cellMonTempTable);
+        // taskData.cellTemp[(j * 2) + cellOffset] = cellTemp;
     }
 
-    float boardTemp = lookup(cellMonitorData[0].auxVoltage[8], &cellMonTempTable);
-    if(cellMonitorData[0].configGroupA.gpo10State == 0)
-    {
-        taskData.boardTemp1 = boardTemp;
-    }
-    else if(cellMonitorData[0].configGroupA.gpo10State == 1)
-    {
-        taskData.boardTemp2 = boardTemp;
-    }
+    // float boardTemp = lookup(cellMonitorData[0].auxVoltage[8], &cellMonTempTable);
+    // if(cellMonitorData[0].configGroupA.gpo10State == 0)
+    // {
+    //     taskData.boardTemp1 = boardTemp;
+    // }
+    // else if(cellMonitorData[0].configGroupA.gpo10State == 1)
+    // {
+    //     taskData.boardTemp2 = boardTemp;
+    // }
 
     // for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     // {

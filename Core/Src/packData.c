@@ -8,26 +8,38 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define TEMP_LUT_LENGTH 33
+#define TEMP_SCALE      0.05f
+#define TEMP_OFFSET     0.0f
+#define TEMP_LUT_LENGTH 24
+#define VOLT_LUT_LENGTH 14
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-const float temperatureArray[TEMP_LUT_LENGTH] =
-{
-    120, 115, 110, 105, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40
+const float prechargeDischargeTemp[TEMP_LUT_LENGTH] = {138.573, 105.208, 87.343, 75.128, 65.783, 58.146, 51.624, 45.872, 40.672, 35.876, 31.374, 27.086, 22.943, 18.887, 14.864, 10.819, 6.691, 2.410, -2.117, -7.022, -12.513, -18.959, -27.150, -39.462};
+
+const float shuntTemp[TEMP_LUT_LENGTH] = {141.141, 106.872, 88.574, 76.083, 66.539, 58.747, 52.097, 46.236, 40.941, 36.059, 31.480, 27.120, 22.910, 18.790, 14.705, 10.599, 6.412, 2.071, -2.517, -7.487, -13.046, -19.568, -27.848, -40.281};
+
+const int32_t shuntVoltage[VOLT_LUT_LENGTH] = {-844, -831, -822, -813, -810, -801, -804, -800, -795, -796, -791, -789, -787, -786};
+
+const LookupTable_S prechargeDischangeTempTable = { 
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = prechargeDischargeTemp,
+    .size = TEMP_LUT_LENGTH
 };
 
-const float cellMonTempVoltageArray[TEMP_LUT_LENGTH] =
-{
-    0.1741318359, 0.193533737, 0.2155192602, 0.2404628241, 0.2687907644, 0.3009857595, 0.3375901116, 0.3792069573, 0.4264981201, 0.480176881, 0.5409934732, 0.6097106855, 0.6870667304, 0.7737227417, 0.870193244, 0.976760075, 1.093373849, 1.219552143, 1.354289544, 1.496, 1.642514054, 1.791149899, 1.938865924, 2.082484747, 2.218959086, 2.345635446, 2.460468742, 2.562151894, 2.650145243, 2.724613713, 2.786297043, 2.836345972, 2.87615517
+const LookupTable_S shuntTempTable = {
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = shuntTemp,
+    .size = TEMP_LUT_LENGTH
 };
 
-const float packMonTempVoltageArray[TEMP_LUT_LENGTH] =
-{
-    0.07274892878, 0.08085466952, 0.09003979786, 0.1004607387, 0.1122956068, 0.125746056, 0.1410386496, 0.1584253665, 0.1781827039, 0.2006086569, 0.2260166583, 0.2547253866, 0.287043253, 0.3232464663, 0.363549985, 0.4080715554, 0.4567905452, 0.5095054071, 0.5657960997, 0.625, 0.6862107512, 0.7483079456, 0.8100208574, 0.8700220368, 0.9270383884, 0.9799613326, 1.027936473, 1.070417736, 1.107179664, 1.138291157, 1.164061264, 1.184970744, 1.20160226
+const LookupTable_S shuntVoltageTable = {
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = shuntVoltage,
+    .size = VOLT_LUT_LENGTH
 };
-
-LookupTable_S cellMonTempTable =  { .length = TEMP_LUT_LENGTH, .x = cellMonTempVoltageArray, .y = temperatureArray};
-LookupTable_S packMonTempTable = { .length = TEMP_LUT_LENGTH, .x = packMonTempVoltageArray, .y = temperatureArray};
