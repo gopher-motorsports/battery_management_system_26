@@ -389,7 +389,7 @@ typedef struct __attribute__((packed))
 
     uint8_t serialId[REGISTER_SIZE_BYTES];
 
-    uint32_t convCountTimer;
+    uint32_t convCountTimer_us;
 
 } ADBMS_PackMonitorData;
 

@@ -166,7 +166,7 @@ static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, A
     // Record elapsed time to use later for calculating conversion counter
     static uint32_t lastTimerValue = 0;
     uint32_t currentTimerValue = htim2.Instance->CNT;
-    packMonitorData->convCountTimer += (currentTimerValue - lastTimerValue);
+    packMonitorData->convCountTimer_us += (currentTimerValue - lastTimerValue);
     lastTimerValue = currentTimerValue;
 
     status = startVoltageConversions(chainInfoData, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);

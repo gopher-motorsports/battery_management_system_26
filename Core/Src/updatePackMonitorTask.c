@@ -20,10 +20,16 @@
 #define SHUNT_REF_TEMP_C                25.0f
 #define SHUNT_RESISTANCE_GAIN_UOHM      0.005f
 
+// Coulomb counting
+#define MAX_13BIT_UINT                  0x1FFF
+#define PHASE_COUNTS_PER_CONVERSION     4
 // Windowed (256 samples @ 1 kHz) conversion time measurement with 0.5 Hz IIR low-pass filtering
-#define CONV_COUNT_IIR_FILTER       553
-#define CONV_UPPER_BOUND            1500
-#define CONV_LOWER_BOUND            500
+#define CONV_COUNT_IIR_FILTER           553
+#define CONV_UPPER_BOUND                1500
+#define CONV_LOWER_BOUND                500
+#define PACK_MON_ACCN_SETTING           ACCUMULATE_4_SAMPLES
+#define ACCUMULATION_REGISTER_COUNT     ((PACK_MON_ACCN_SETTING + 1) * 4)
+#define MIN_VALID_IADC_READING          10 // microvolts
 
 // Mapping of pack monitor voltage inputs
 #define SHUNT_TEMP1_INDEX       1
@@ -56,27 +62,32 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
 
 static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData)
 {
-    static uint32_t conversionCounterSum = 0;
+    static uint32_t sumConversions = 0; // Accumulates conversions, used for updating conversion time
     static uint32_t lastConversionCounter = 0;
     
-    uint32_t deltaConversions = (packMonitorData->flagGroup.conversionCounter1 - lastConversionCounter) & (0x1FFF);
+    uint32_t deltaConversions = (packMonitorData->flagGroup.conversionCounter1 - lastConversionCounter) & (MAX_13BIT_UINT);
 
     if((deltaConversions == 0) || (packMonitorData->statGroup.currentAdc1Initialized == 0))
     {
-        conversionCounterSum = 0;
         lastConversionCounter = packMonitorData->flagGroup.conversionCounter1;
-        packMonitorData->convCountTimer = 0;
+        sumConversions = 0;
+        packMonitorData->convCountTimer_us = 0;
     }
     else
     {
-        conversionCounterSum += deltaConversions;
+        sumConversions += deltaConversions;
         lastConversionCounter = packMonitorData->flagGroup.conversionCounter1;
 
-        if(conversionCounterSum >= 1024)
+        // Update conversionTime_us at low frequency because accumulating more samples before dividing reduces integer rounding error (quantization error)
+        // Each conversion is approx 1 ms, so this if statement should execute at approx 3.9 Hz
+        if(sumConversions >= 1024)
         {
-            uint32_t conversionTimeRaw = (packMonitorData->convCountTimer * 4) / conversionCounterSum;
-            conversionCounterSum = 0;
-            packMonitorData->convCountTimer = 0;
+            // Conversion time = timer ticks / number of conversions
+            uint32_t conversionTimeRaw = (packMonitorData->convCountTimer_us * PHASE_COUNTS_PER_CONVERSION) / sumConversions;
+            sumConversions = 0;
+            packMonitorData->convCountTimer_us = 0;
+
+            // IIR low pass
             taskData->conversionTime_us = (((conversionTimeRaw * CONV_COUNT_IIR_FILTER) + (taskData->conversionTime_us * (1000 - CONV_COUNT_IIR_FILTER))) / 1000);
             
             if(taskData->conversionTime_us > CONV_UPPER_BOUND)
@@ -89,14 +100,15 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
             }
         }
 
-        static uint8_t accCount = 0;
+        static uint8_t accConversions = 0; // Accumulates conversions, used for processing I1ACC results
         static int32_t milliCoulombCounter = 0;
 
-        accCount += deltaConversions;
-        if(accCount >= 16)
+        // Update milliCoulombCounter for every new I1ACC register value
+        accConversions += deltaConversions;
+        if(accConversions >= (ACCUMULATION_REGISTER_COUNT * PHASE_COUNTS_PER_CONVERSION))
         {
-            accCount %= 16;
-            if(abs(packMonitorData->currentAdcAccumulator1_uV) >= 10)
+            accConversions %= (ACCUMULATION_REGISTER_COUNT * PHASE_COUNTS_PER_CONVERSION);
+            if(abs(packMonitorData->currentAdcAccumulator1_uV) >= MIN_VALID_IADC_READING)
             {
                 int32_t picoVoltSeconds = -1 * packMonitorData->currentAdcAccumulator1_uV * taskData->conversionTime_us;
                 milliCoulombCounter += picoVoltSeconds / SHUNT_REF_RESISTANCE_NANO_OHMS;
