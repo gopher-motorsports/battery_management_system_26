@@ -50,6 +50,8 @@ static ADBMS_PackMonitorData packMonitorData;
 
 static packMonitorTask_S taskData;
 
+packMonitorTask_S packTaskDataPublic;
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
@@ -180,19 +182,9 @@ void runUpdatePackMonitorTask()
         calculatePackParameters(&packMonitorData, &taskData);
     }
 
-    static uint8_t counter = 0;
-
-    if(++counter > 8)
-    {
-        // printf("\e[1;1H\e[2J");
-        Debug("Battery Current: %f A\n", taskData.packCurrent);
-        Debug("Battery Voltage: %f V\n", taskData.packVoltage);
-        Debug("Power: %f W\n", taskData.packPower);
-        Debug("Shunt Temp: %f C\n", taskData.shuntTemp1);
-        Debug("Precharge Temp: %f C\n", taskData.prechargeTemp);
-        Debug("Discharge Temp: %f C\n", taskData.dischargeTemp);
-        Debug("Link Voltage: %f V\n", taskData.linkVoltage);
-        counter = 0;
-    }
+    // Copy task data to public struct
+    vTaskSuspendAll();
+    packTaskDataPublic = taskData;
+    xTaskResumeAll();
     
 }

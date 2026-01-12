@@ -60,7 +60,7 @@ TIM_HandleTypeDef htim14;
 UART_HandleTypeDef huart1;
 
 osThreadId printTaskHandle;
-uint32_t printTaskBuffer[ 1024 ];
+uint32_t printTaskBuffer[ 2048 ];
 osStaticThreadDef_t printTaskControlBlock;
 osThreadId idleTaskHandle;
 uint32_t idleTaskBuffer[ 128 ];
@@ -219,7 +219,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of printTask */
-  osThreadStaticDef(printTask, startPrintTask, osPriorityNormal, 0, 1024, printTaskBuffer, &printTaskControlBlock);
+  osThreadStaticDef(printTask, startPrintTask, osPriorityNormal, 0, 2048, printTaskBuffer, &printTaskControlBlock);
   printTaskHandle = osThreadCreate(osThread(printTask), NULL);
 
   /* definition and creation of idleTask */

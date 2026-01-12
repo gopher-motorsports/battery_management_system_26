@@ -23,6 +23,8 @@ static ADBMS_CellMonitorData cellMonitorData[1];
 
 static cellMonitorTask_S taskData;
 
+cellMonitorTask_S cellTaskDataPublic;
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -93,5 +95,10 @@ void runUpdateCellMonitorTask()
     // }
     // printf("Board Temp 1: %f\n", taskData.boardTemp1);
     // printf("Board Temp 2: %f\n", taskData.boardTemp2);
+
+    // Copy task data to public struct
+    vTaskSuspendAll();
+    cellTaskDataPublic = taskData;
+    xTaskResumeAll();
 
 }
