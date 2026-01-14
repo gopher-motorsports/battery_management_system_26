@@ -3,6 +3,7 @@
 /* ==================================================================== */
 
 #include "cellMonitorTelemetry.h"
+#include "packData.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -184,7 +185,13 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
-    }    
+    }
+
+    status = writeCellMonitorConfigB(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
 
     return readCellMonitorSerialId(chainInfoData, cellMonitorData);
 }
@@ -210,6 +217,23 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }
 
     return readAuxVoltages(chainInfoData, cellMonitorData);
+}
+
+static TRANSACTION_STATUS_E startNewBalancingReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
+{
+    TRANSACTION_STATUS_E status = startCellConversions(chainInfoData, REDUNDANT_MODE, SINGLE_SHOT_MODE, DISCHARGE_DISABLED, FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = writePwmRegisters(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    return readCellMonitorSerialId(chainInfoData, cellMonitorData);
 }
 
 /* ==================================================================== */
@@ -252,4 +276,9 @@ TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }
 
     return telemetryStatus;
+}
+
+TRANSACTION_STATUS_E updateCellBalancing(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
+{
+    return runCellMonitorCommandBlock(startNewBalancingReadCycle, chainInfoData, cellMonitorData);  
 }

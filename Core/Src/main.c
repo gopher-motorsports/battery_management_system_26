@@ -633,7 +633,7 @@ void startPrintTask(void const * argument)
   /* USER CODE BEGIN 5 */
   initPrintTask();
   TickType_t lastPrintTaskTick;
-  const TickType_t printTaskPeriod = pdMS_TO_TICKS(1000);
+  const TickType_t printTaskPeriod = pdMS_TO_TICKS(2000);
 
   /* Infinite loop */
   for(;;)

@@ -13,7 +13,7 @@
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-cellMonitorTask_S cellTaskPrintData;
+cellMonitorTaskData_S cellTaskPrintData;
 
 packMonitorTask_S packTaskPrintData;
 
@@ -21,9 +21,9 @@ packMonitorTask_S packTaskPrintData;
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
-static void printCellVoltages(cellMonitorTask_S* cellTaskPrintData);
+static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 
-static void printCellTemps(cellMonitorTask_S* cellTaskPrintData);
+static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
 
 static void printPackMonData(packMonitorTask_S* packTaskPrintData);
 
@@ -31,7 +31,7 @@ static void printPackMonData(packMonitorTask_S* packTaskPrintData);
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
 /* ==================================================================== */
 
-static void printCellVoltages(cellMonitorTask_S* cellTaskPrintData)
+static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
 {
     printf("Cell Voltage:\n");
     printf("|   CELL   |");
@@ -45,21 +45,14 @@ static void printCellVoltages(cellMonitorTask_S* cellTaskPrintData)
         printf("|    %02ld    |", i+1);
         for(int32_t j = 0; j < NUM_CELL_MON; j++)
         {
-            if((cellTaskPrintData->cellVoltage[i] < 0.0f) || cellTaskPrintData->cellVoltage[i] >= 100.0f)
-            {
-                printf("  %5.3f   |", cellTaskPrintData->cellVoltage[i]);
-            }
-            else
-            {
-                printf("   %5.3f   |", cellTaskPrintData->cellVoltage[i]);
-            }
+            printf("  %5.3f   |", cellTaskPrintData->cellMonitor[j].cellVoltage[i]);
         }
         printf("\n");
     }
 	printf("\n");
 }
 
-static void printCellTemps(cellMonitorTask_S* cellTaskPrintData)
+static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
 {
     printf("Cell Temp:\n");
     printf("|   BMB    |");
@@ -73,21 +66,14 @@ static void printCellTemps(cellMonitorTask_S* cellTaskPrintData)
         printf("|    %02ld    |", i+1);
         for(int32_t j = 0; j < NUM_CELL_MON; j++)
         {
-            if((cellTaskPrintData->cellTemp[i] < 0.0f) || cellTaskPrintData->cellTemp[i] >= 100.0f)
-            {
-                printf("   %3.1f   |", (double)cellTaskPrintData->cellTemp[i]);
-            }
-            else
-            {
-                printf("    %3.1f   |", (double)cellTaskPrintData->cellTemp[i]);
-            }
+            printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
         }
         printf("\n");
     }
     printf("|  Board   |");
-    for(int32_t j = 0; j < NUM_CELL_MON; j++)
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("    %3.1f   |", (double)cellTaskPrintData->boardTemp1);
+        printf("    %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
     }
 	printf("\n\n");
     // printf("|   Die   |");
@@ -141,13 +127,19 @@ void runPrintTask()
 {
     // Critical section - copy data from public task structs into local print task structs
     vTaskSuspendAll();
-    cellTaskPrintData = cellTaskDataPublic;
-    packTaskPrintData = packTaskDataPublic;
+    cellTaskPrintData = publicCellMonitorTaskData;
+    packTaskPrintData = publicPackMonitorTaskData;
     xTaskResumeAll();
 
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
     printCellTemps(&cellTaskPrintData);
+
+    printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
+    printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
+    printf("Max Cell Temp: %f\n", cellTaskPrintData.maxCellTemp);
+    printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
+
     printPackMonData(&packTaskPrintData);
 
 }

@@ -37,7 +37,7 @@ typedef struct
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-extern packMonitorTask_S packTaskDataPublic;
+extern packMonitorTask_S publicPackMonitorTaskData;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */

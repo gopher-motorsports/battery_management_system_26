@@ -419,7 +419,7 @@ TRANSACTION_STATUS_E updateChainStatus(CHAIN_INFO_S *chainInfo)
             }
             else if((readStatus == TRANSACTION_COMMAND_COUNTER_ERROR) && (returnStatus != TRANSACTION_POR_ERROR))
             {
-                // On a command counter error, track error if no POR error is alread present, and continue loop until available devices can be determined
+                // On a command counter error, track error if no POR error is already present, and continue loop until available devices can be determined
                 returnStatus = TRANSACTION_COMMAND_COUNTER_ERROR;
             }
         }

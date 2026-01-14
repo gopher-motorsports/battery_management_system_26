@@ -50,7 +50,7 @@ static ADBMS_PackMonitorData packMonitorData;
 
 static packMonitorTask_S taskData;
 
-packMonitorTask_S packTaskDataPublic;
+packMonitorTask_S publicPackMonitorTaskData;
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
@@ -159,9 +159,10 @@ void runUpdatePackMonitorTask()
     if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
     {
         // Update task data
-        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntTempTable);
-        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &shuntTempTable);
-        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &shuntTempTable);
+        // Shunt uses same NTCs as cell temp sensors
+        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &cellTempTable);
+        taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
+        taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
 
         taskData.shuntResistance_nOhms = lroundf(lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntResistanceTable));
 
@@ -184,7 +185,7 @@ void runUpdatePackMonitorTask()
 
     // Copy task data to public struct
     vTaskSuspendAll();
-    packTaskDataPublic = taskData;
+    publicPackMonitorTaskData = taskData;
     xTaskResumeAll();
     
 }

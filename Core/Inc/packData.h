@@ -5,6 +5,17 @@
 #include "utils.h"
 
 /* ==================================================================== */
+/* ========================= ENUMERATED TYPES========================== */
+/* ==================================================================== */
+
+typedef enum
+{
+    UNINITIALIZED = 0,
+    GOOD,
+    BAD
+} SENSOR_STATUS_E;
+
+/* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
@@ -46,8 +57,8 @@
 
 // Structs
 
+extern const LookupTable_S cellTempTable;
 extern const LookupTable_S prechargeDischargeTempTable;
-extern const LookupTable_S shuntTempTable;
 extern const LookupTable_S shuntResistanceTable;
 
 #endif /* INC_PACKDATA_H_ */
