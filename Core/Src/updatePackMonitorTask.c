@@ -160,7 +160,7 @@ void runUpdatePackMonitorTask()
     {
         // Update task data
         // Shunt uses same NTCs as cell temp sensors
-        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &cellTempTable);
+        taskData.shuntTemp1 = lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntTempTable);
         taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
         taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
 

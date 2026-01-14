@@ -151,17 +151,17 @@ void runUpdateCellMonitorTask()
                 taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
             }
         }
-    }
 
-    // float boardTemp = lookup(cellMonitorData[0].auxVoltage[8], &cellMonTempTable);
-    // if(cellMonitorData[0].configGroupA.gpo10State == 0)
-    // {
-    //     taskData.boardTemp1 = boardTemp;
-    // }
-    // else if(cellMonitorData[0].configGroupA.gpo10State == 1)
-    // {
-    //     taskData.boardTemp2 = boardTemp;
-    // }
+        float boardTemp = lookup(cellMonitorData[i].auxVoltage[8], &cellTempTable);
+        if(cellMonitorData[i].configGroupA.gpo10State == 0)
+        {
+            taskData.cellMonitor[i].boardTemp1 = boardTemp;
+        }
+        else if(cellMonitorData[i].configGroupA.gpo10State == 1)
+        {
+            taskData.cellMonitor[i].boardTemp2 = boardTemp;
+        }
+    }
 
     updateBatteryStatistics(&taskData);
 
