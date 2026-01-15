@@ -10,7 +10,7 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      0
+#define FORCE_BALANCING_ON      1
 
 #define NUM_CELL_TEMP_ADCS      7
 
@@ -44,7 +44,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
                 }
             }
 
-            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 1;
+            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 120;
         }      
 
         static uint32_t lastBalancingUpdate = 0;
@@ -117,7 +117,6 @@ void runUpdateCellMonitorTask()
         {
             // Add filtering here
             taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
-            taskData.cellMonitor[i].cellVoltageStatus[j] = GOOD;
 
             if((taskData.cellMonitor[i].cellVoltage[j] > MAX_BRICK_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
             {

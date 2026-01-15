@@ -37,7 +37,7 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
     printf("|   CELL   |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("    %02ld     |", i);
+        printf("    %02ld    |", i);
     }
     printf("\n");
     for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
@@ -89,7 +89,7 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
     //         {
     //             printf("    %3.1f   |", (double)dieTemp);
     //         }
-    //         // printf("  %04X", gBms.cellVoltage[i]);
+    //         // printf("  %04X", gBms.cellVoltage[i]);    
     //     }
     //     else
     //     {
