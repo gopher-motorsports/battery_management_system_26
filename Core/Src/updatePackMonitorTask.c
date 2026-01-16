@@ -4,7 +4,9 @@
 
 #include "updatePackMonitorTask.h"
 #include "packMonitorTelemetry.h"
+#include "updateCellMonitorTask.h"
 #include "packData.h"
+#include "pid.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -124,6 +126,29 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
     
 }
 
+static void updateCurrentLimit(packMonitorTask_S* taskData, float minCellVoltage)
+{
+    static PID_S currentPID = 
+    {
+        .kp = 0,
+        .kiNeg = 0,
+        .kiPos = 0,
+        .kaw = 0,
+        .outputMax = 175,
+        .outputMin = 0,
+        .dt = 2,
+        .integratorMax = 50,
+        .integratorMin = 0,
+        .setPoint = 175,
+    };
+
+    float feedForward = currentPID.previousOutput + ((minCellVoltage - 3.05f) / 2.0f);
+
+    pidStep(&currentPID, minCellVoltage, feedForward);
+
+    updateI(&currentPID, minCellVoltage);
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -137,6 +162,10 @@ void initUpdatePackMonitorTask()
 
 void runUpdatePackMonitorTask()
 {
+    vTaskSuspendAll();
+    float minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
+    xTaskResumeAll();
+
     TRANSACTION_STATUS_E telemetryStatus = updatePackTelemetry(&packMonInfo, &packMonitorData);
 
     if(telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR)
