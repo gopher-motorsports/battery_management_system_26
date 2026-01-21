@@ -6,6 +6,7 @@
 #include "updateCellMonitorTask.h"
 #include "cellMonitorTelemetry.h"
 #include "updatePackMonitorTask.h"
+#include "alerts.h"
 #include <stdio.h>
 #include <cmsis_os.h>
 
@@ -26,6 +27,8 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
 
 static void printPackMonData(packMonitorTaskData_S* packTaskPrintData);
+
+static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -113,6 +116,23 @@ static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)
     printf("Conversion Time: %hu us\n", packTaskPrintData->conversionTime_us);
 }
 
+static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts)
+{
+    bool alertActive = false;
+
+    for (uint16_t i = 0; i < num_alerts; i++) {
+        if (alerts[i]->alertStatus == ALERT_SET) {
+            printf("ALERT: %s\n", alerts[i]->alertName);
+            alertActive = true;
+        } else if (alerts[i]->alertStatus == ALERT_LATCHED) {
+            printf("ALERT: %s LATCHED\n", alerts[i]->alertName);
+            alertActive = true;
+        }
+    }
+
+    return alertActive;
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -133,7 +153,7 @@ void runPrintTask()
 
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
-    printCellTemps(&cellTaskPrintData);
+    // printCellTemps(&cellTaskPrintData);
 
     printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
@@ -141,5 +161,12 @@ void runPrintTask()
     printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
 
     printPackMonData(&packTaskPrintData);
+
+    printf("\n");
+
+    if(!printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS)
+    && !printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS)) {
+    printf("NO ALERTS ACTIVE\n");
+    }
 
 }
