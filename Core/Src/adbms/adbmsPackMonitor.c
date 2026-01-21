@@ -153,7 +153,7 @@ static const float auxVoltageConv[NUM_AUX_VOLTAGES][NUM_AUX_CONV_VAL] =
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption)
+TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, PACK_ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption)
 {
     return commandChain((uint16_t)(ADI1 | redundantMode | measureOption), chainInfo);
 }

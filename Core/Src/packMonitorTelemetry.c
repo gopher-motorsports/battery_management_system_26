@@ -110,7 +110,7 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
         return status;
     }
 
-    status = startAdcConversions(chainInfoData, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    status = startAdcConversions(chainInfoData, PACK_REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;

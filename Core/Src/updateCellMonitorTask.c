@@ -43,7 +43,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
 {
     TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
 
-    static float floor = MAX_BRICK_VOLTAGE;
+    static float floor = MAX_CELL_VOLTAGE;
 
     if(taskData->balancingEnabled)
     {
@@ -88,12 +88,12 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
     // Accumulate alert statuses
     bool responseStatus[NUM_ALERT_RESPONSES] = {false};
 
-    for(uint32_t i = 0; i < NUM_TELEMETRY_ALERTS; i++)
+    for(uint32_t i = 0; i < NUM_CELL_MONITOR_ALERTS; i++)
     {
-        Alert_S* alert = telemetryAlerts[i];
+        Alert_S* alert = cellMonitorAlerts[i];
 
         // Check alert condition and run alert monitor
-        alert->alertConditionPresent = telemetryAlertConditionArray[i](taskData);
+        alert->alertConditionPresent = cellMonitorAlertConditionArray[i](taskData);
         runAlertMonitor(alert);
 
         // Get alert status and set response
@@ -162,7 +162,7 @@ void runUpdateCellMonitorTask()
                 // Add filtering here
                 taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
 
-                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_BRICK_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
+                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_CELL_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
                 {
                     taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
                 }

@@ -15,7 +15,7 @@
 
 cellMonitorTaskData_S cellTaskPrintData;
 
-packMonitorTask_S packTaskPrintData;
+packMonitorTaskData_S packTaskPrintData;
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
@@ -25,7 +25,7 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 
 static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
 
-static void printPackMonData(packMonitorTask_S* packTaskPrintData);
+static void printPackMonData(packMonitorTaskData_S* packTaskPrintData);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -99,7 +99,7 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
 	// printf("\n");
 }
 
-static void printPackMonData(packMonitorTask_S* packTaskPrintData)
+static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)
 {
     printf("// Pack Parameters //\n");
     printf("Battery Current: %f A,    ", packTaskPrintData->packCurrent);

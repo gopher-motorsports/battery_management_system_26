@@ -5,6 +5,7 @@
 #include "updatePackMonitorTask.h"
 #include "packMonitorTelemetry.h"
 #include "packData.h"
+#include "alerts.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -48,21 +49,23 @@ static CHAIN_INFO_S packMonInfo;
 
 static ADBMS_PackMonitorData packMonitorData;
 
-static packMonitorTask_S taskData;
+static packMonitorTaskData_S taskData;
 
-packMonitorTask_S publicPackMonitorTaskData;
+packMonitorTaskData_S publicPackMonitorTaskData;
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
-static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData);
+static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTaskData_S* taskData);
+
+static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
 /* ==================================================================== */
 
-static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTask_S* taskData)
+static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTaskData_S* taskData)
 {
     static uint32_t sumConversions = 0; // Accumulates conversions, used for updating conversion time
     static uint32_t lastConversionCounter = 0;
@@ -124,6 +127,35 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
     
 }
 
+static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
+{
+    // Accumulate alert statuses
+    bool responseStatus[NUM_ALERT_RESPONSES] = {false};
+
+    for(uint32_t i = 0; i < NUM_PACK_MONITOR_ALERTS; i++)
+    {
+        Alert_S* alert = packMonitorAlerts[i];
+
+        // Check alert condition and run alert monitor
+        alert->alertConditionPresent = packMonitorAlertConditionArray[i](taskData);
+        runAlertMonitor(alert);
+
+        // Get alert status and set response
+        const AlertStatus_E alertStatus = getAlertStatus(alert);
+        if((alertStatus == ALERT_SET) || (alertStatus == ALERT_LATCHED))
+        {
+            // Iterate through all alert responses and set them
+            for (uint32_t j = 0; j < alert->numAlertResponse; j++)
+            {
+                const AlertResponse_E response = alert->alertResponse[j];
+                // Set the alert response to active
+                responseStatus[response] = true;
+            }
+        }
+    }
+    setBmsFault(responseStatus[BMS_FAULT]);    
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -182,6 +214,9 @@ void runUpdatePackMonitorTask()
 
         calculatePackParameters(&packMonitorData, &taskData);
     }
+
+    // Regardless of status, run alert monitor
+    runPackMonitorAlertMonitor(&taskData);
 
     // Copy task data to public struct
     vTaskSuspendAll();

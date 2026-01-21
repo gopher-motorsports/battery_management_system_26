@@ -7,6 +7,7 @@
 
 #include "timer.h"
 #include "updateCellMonitorTask.h"
+#include "updatePackMonitorTask.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -40,22 +41,25 @@
 #define BAD_VOLTAGE_SENSE_STATUS_ALERT_SET_TIME_MS    2000
 #define BAD_VOLTAGE_SENSE_STATUS_ALERT_CLEAR_TIME_MS  2000
 
-#define BAD_BRICK_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS    1000
-#define BAD_BRICK_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS  1000
+#define BAD_CELL_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS    1000
+#define BAD_CELL_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS  1000
 
 #define BAD_BOARD_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS    1000
 #define BAD_BOARD_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS  1000
 
-// The minimum percent of brick temps that must be monitored to pass rules
-#define MIN_PERCENT_BRICK_TEMPS_MONITORED             25
+// The minimum percent of cell temps that must be monitored to pass rules
+#define MIN_PERCENT_CELL_TEMPS_MONITORED             25
 #define INSUFFICIENT_TEMP_SENSOR_ALERT_SET_TIME_MS    5000
 #define INSUFFICIENT_TEMP_SENSOR_ALERT_CLEAR_TIME_MS  5000
 
 #define BMB_COMMUNICATION_FAILURE_ALERT_SET_TIME_MS   5000
 #define BMB_COMMUNICATION_FAILURE_ALERT_CLEAR_TIME_MS 5000
 
-#define PACK_OVERCURRENT_FAULT_ALERT_SET_TIME_MS   500
-#define PACK_OVERCURRENT_FAULT_ALERT_CLEAR_TIME_MS 500
+#define PACK_OVERCURRENT_FAULT_ALERT_SET_TIME_MS    500
+#define PACK_OVERCURRENT_FAULT_ALERT_CLEAR_TIME_MS  500
+
+#define PACK_VOLTAGE_OUT_OF_RANGE_ALERT_SET_TIME_MS       500
+#define PACK_VOLTAGE_OUT_OF_RANGE_ALERT_CLEAR_TIME_MS     500
 
 
 
@@ -130,20 +134,24 @@ typedef struct
 /* ====================== FUNCTION POINTER TYPES ====================== */
 /* ==================================================================== */
 
-typedef bool (*telemetryAlertCondition)(cellMonitorTaskData_S* taskData);
+typedef bool (*cellMonitorAlertCondition)(cellMonitorTaskData_S* taskData);
+typedef bool (*packMonitorAlertCondition)(packMonitorTaskData_S* taskData);
 
 /* ==================================================================== */
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
 // Array of all alert structs
-extern Alert_S* telemetryAlerts[];
+extern Alert_S* cellMonitorAlerts[];
+extern Alert_S* packMonitorAlerts[];
 
 // Function arrays
-extern telemetryAlertCondition telemetryAlertConditionArray[];
+extern cellMonitorAlertCondition cellMonitorAlertConditionArray[];
+extern packMonitorAlertCondition packMonitorAlertConditionArray[];
 
 // The total number of alerts for each alert task
-extern const uint32_t NUM_TELEMETRY_ALERTS;
+extern const uint32_t NUM_CELL_MONITOR_ALERTS;
+extern const uint32_t NUM_PACK_MONITOR_ALERTS;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */

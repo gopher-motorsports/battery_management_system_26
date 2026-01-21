@@ -3,7 +3,6 @@
 /* ==================================================================== */
 
 #include "alerts.h"
-#include "updateCellMonitorTask.h"
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -11,22 +10,22 @@
 
 static bool overvoltageWarningPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->maxCellVoltage > MAX_BRICK_WARNING_VOLTAGE);
+    return (taskData->maxCellVoltage > MAX_CELL_WARNING_VOLTAGE);
 }
 
 static bool overvoltageFaultPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->maxCellVoltage > MAX_BRICK_FAULT_VOLTAGE);
+    return (taskData->maxCellVoltage > MAX_CELL_FAULT_VOLTAGE);
 }
 
 static bool undervoltageWarningPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->minCellVoltage < MIN_BRICK_WARNING_VOLTAGE);
+    return (taskData->minCellVoltage < MIN_CELL_WARNING_VOLTAGE);
 }
 
 static bool undervoltageFaultPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->minCellVoltage < MIN_BRICK_FAULT_VOLTAGE);
+    return (taskData->minCellVoltage < MIN_CELL_FAULT_VOLTAGE);
 }
 
 static bool cellImbalancePresent(cellMonitorTaskData_S* taskData)
@@ -36,12 +35,12 @@ static bool cellImbalancePresent(cellMonitorTaskData_S* taskData)
 
 static bool overtemperatureWarningPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->maxCellTemp > MAX_BRICK_TEMP_WARNING_C);
+    return (taskData->maxCellTemp > MAX_CELL_TEMP_WARNING_C);
 }
 
 static bool overtemperatureFaultPresent(cellMonitorTaskData_S* taskData)
 {
-    return (taskData->maxCellTemp > MAX_BRICK_TEMP_FAULT_C);
+    return (taskData->maxCellTemp > MAX_CELL_TEMP_FAULT_C);
 }
 
 static bool badVoltageSensorStatusPresent(cellMonitorTaskData_S* taskData)
@@ -56,7 +55,7 @@ static bool badVoltageSensorStatusPresent(cellMonitorTaskData_S* taskData)
     return false;
 }
 
-static bool badBrickTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
+static bool badCellTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
 {
     for(uint32_t i = 0; i < NUM_CELL_MON; i++)
     {
@@ -82,10 +81,10 @@ static bool badBrickTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
 
 static bool insufficientTempSensePresent(cellMonitorTaskData_S* taskData)
 {
-    const uint32_t maxNumBadBrickTempAllowed = NUM_CELLS_PER_CELL_MONITOR * (100 - MIN_PERCENT_BRICK_TEMPS_MONITORED) / 100;
+    const uint32_t maxNumBadCellTempAllowed = NUM_CELLS_PER_CELL_MONITOR * (100 - MIN_PERCENT_CELL_TEMPS_MONITORED) / 100;
     for (uint32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        if(taskData->cellMonitor[i].numBadCellTemp > maxNumBadBrickTempAllowed)
+        if(taskData->cellMonitor[i].numBadCellTemp > maxNumBadCellTempAllowed)
         {
             return true;
         }
@@ -104,6 +103,22 @@ static bool insufficientTempSensePresent(cellMonitorTaskData_S* taskData)
 //     }
 //     return false;
 // }
+
+static bool packOvercurrentFaultPresent(packMonitorTaskData_S* taskData)
+{
+    return ((taskData->packCurrent <= -ABS_MAX_DISCHARGE_CURRENT_A) || (taskData->packCurrent >= ABS_MAX_CHARGE_CURRENT_A));
+}
+
+static bool packVoltageOutOfRange(packMonitorTaskData_S* taskData)
+{
+    return 
+    (
+        (taskData->packVoltage > (MAX_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
+        (taskData->packVoltage < (MIN_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
+        (taskData->linkVoltage > (MAX_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
+        (taskData->linkVoltage < (-VOLTAGE_MARGIN))
+    );
+}
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
@@ -289,16 +304,16 @@ Alert_S badVoltageSenseStatusAlert =
     .numAlertResponse = NUM_BAD_VOLTAGE_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badVoltageSenseStatusAlertResponse
 };
 
-// Bad brick temperature sensor status
-const AlertResponse_E badBrickTempSenseStatusAlertResponse[] = { INFO_ONLY };
-#define NUM_BAD_BRICK_TEMP_SENSE_STATUS_ALERT_RESPONSE sizeof(badBrickTempSenseStatusAlertResponse) / sizeof(AlertResponse_E)
-Alert_S badBrickTempSenseStatusAlert = 
+// Bad cell temperature sensor status
+const AlertResponse_E badCellTempSenseStatusAlertResponse[] = { INFO_ONLY };
+#define NUM_BAD_CELL_TEMP_SENSE_STATUS_ALERT_RESPONSE sizeof(badCellTempSenseStatusAlertResponse) / sizeof(AlertResponse_E)
+Alert_S badCellTempSenseStatusAlert = 
 {
-    .alertName = "BadBrickTempSenseStatus",
-    .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BAD_BRICK_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS}, 
-    .setTime_MS = BAD_BRICK_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS, .clearTime_MS = BAD_BRICK_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS, 
+    .alertName = "BadCellTempSenseStatus",
+    .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BAD_CELL_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS}, 
+    .setTime_MS = BAD_CELL_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS, .clearTime_MS = BAD_CELL_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_BAD_BRICK_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badBrickTempSenseStatusAlertResponse
+    .numAlertResponse = NUM_BAD_CELL_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badCellTempSenseStatusAlertResponse
 };
 
 // Bad board temperature sensor status
@@ -349,9 +364,19 @@ Alert_S packOvercurrentFaultAlert =
     .numAlertResponse = NUM_PACK_OVERCURRENT_FAULT_ALERT_RESPONSE, .alertResponse = packOvercurrentFaultAlertResponse
 };
 
-// Telemetry alerts
+// Pack voltage out of range
+const AlertResponse_E packVoltageOutOfRangeAlertResponse[] = { INFO_ONLY };
+#define NUM_PACK_VOLTAGE_OUT_OF_RANGE_ALERT_RESPONSE sizeof(packVoltageOutOfRangeAlertResponse) / sizeof(AlertResponse_E)
+Alert_S packVoltageOutOfRangeAlert = 
+{
+    .alertName = "PackVoltageOutOfRange", .latching = false,
+    .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = PACK_VOLTAGE_OUT_OF_RANGE_ALERT_SET_TIME_MS},
+    .setTime_MS = PACK_VOLTAGE_OUT_OF_RANGE_ALERT_SET_TIME_MS, .clearTime_MS = PACK_VOLTAGE_OUT_OF_RANGE_ALERT_CLEAR_TIME_MS,
+    .alertConditionPresent = false,
+    .numAlertResponse = NUM_PACK_VOLTAGE_OUT_OF_RANGE_ALERT_RESPONSE, .alertResponse = packVoltageOutOfRangeAlertResponse
+};
 
-Alert_S* telemetryAlerts[] = 
+Alert_S* cellMonitorAlerts[] = 
 {
     &overvoltageWarningAlert,
     &undervoltageWarningAlert,
@@ -361,14 +386,19 @@ Alert_S* telemetryAlerts[] =
     &overtempWarningAlert,
     &overtempFaultAlert,
     &badVoltageSenseStatusAlert,
-    &badBrickTempSenseStatusAlert,
-    &badBoardTempSenseStatusAlert,
+    &badCellTempSenseStatusAlert,
+    // &badBoardTempSenseStatusAlert,
     &insufficientTempSensorsAlert,
-    &telemetryCommunicationAlert,
-    &packOvercurrentFaultAlert
+    // &telemetryCommunicationAlert,
 };
 
-telemetryAlertCondition telemetryAlertConditionArray[] = 
+Alert_S* packMonitorAlerts[] = 
+{
+    &packOvercurrentFaultAlert,
+    &packVoltageOutOfRangeAlert
+};
+
+cellMonitorAlertCondition cellMonitorAlertConditionArray[] = 
 {
     overvoltageWarningPresent,
     undervoltageWarningPresent,
@@ -378,13 +408,19 @@ telemetryAlertCondition telemetryAlertConditionArray[] =
     overtemperatureWarningPresent,
     overtemperatureFaultPresent,
     badVoltageSensorStatusPresent,
-    badBrickTempSensorStatusPresent,
+    badCellTempSensorStatusPresent,
     // badBoardTempSensorStatusPresent,
     insufficientTempSensePresent
     // telemetryCommunicationErrorPresent,
-    // packOvercurrentFaultPresent
+};
+
+packMonitorAlertCondition packMonitorAlertConditionArray[] = 
+{
+    packOvercurrentFaultPresent,
+    packVoltageOutOfRange
 };
 
 // Number of alerts
 
-const uint32_t NUM_TELEMETRY_ALERTS = sizeof(telemetryAlerts) / sizeof(Alert_S*);
+const uint32_t NUM_CELL_MONITOR_ALERTS = sizeof(cellMonitorAlerts) / sizeof(Alert_S*);
+const uint32_t NUM_PACK_MONITOR_ALERTS = sizeof(packMonitorAlerts) / sizeof(Alert_S*);

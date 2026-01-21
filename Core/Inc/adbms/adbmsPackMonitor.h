@@ -119,9 +119,9 @@ typedef enum
 
 typedef enum
 {
-    NON_REDUNDANT_MODE = 0,
-    REDUNDANT_MODE = (1 << 8)
-} ADC_MODE_REDUNDANT_E;
+    PACK_NON_REDUNDANT_MODE = 0,
+    PACK_REDUNDANT_MODE = (1 << 8)
+} PACK_ADC_MODE_REDUNDANT_E;
 
 typedef enum
 {
@@ -403,7 +403,7 @@ TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
 
 TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption);
+TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, PACK_ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption);
 
 TRANSACTION_STATUS_E startRedundantAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MEASURE_OPTION_E measureOption);
 

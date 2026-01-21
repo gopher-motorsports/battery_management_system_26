@@ -31,13 +31,13 @@ typedef struct
 
     uint16_t conversionTime_us;
     
-} packMonitorTask_S;
+} packMonitorTaskData_S;
 
 /* ==================================================================== */
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-extern packMonitorTask_S publicPackMonitorTaskData;
+extern packMonitorTaskData_S publicPackMonitorTaskData;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
