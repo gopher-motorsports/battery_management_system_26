@@ -4,6 +4,7 @@
 
 #include "updateCellMonitorTask.h"
 #include "taskStatistics.h"
+#include "alerts.h"
 #include <stdio.h>
 
 /* ==================================================================== */
@@ -25,6 +26,18 @@ static ADBMS_CellMonitorData cellMonitorData[NUM_CELL_MON];
 static cellMonitorTaskData_S taskData;
 
 cellMonitorTaskData_S publicCellMonitorTaskData;
+
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DECLARATIONS ==================== */
+/* ==================================================================== */
+
+static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMonitorData, cellMonitorTaskData_S* taskData);
+
+static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData);
+
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DEFINITIONS ===================== */
+/* ==================================================================== */
 
 static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMonitorData, cellMonitorTaskData_S* taskData)
 {
@@ -70,6 +83,35 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     return status;
 }
 
+static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
+{
+    // Accumulate alert statuses
+    bool responseStatus[NUM_ALERT_RESPONSES] = {false};
+
+    for(uint32_t i = 0; i < NUM_TELEMETRY_ALERTS; i++)
+    {
+        Alert_S* alert = telemetryAlerts[i];
+
+        // Check alert condition and run alert monitor
+        alert->alertConditionPresent = telemetryAlertConditionArray[i](taskData);
+        runAlertMonitor(alert);
+
+        // Get alert status and set response
+        const AlertStatus_E alertStatus = getAlertStatus(alert);
+        if((alertStatus == ALERT_SET) || (alertStatus == ALERT_LATCHED))
+        {
+            // Iterate through all alert responses and set them
+            for (uint32_t j = 0; j < alert->numAlertResponse; j++)
+            {
+                const AlertResponse_E response = alert->alertResponse[j];
+                // Set the alert response to active
+                responseStatus[response] = true;
+            }
+        }
+    }
+    setBmsFault(responseStatus[BMS_FAULT]);
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -110,59 +152,62 @@ void runUpdateCellMonitorTask()
         Debug("Persistent Command Counter Error!\n");
     }
 
-    // Filter and assign all voltages to task data struct
-    for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+    if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        // Filter and assign all voltages to task data struct
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
         {
-            // Add filtering here
-            taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
+            for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+            {
+                // Add filtering here
+                taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
 
-            if((taskData.cellMonitor[i].cellVoltage[j] > MAX_BRICK_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
-            {
-                taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
-            }
-            else
-            {
-                taskData.cellMonitor[i].cellVoltageStatus[j] = GOOD;
+                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_BRICK_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
+                {
+                    taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
+                }
+                else
+                {
+                    taskData.cellMonitor[i].cellVoltageStatus[j] = GOOD;
+                }
             }
         }
+
+        // Filter and assign all cell temps and board temps
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            // Cell indexes are offset depending on the mux state, which is set by gpio10
+            uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+
+            // Cell temps
+            for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+            {
+                float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
+                taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
+
+                if(fequals(cellTemp, MIN_TEMP_SENSOR_VALUE_C) || fequals(cellTemp, MAX_TEMP_SENSOR_VALUE_C))
+                {
+                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                }
+                else
+                {
+                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                }
+            }
+
+            float boardTemp = lookup(cellMonitorData[i].auxVoltage[8], &cellTempTable);
+            if(cellMonitorData[i].configGroupA.gpo10State == 0)
+            {
+                taskData.cellMonitor[i].boardTemp1 = boardTemp;
+            }
+            else if(cellMonitorData[i].configGroupA.gpo10State == 1)
+            {
+                taskData.cellMonitor[i].boardTemp2 = boardTemp;
+            }
+        }
+
+        updateBatteryStatistics(&taskData);
     }
-
-    // Filter and assign all cell temps and board temps
-    for(uint32_t i = 0; i < NUM_CELL_MON; i++)
-    {
-        // Cell indexes are offset depending on the mux state, which is set by gpio10
-        uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
-
-        // Cell temps
-        for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
-        {
-            float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
-            taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
-
-            if(fequals(cellTemp, MIN_TEMP_SENSOR_VALUE_C) || fequals(cellTemp, MAX_TEMP_SENSOR_VALUE_C))
-            {
-                taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
-            }
-            else
-            {
-                taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
-            }
-        }
-
-        float boardTemp = lookup(cellMonitorData[i].auxVoltage[8], &cellTempTable);
-        if(cellMonitorData[i].configGroupA.gpo10State == 0)
-        {
-            taskData.cellMonitor[i].boardTemp1 = boardTemp;
-        }
-        else if(cellMonitorData[i].configGroupA.gpo10State == 1)
-        {
-            taskData.cellMonitor[i].boardTemp2 = boardTemp;
-        }
-    }
-
-    updateBatteryStatistics(&taskData);
 
     telemetryStatus = updateBalancingState(cellMonitorData, &taskData);
 
@@ -182,6 +227,9 @@ void runUpdateCellMonitorTask()
     {
         Debug("Persistent Command Counter Error!\n");
     }
+
+    // Regardless of whether or not chain initialized, run alert monitor
+    runCellMonitorAlertMonitor(&taskData);
 
     // Copy task data to public struct
     vTaskSuspendAll();
