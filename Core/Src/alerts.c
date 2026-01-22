@@ -67,17 +67,15 @@ static bool badCellTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
     return false;
 }
 
-// static bool badBoardTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
-// {
-//     for (uint32_t i = 0; i < NUM_CELL_MON; i++)
-//     {
-//         if(taskData->cellMonitor[i].boardTempStatus != GOOD)
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
+static bool badBoardTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
+{
+
+    if(taskData->numBadBoardTemp != 0)
+    {
+        return true;
+    }
+    return false;
+}
 
 static bool insufficientTempSensePresent(cellMonitorTaskData_S* taskData)
 {
@@ -387,7 +385,7 @@ Alert_S* cellMonitorAlerts[] =
     &overtempFaultAlert,
     &badVoltageSenseStatusAlert,
     &badCellTempSenseStatusAlert,
-    // &badBoardTempSenseStatusAlert,
+    &badBoardTempSenseStatusAlert,
     &insufficientTempSensorsAlert,
     // &telemetryCommunicationAlert,
 };
@@ -409,7 +407,7 @@ cellMonitorAlertCondition cellMonitorAlertConditionArray[] =
     overtemperatureFaultPresent,
     badVoltageSensorStatusPresent,
     badCellTempSensorStatusPresent,
-    // badBoardTempSensorStatusPresent,
+    badBoardTempSensorStatusPresent,
     insufficientTempSensePresent
     // telemetryCommunicationErrorPresent,
 };

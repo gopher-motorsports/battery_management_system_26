@@ -14,6 +14,8 @@
 #define FORCE_BALANCING_ON      1
 
 #define NUM_CELL_TEMP_ADCS      7
+#define BOARD_TEMP_ADC_INDEX    7
+#define REG_TEMP_ADC_INDEX      8
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -159,10 +161,10 @@ void runUpdateCellMonitorTask()
         {
             for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
-                // Add filtering here
                 taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
 
-                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_CELL_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
+                // TODO: Could also add check for battery current to limit bounds more
+                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_CELL_VOLTAGE_LIMIT) || (taskData.cellMonitor[i].cellVoltage[j] < MIN_CELL_VOLTAGE_LIMIT))
                 {
                     taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
                 }
@@ -195,15 +197,20 @@ void runUpdateCellMonitorTask()
                 }
             }
 
-            float boardTemp = lookup(cellMonitorData[i].auxVoltage[8], &cellTempTable);
+            float boardTemp = lookup(cellMonitorData[i].auxVoltage[BOARD_TEMP_ADC_INDEX], &cellTempTable);
             if(cellMonitorData[i].configGroupA.gpo10State == 0)
             {
                 taskData.cellMonitor[i].boardTemp1 = boardTemp;
+                taskData.cellMonitor[i].boardTemp1Status = GOOD;
             }
             else if(cellMonitorData[i].configGroupA.gpo10State == 1)
             {
                 taskData.cellMonitor[i].boardTemp2 = boardTemp;
+                taskData.cellMonitor[i].boardTemp2Status = GOOD;
             }
+
+            taskData.cellMonitor[i].regTemp = lookup(cellMonitorData[i].auxVoltage[REG_TEMP_ADC_INDEX], &cellTempTable);
+            taskData.cellMonitor[i].regTempStatus = GOOD;
         }
 
         updateBatteryStatistics(&taskData);

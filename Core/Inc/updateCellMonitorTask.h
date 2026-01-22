@@ -26,7 +26,13 @@ typedef struct
     SENSOR_STATUS_E cellTempStatus[NUM_CELLS_PER_CELL_MONITOR];
 
     float boardTemp1;
+    SENSOR_STATUS_E boardTemp1Status;
+
     float boardTemp2;
+    SENSOR_STATUS_E boardTemp2Status;
+
+    float regTemp;
+    SENSOR_STATUS_E regTempStatus;
 
     // Cell monitor local voltage statistics
     float maxCellVoltage;
@@ -65,11 +71,11 @@ typedef struct
     float maxBoardTemp;
     float minBoardTemp;
     float avgBoardTemp;
+    uint32_t numBadBoardTemp;
 
     float maxDieTemp;
     float minDieTemp;
     float avgDieTemp;
-    float numGoodDieTemps;
 
 } cellMonitorTaskData_S;
 

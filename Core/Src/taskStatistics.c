@@ -156,20 +156,47 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
             sumAvgCellTemp += pBmb->avgCellTemp;
         }
 
-        // if(pBmb->boardTempStatus == GOOD)
-        // {
-        //     if (pBmb->boardTemp > maxBoardTemp)
-        //     {
-        //         maxBoardTemp = pBmb->boardTemp;
-        //     }
-        //     if (pBmb->boardTemp < minBoardTemp)
-        //     {
-        //         minBoardTemp = pBmb->boardTemp;
-        //     }
+        if(pBmb->boardTemp1Status == GOOD)
+        {
+            if (pBmb->boardTemp1 > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->boardTemp1;
+            }
+            if (pBmb->boardTemp1 < minBoardTemp)
+            {
+                minBoardTemp = pBmb->boardTemp1;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->boardTemp1;
+        }
 
-        //     numGoodBoardTemp++;
-        //     sumBoardTemp += pBmb->boardTemp;
-        // }
+        if(pBmb->boardTemp2Status == GOOD)
+        {
+            if (pBmb->boardTemp2 > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->boardTemp2;
+            }
+            if (pBmb->boardTemp2 < minBoardTemp)
+            {
+                minBoardTemp = pBmb->boardTemp2;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->boardTemp2;
+        }
+
+        if(pBmb->regTempStatus == GOOD)
+        {
+            if (pBmb->regTemp > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->regTemp;
+            }
+            if (pBmb->regTemp < minBoardTemp)
+            {
+                minBoardTemp = pBmb->regTemp;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->regTemp;
+        }
 
         // if(pBmb->dieTempStatus == GOOD)
         // {
@@ -210,6 +237,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->maxBoardTemp = maxBoardTemp;
         taskData->minBoardTemp = minBoardTemp;
         taskData->avgBoardTemp = sumBoardTemp / numGoodBoardTemp;
+        taskData->numBadBoardTemp = NUM_BOARD_TEMP_SENSORS - numGoodBoardTemp;
     }
 
     if(numGoodDieTemp > 0)

@@ -30,8 +30,8 @@ typedef enum
 #define PACK_MILLICOULOMBS          CELL_CAPACITY_MAH * NUM_PARALLEL_CELLS * MINUTES_IN_HOUR * SECONDS_IN_MINUTE
 #define PACK_MILLIJOULES            PACK_MILLICOULOMBS * NOMINAL_CELL_VOLTAGE
 
-#define MAX_TEMP_SENSOR_VALUE_C     120.0f
-#define MIN_TEMP_SENSOR_VALUE_C     -40.0f
+#define MAX_TEMP_SENSOR_VALUE_C     192.476f
+#define MIN_TEMP_SENSOR_VALUE_C     -53.870f
 
 #define ABS_MAX_DISCHARGE_CURRENT_A 250.0f
 #define ABS_MAX_CHARGE_CURRENT_A    15.0f
@@ -47,10 +47,12 @@ typedef enum
 #define MAX_CELL_VOLTAGE           4.28f
 #define MAX_CELL_WARNING_VOLTAGE   4.3f
 #define MAX_CELL_FAULT_VOLTAGE     4.33f
+#define MAX_CELL_VOLTAGE_LIMIT     4.5f // indicates bad voltage sensor
 
 #define NOMINAL_CELL_VOLTAGE       3.78f
 #define MIN_CELL_WARNING_VOLTAGE   3.1f
 #define MIN_CELL_FAULT_VOLTAGE     3.0f
+#define MIN_CELL_VOLTAGE_LIMIT     1.2f // indicates bad voltage sensor
 
 #define MAX_CELL_TEMP_WARNING_C    55.0f
 #define MAX_CELL_TEMP_FAULT_C      60.0f
