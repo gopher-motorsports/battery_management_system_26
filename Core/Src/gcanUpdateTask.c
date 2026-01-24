@@ -5,6 +5,8 @@
 #include "gcanUpdateTask.h"
 #include "main.h"
 #include "updateCellMonitorTask.h"
+#include "updatePackMonitorTask.h"
+#include "alerts.h"
 #include "gopher_sense.h"
 #include "GopherCAN.h"
 #include "cmsis_os.h"
@@ -25,6 +27,7 @@
 typedef struct
 {
     cellMonitorTaskData_S cellMonitorTaskData;
+    packMonitorTaskData_S packMonitorTaskData;
 } gcanTaskInputData_S;
 
 /* ==================================================================== */
@@ -47,16 +50,16 @@ void updateLowFrequencyVariables(gcanTaskInputData_S* gcanData, uint32_t segment
 
 void updateHighFrequencyVariables(gcanTaskInputData_S* gcanData)
 {
-//     // Pack current
-//     update_and_queue_param_float(&bmsBatteryCurrent_A, gcanData->telemetryTaskData.packMonitor.packCurrent);
+    // Pack current
+    update_and_queue_param_float(&bmsBatteryCurrent_A, gcanData->packMonitorTaskData.packCurrent);
 
-//     // Pack voltage
-//     update_and_queue_param_float(&bmsBatteryVoltage_V, gcanData->telemetryTaskData.packMonitor.packVoltage);
+    // Pack voltage
+    update_and_queue_param_float(&bmsBatteryVoltage_V, gcanData->packMonitorTaskData.packVoltage);
 
-//     // Link voltage
-//     update_and_queue_param_float(&bmsTractiveSystemVoltage_V, gcanData->telemetryTaskData.packMonitor.linkVoltage);
+    // Link voltage
+    update_and_queue_param_float(&bmsTractiveSystemVoltage_V, gcanData->packMonitorTaskData.linkVoltage);
 
-//     // Flags
+    // Flags
 //     update_and_queue_param_u8(&imdFault_state, gcanData->statusUpdateTaskData.shutdownCircuitData.imdLatchOpen);
 //     update_and_queue_param_u8(&amsFault_state, gcanData->statusUpdateTaskData.shutdownCircuitData.bmsLatchOpen);
 }
@@ -67,10 +70,13 @@ void updateMediumFrequencyVariables(gcanTaskInputData_S* gcanData)
     update_and_queue_param_float(&maxCellVoltage_V, gcanData->cellMonitorTaskData.maxCellVoltage);
     update_and_queue_param_float(&minCellVoltage_V, gcanData->cellMonitorTaskData.minCellVoltage);
     update_and_queue_param_float(&avgCellVoltage_V, gcanData->cellMonitorTaskData.avgCellVoltage);
-
+    update_and_queue_param_float(&cellImbalance_mV, gcanData->cellMonitorTaskData.cellImbalance * 1000.0f);
     update_and_queue_param_float(&minCellTemp_C, gcanData->cellMonitorTaskData.minCellTemp);
     update_and_queue_param_float(&avgCellTemp_C, gcanData->cellMonitorTaskData.avgCellTemp);
     update_and_queue_param_float(&maxCellTemp_C, gcanData->cellMonitorTaskData.maxCellTemp);
+    update_and_queue_param_float(&maxBoardTemp_C, gcanData->cellMonitorTaskData.maxBoardTemp);
+    update_and_queue_param_float(&minBoardTemp_C, gcanData->cellMonitorTaskData.minBoardTemp);
+    update_and_queue_param_float(&avgBoardTemp_C, gcanData->cellMonitorTaskData.avgBoardTemp);
 
 }
 
@@ -93,6 +99,7 @@ void runGcanUpdateTask()
     gcanTaskInputData_S gcanTaskInputData;
     vTaskSuspendAll();
     gcanTaskInputData.cellMonitorTaskData = publicCellMonitorTaskData;
+    gcanTaskInputData.packMonitorTaskData = publicPackMonitorTaskData;
     xTaskResumeAll();
 
     // High frequency update variables - 100Hz
