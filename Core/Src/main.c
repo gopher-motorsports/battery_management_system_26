@@ -46,6 +46,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CAN_HandleTypeDef hcan2;
+
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_tx;
@@ -71,6 +73,9 @@ osStaticThreadDef_t updateCellMonControlBlock;
 osThreadId updatePackMonHandle;
 uint32_t updatePackMonBuffer[ 1024 ];
 osStaticThreadDef_t updatePackMonControlBlock;
+osThreadId serviceGcanHandle;
+uint32_t serviceGcanBuffer[ 1024 ];
+osStaticThreadDef_t serviceGcanControlBlock;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -85,10 +90,12 @@ static void MX_USART1_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
+static void MX_CAN2_Init(void);
 void startPrintTask(void const * argument);
 void startIdleTask(void const * argument);
 void startUpdateCellMon(void const * argument);
 void startUpdatePackMon(void const * argument);
+void startServiceGcanTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -196,6 +203,7 @@ int main(void)
   MX_SPI2_Init();
   MX_TIM2_Init();
   MX_TIM14_Init();
+  MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
   
@@ -233,6 +241,10 @@ int main(void)
   /* definition and creation of updatePackMon */
   osThreadStaticDef(updatePackMon, startUpdatePackMon, osPriorityNormal, 0, 1024, updatePackMonBuffer, &updatePackMonControlBlock);
   updatePackMonHandle = osThreadCreate(osThread(updatePackMon), NULL);
+
+  /* definition and creation of serviceGcan */
+  osThreadStaticDef(serviceGcan, startServiceGcanTask, osPriorityNormal, 0, 1024, serviceGcanBuffer, &serviceGcanControlBlock);
+  serviceGcanHandle = osThreadCreate(osThread(serviceGcan), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -298,6 +310,43 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CAN2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN2_Init(void)
+{
+
+  /* USER CODE BEGIN CAN2_Init 0 */
+
+  /* USER CODE END CAN2_Init 0 */
+
+  /* USER CODE BEGIN CAN2_Init 1 */
+
+  /* USER CODE END CAN2_Init 1 */
+  hcan2.Instance = CAN2;
+  hcan2.Init.Prescaler = 4;
+  hcan2.Init.Mode = CAN_MODE_NORMAL;
+  hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan2.Init.TimeSeg1 = CAN_BS1_6TQ;
+  hcan2.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan2.Init.TimeTriggeredMode = DISABLE;
+  hcan2.Init.AutoBusOff = ENABLE;
+  hcan2.Init.AutoWakeUp = ENABLE;
+  hcan2.Init.AutoRetransmission = DISABLE;
+  hcan2.Init.ReceiveFifoLocked = DISABLE;
+  hcan2.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN2_Init 2 */
+
+  /* USER CODE END CAN2_Init 2 */
+
 }
 
 /**
@@ -719,6 +768,24 @@ void startUpdatePackMon(void const * argument)
     vTaskDelayUntil(&lastUpdatePackMonitorTaskTick, updatePackMonitorTaskPeriod);
   }
   /* USER CODE END startUpdatePackMon */
+}
+
+/* USER CODE BEGIN Header_startServiceGcanTask */
+/**
+* @brief Function implementing the serviceGcan thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startServiceGcanTask */
+void startServiceGcanTask(void const * argument)
+{
+  /* USER CODE BEGIN startServiceGcanTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startServiceGcanTask */
 }
 
 /**
