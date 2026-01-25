@@ -5,6 +5,7 @@
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
+#include "soc.h"
 #include <stdint.h>
 
 /* ==================================================================== */
@@ -25,11 +26,16 @@ typedef struct
 
     float linkVoltage;
 
+    // minCellVoltage from cell monitor task
+    float minCellVoltage;
+
     // Calculated values
 
     int32_t shuntResistance_nOhms;
 
     uint16_t conversionTime_us;
+
+    Soc_S socData;
     
 } packMonitorTaskData_S;
 

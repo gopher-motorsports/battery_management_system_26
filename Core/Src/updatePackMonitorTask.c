@@ -30,7 +30,8 @@
 #define CONV_LOWER_BOUND                500
 #define PACK_MON_ACCN_SETTING           ACCUMULATE_4_SAMPLES
 #define ACCUMULATION_REGISTER_COUNT     ((PACK_MON_ACCN_SETTING + 1) * 4)
-#define MIN_VALID_IADC_READING          10 // microvolts
+#define MIN_VALID_IADC_READING_UV       10
+#define ACCUMULATED_CURRENT_THRES_UV    100
 
 // Mapping of pack monitor voltage inputs
 #define SHUNT_TEMP1_INDEX       1
@@ -106,25 +107,36 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
         }
 
         static uint8_t accConversions = 0; // Accumulates conversions, used for processing I1ACC results
-        static int32_t milliCoulombCounter = 0;
 
         // Update milliCoulombCounter for every new I1ACC register value
         accConversions += deltaConversions;
         if(accConversions >= (ACCUMULATION_REGISTER_COUNT * PHASE_COUNTS_PER_CONVERSION))
         {
             accConversions %= (ACCUMULATION_REGISTER_COUNT * PHASE_COUNTS_PER_CONVERSION);
-            if(abs(packMonitorData->currentAdcAccumulator1_uV) >= MIN_VALID_IADC_READING)
+            if(abs(packMonitorData->currentAdcAccumulator1_uV) >= MIN_VALID_IADC_READING_UV)
             {
                 int32_t picoVoltSeconds = -1 * packMonitorData->currentAdcAccumulator1_uV * taskData->conversionTime_us;
-                milliCoulombCounter += picoVoltSeconds / taskData->shuntResistance_nOhms;
-            }
-            
+                taskData->socData.milliCoulombCounter += picoVoltSeconds / taskData->shuntResistance_nOhms;
+            }            
         }
 
-        // printf("Battery Current: %f A\n", ((float)(-1000 * packMonitorData->currentAdc1_uV)) / ((float)(SHUNT_REF_RESISTANCE_NANO_OHMS)));
-        // printf("MilliCoulombCounter: %li\n\n", milliCoulombCounter);
-    }
-    
+        // Update qualification timer
+        // TODO: Can this go in the above if statement?
+        if(abs(packMonitorData->currentAdcAccumulator1_uV) > ACCUMULATED_CURRENT_THRES_UV)
+        {
+            clearTimer(&taskData->socData.socByOcvQualificationTimer);
+        }
+        else
+        {
+            updateTimer(&taskData->socData.socByOcvQualificationTimer);
+        }
+
+        // Get minCellVoltage value from cell monitor task
+        taskData->minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
+
+        // Update soc
+        updateSocSoe(&taskData->socData, taskData->minCellVoltage);
+    }    
 }
 
 static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
@@ -164,6 +176,9 @@ void initUpdatePackMonitorTask()
 {
     // Set CS high upon start up
     HAL_GPIO_WritePin(PACK_MON_CS_N_GPIO_Port, PACK_MON_CS_N_Pin, GPIO_PIN_SET);
+
+    // Initialize SOC/SOE qualification timer
+    taskData.socData.socByOcvQualificationTimer = (Timer_S){.timCount = CELL_POLARIZATION_REST_MS, .lastUpdate = 0, .timThreshold = CELL_POLARIZATION_REST_MS};
 
 }
 
