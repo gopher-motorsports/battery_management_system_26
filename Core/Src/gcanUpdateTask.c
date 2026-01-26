@@ -103,12 +103,12 @@ void runGcanUpdateTask()
     xTaskResumeAll();
 
     // High frequency update variables - 100Hz
-    static uint32_t lastHighFreqUpdateTick = 0;
-    if((HAL_GetTick() - lastHighFreqUpdateTick) >= HIGH_FREQ_UPDATE_PERIOD)
-    {
-        lastHighFreqUpdateTick = HAL_GetTick();
-        updateHighFrequencyVariables(&gcanTaskInputData);
-    }
+    // static uint32_t lastHighFreqUpdateTick = 0;
+    // if((HAL_GetTick() - lastHighFreqUpdateTick) >= HIGH_FREQ_UPDATE_PERIOD)
+    // {
+    //     lastHighFreqUpdateTick = HAL_GetTick();
+    //     updateHighFrequencyVariables(&gcanTaskInputData);
+    // }
 
     // Medium frequency update variables - 10Hz
     static uint32_t lastMediumFreqUpdateTick = 0;
