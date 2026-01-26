@@ -8,7 +8,33 @@
             }
         }
     },
-    "tasks": [
+    "tasks": [ 
+        {
+            "type": "shell",
+            "label": "Build GopherCAN",
+            "command": "python",
+            "args": [
+                "autogen.py",
+                "configs/go4-25.yaml"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../gophercan-lib/network_autogen"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Build Gopher Sense",
+            "command": "python",
+            "args": [
+                "gsense_auto_gen.py",
+                "./../${workspaceFolderBasename}/${workspaceFolderBasename}_config.yaml"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../Gopher_Sense"
+            },
+            "problemMatcher": []
+        },
         {
             "type": "shell",
             "label": "CubeProg: Flash project (SWD)",
@@ -31,22 +57,17 @@
             "label": "Build + Flash",
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Build GopherCAN",
+                "Build Gopher Sense",
                 "CMake: clean rebuild",
                 "CubeProg: Flash project (SWD)"
             ],
-            "problemMatcher": []
-        },
-        {
-            "type": "cmake",
-            "label": "CMake: clean rebuild",
-            "command": "cleanRebuild",
-            "targets": [
-                "all"
-            ],
-            "preset": "${command:cmake.activeBuildPresetName}",
-            "group": "build",
             "problemMatcher": [],
-            "detail": "CMake template clean rebuild task"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Complile and flash target (SWD)"
         },
         {
             "type": "shell",
@@ -59,6 +80,79 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "type": "cmake",
+            "label": "CMake: clean rebuild",
+            "command": "cleanRebuild",
+            "targets": [
+                "all"
+            ],
+            "preset": "${command:cmake.activeBuildPresetName}",
+            "problemMatcher": [],
+            "detail": "CMake template clean rebuild task"
+        },
+        {
+            "label": "Clean Rebuild",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build GopherCAN",
+                "Build Gopher Sense",
+                "CMake: clean rebuild"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Build libraies and Clean Rebuild"
+        },
+        {
+            "type": "shell",
+            "label": "Start CAN Bootloader",
+            "command": "python",
+            "args": [
+                "../gophercan-lib/gcan_bootloader/src/gcan_bootloader.py",
+                "go4-25"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "CubeProg: Flash project (CAN)",
+            "command": "STM32_Programmer_CLI",
+            "args": [
+                "-c",
+                "port=CAN",
+                "br=1000",
+                "-d",
+                "./build/Debug/${workspaceFolderBasename}.bin",
+                "0x08000000"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run CAN Bootloader",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build GopherCAN",
+                "Build Gopher Sense",
+                "CMake: clean rebuild",
+                "Start CAN Bootloader",
+                "CubeProg: Flash project (CAN)"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Run gopherCAN Bootloader"
         }
     ]
 }
