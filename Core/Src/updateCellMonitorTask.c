@@ -17,6 +17,7 @@
 #define BOARD_TEMP_ADC_INDEX    7
 #define REG_TEMP_ADC_INDEX      8
 
+
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
@@ -90,6 +91,8 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
     // Accumulate alert statuses
     bool responseStatus[NUM_ALERT_RESPONSES] = {false};
 
+    uint32_t numAlertsSet = 0;
+
     for(uint32_t i = 0; i < NUM_CELL_MONITOR_ALERTS; i++)
     {
         Alert_S* alert = cellMonitorAlerts[i];
@@ -109,6 +112,15 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
                 // Set the alert response to active
                 responseStatus[response] = true;
             }
+
+            numAlertsSet++;
+
+            // Bit encoding for GopherCAN
+            uint8_t byteIndex = alert->gcanAlertEncode >> 4;
+            uint8_t bitIndex  = alert->gcanAlertEncode & 0x0F;
+
+            taskData->cellMonitorGcanAlerts[byteIndex] |= (1U << bitIndex);
+
         }
     }
     setBmsFault(responseStatus[BMS_FAULT]);

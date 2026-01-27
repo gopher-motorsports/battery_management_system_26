@@ -3,17 +3,17 @@ module_name: "BMS"
 use_hw_timer: false # Disable hw timer based DMA update
 
 buckets:
-    high_frequency_bms:
-        frequency_hz: 100
-        parameters: 
-            # bmsBatteryCurrent_A:
-            #     ADC: NON_ADC
-            #     sensor: NON_ADC
-            #     samples_buffered: 1
-            # bmsBatteryVoltage_V:
-            #     ADC: NON_ADC
-            #     sensor: NON_ADC
-            #     samples_buffered: 1
+    # high_frequency_bms:
+    #     frequency_hz: 100
+    #     parameters: 
+    #         bmsBatteryCurrent_A:
+    #             ADC: NON_ADC
+    #             sensor: NON_ADC
+    #             samples_buffered: 1
+    #         bmsBatteryVoltage_V:
+    #             ADC: NON_ADC
+    #             sensor: NON_ADC
+    #             samples_buffered: 1
             # bmsTractiveSystemVoltage_V:
             #     ADC: NON_ADC
             #     sensor: NON_ADC
@@ -38,22 +38,22 @@ buckets:
             #     ADC: NON_ADC
             #     sensor: NON_ADC
             #     samples_buffered: 1
-            maxCellVoltage_V:
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
-            minCellVoltage_V:
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
+            # maxCellVoltage_V:
+            #     ADC: NON_ADC
+            #     sensor: NON_ADC
+            #     samples_buffered: 1
+            # minCellVoltage_V:
+            #     ADC: NON_ADC
+            #     sensor: NON_ADC
+            #     samples_buffered: 1
             avgCellVoltage_V:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            # cellImbalance_mV:
-            #     ADC: NON_ADC
-            #     sensor: NON_ADC
-            #     samples_buffered: 1
+            cellImbalance_mV:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
             maxCellTemp_C:
                 ADC: NON_ADC
                 sensor: NON_ADC
@@ -62,10 +62,10 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
-            avgCellTemp_C:
-                ADC: NON_ADC
-                sensor: NON_ADC
-                samples_buffered: 1
+            # avgCellTemp_C:
+            #     ADC: NON_ADC
+            #     sensor: NON_ADC
+            #     samples_buffered: 1
             # maxBoardTemp_C:
             #     ADC: NON_ADC
             #     sensor: NON_ADC
@@ -167,14 +167,14 @@ buckets:
             #     sensor: NON_ADC
             #     samples_buffered: 1
 
-    low_frequency_bms:
-        frequency_hz: 1
-        parameters:
-            # # Segment 1
-            # segment1MaxCellVoltage_V:
-            #     ADC: NON_ADC
-            #     sensor: NON_ADC
-            #     samples_buffered: 1
+    # low_frequency_bms:
+    #     frequency_hz: 1
+    #     parameters:
+    #         # Segment 1
+    #         segment1MaxCellVoltage_V:
+    #             ADC: NON_ADC
+    #             sensor: NON_ADC
+    #             samples_buffered: 1
             # segment1MinCellVoltage_V:
             #     ADC: NON_ADC
             #     sensor: NON_ADC

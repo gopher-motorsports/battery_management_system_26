@@ -67,16 +67,16 @@ void updateHighFrequencyVariables(gcanTaskInputData_S* gcanData)
 void updateMediumFrequencyVariables(gcanTaskInputData_S* gcanData)
 {
     // Pack statistics
-    update_and_queue_param_float(&maxCellVoltage_V, gcanData->cellMonitorTaskData.maxCellVoltage);
-    update_and_queue_param_float(&minCellVoltage_V, gcanData->cellMonitorTaskData.minCellVoltage);
+    // update_and_queue_param_float(&maxCellVoltage_V, gcanData->cellMonitorTaskData.maxCellVoltage);
+    // update_and_queue_param_float(&minCellVoltage_V, gcanData->cellMonitorTaskData.minCellVoltage);
     update_and_queue_param_float(&avgCellVoltage_V, gcanData->cellMonitorTaskData.avgCellVoltage);
     update_and_queue_param_float(&cellImbalance_mV, gcanData->cellMonitorTaskData.cellImbalance * 1000.0f);
     update_and_queue_param_float(&minCellTemp_C, gcanData->cellMonitorTaskData.minCellTemp);
-    update_and_queue_param_float(&avgCellTemp_C, gcanData->cellMonitorTaskData.avgCellTemp);
+    // update_and_queue_param_float(&avgCellTemp_C, gcanData->cellMonitorTaskData.avgCellTemp);
     update_and_queue_param_float(&maxCellTemp_C, gcanData->cellMonitorTaskData.maxCellTemp);
-    update_and_queue_param_float(&maxBoardTemp_C, gcanData->cellMonitorTaskData.maxBoardTemp);
-    update_and_queue_param_float(&minBoardTemp_C, gcanData->cellMonitorTaskData.minBoardTemp);
-    update_and_queue_param_float(&avgBoardTemp_C, gcanData->cellMonitorTaskData.avgBoardTemp);
+    // update_and_queue_param_float(&maxBoardTemp_C, gcanData->cellMonitorTaskData.maxBoardTemp);
+    // update_and_queue_param_float(&minBoardTemp_C, gcanData->cellMonitorTaskData.minBoardTemp);
+    // update_and_queue_param_float(&avgBoardTemp_C, gcanData->cellMonitorTaskData.avgBoardTemp);
 
 }
 
@@ -91,7 +91,7 @@ void updateLowFrequencyVariables(gcanTaskInputData_S* gcanData, uint32_t segment
 
 void initGcanUpdateTask()
 {
-    
+    set_all_param_sending(false);
 }
 
 void runGcanUpdateTask()

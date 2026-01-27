@@ -77,6 +77,9 @@ typedef struct
     float minDieTemp;
     float avgDieTemp;
 
+    // Alerts Bit Encoded for GopherCAN
+    uint8_t cellMonitorGcanAlerts[2]
+
 } cellMonitorTaskData_S;
 
 /* ==================================================================== */
