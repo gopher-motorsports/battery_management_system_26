@@ -70,7 +70,8 @@ void updateHighFrequencyVariables(gcanTaskInputData_S* gcanData)
 void updateMediumFrequencyVariables(gcanTaskInputData_S* gcanData)
 {
     // Pack statistics
-    // TODO: Add soc and soe here
+    update_and_queue_param_float(&soeByOCV_percent, gcanData->packMonitorTaskData.socData.soeByOcv * 100.0f);
+    update_and_queue_param_float(&soeByCoulombCounting_percent, gcanData->packMonitorTaskData.socData.soeByCoulombCounting * 100.0f);
     update_and_queue_param_float(&maxCellVoltage_V, gcanData->cellMonitorTaskData.maxCellVoltage);
     update_and_queue_param_float(&minCellVoltage_V, gcanData->cellMonitorTaskData.minCellVoltage);
 

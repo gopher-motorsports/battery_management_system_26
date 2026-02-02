@@ -113,7 +113,9 @@ static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)
     printf("Precharge Temp: %f C,   ", packTaskPrintData->prechargeTemp);
     printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
     printf("Link Voltage: %f V,       ", packTaskPrintData->linkVoltage);
-    printf("Conversion Time: %hu us\n", packTaskPrintData->conversionTime_us);
+    printf("Conversion Time: %hu us  ", packTaskPrintData->conversionTime_us);
+    printf("Qualification Timer: %u us\n", packTaskPrintData->socData.socByOcvQualificationTimer.timCount);
+    printf("SOC: %f by OCV, %f by CC   SOE: %f by OCV, %f by CC\n", packTaskPrintData->socData.socByOcv, packTaskPrintData->socData.socByCoulombCounting, packTaskPrintData->socData.soeByOcv, packTaskPrintData->socData.soeByCoulombCounting);
 }
 
 static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts)

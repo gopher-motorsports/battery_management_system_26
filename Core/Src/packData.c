@@ -91,4 +91,4 @@ const LookupTable_S stateOfEnergyTable = {
     .xOffset = SOE_FROM_SOC_OFFSET,
     .y = stateOfEnergy,
     .size = SOE_LUT_LENGTH
-}
+};
