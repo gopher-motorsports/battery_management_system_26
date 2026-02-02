@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "gcanUpdateTask.h"
 #include "printTask.h"
+#include "statusUpdateTask.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
 #include "utils.h"
@@ -67,7 +68,7 @@ UART_HandleTypeDef huart1;
 osThreadId printTaskHandle;
 uint32_t printTaskBuffer[ 2048 ];
 osStaticThreadDef_t printTaskControlBlock;
-osThreadId idleTaskHandle;
+osThreadId statusUpdateTasHandle;
 uint32_t idleTaskBuffer[ 128 ];
 osStaticThreadDef_t idleTaskControlBlock;
 osThreadId updateCellMonHandle;
@@ -95,7 +96,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_CAN2_Init(void);
 void startPrintTask(void const * argument);
-void startIdleTask(void const * argument);
+void startStatusUpdateTask(void const * argument);
 void startUpdateCellMon(void const * argument);
 void startUpdatePackMon(void const * argument);
 void startServiceGcanTask(void const * argument);
@@ -236,9 +237,9 @@ int main(void)
   osThreadStaticDef(printTask, startPrintTask, osPriorityNormal, 0, 2048, printTaskBuffer, &printTaskControlBlock);
   printTaskHandle = osThreadCreate(osThread(printTask), NULL);
 
-  /* definition and creation of idleTask */
-  osThreadStaticDef(idleTask, startIdleTask, osPriorityIdle, 0, 128, idleTaskBuffer, &idleTaskControlBlock);
-  idleTaskHandle = osThreadCreate(osThread(idleTask), NULL);
+  /* definition and creation of statusUpdateTas */
+  osThreadStaticDef(statusUpdateTas, startStatusUpdateTask, osPriorityIdle, 0, 128, idleTaskBuffer, &idleTaskControlBlock);
+  statusUpdateTasHandle = osThreadCreate(osThread(statusUpdateTas), NULL);
 
   /* definition and creation of updateCellMon */
   osThreadStaticDef(updateCellMon, startUpdateCellMon, osPriorityNormal, 0, 1024, updateCellMonBuffer, &updateCellMonControlBlock);
@@ -702,35 +703,27 @@ void startPrintTask(void const * argument)
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_startIdleTask */
+/* USER CODE BEGIN Header_startStatusUpdateTask */
 /**
-* @brief Function implementing the idleTask thread.
+* @brief Function implementing the statusUpdateTas thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_startIdleTask */
-void startIdleTask(void const * argument)
+/* USER CODE END Header_startStatusUpdateTask */
+void startStatusUpdateTask(void const * argument)
 {
-  /* USER CODE BEGIN startIdleTask */
-  TickType_t lastIdleTaskTick;
-  const TickType_t idleTaskPeriod = pdMS_TO_TICKS(100);
+  /* USER CODE BEGIN startStatusUpdateTask */
+  initStatusUpdateTask();
+  TickType_t lastStatusUpdateTaskTick;
+  const TickType_t statusUpdateTaskPeriod = pdMS_TO_TICKS(10);
 
-  static uint32_t lastHeartbeatUpdate = 0;
-  HAL_GPIO_WritePin(MCU_HEART_GPIO_Port, MCU_HEART_Pin, GPIO_PIN_RESET);
   /* Infinite loop */
   for(;;)
   {
-    if(HAL_GetTick() - lastHeartbeatUpdate > 800)
-    {
-      HAL_GPIO_TogglePin(MCU_HEART_GPIO_Port, MCU_HEART_Pin);
-      lastHeartbeatUpdate = HAL_GetTick();
-    }
-
-    uint8_t sdc2 = HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin);
-
-    vTaskDelayUntil(&lastIdleTaskTick, idleTaskPeriod);
+    runStatusUpdateTask();
+    vTaskDelayUntil(&lastStatusUpdateTaskTick, statusUpdateTaskPeriod);
   }
-  /* USER CODE END startIdleTask */
+  /* USER CODE END startStatusUpdateTask */
 }
 
 /* USER CODE BEGIN Header_startUpdateCellMon */

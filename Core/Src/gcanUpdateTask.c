@@ -7,6 +7,7 @@
 #include "main.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
+#include "statusUpdateTask.h"
 #include "alerts.h"
 #include "gopher_sense.h"
 #include "GopherCAN.h"
@@ -31,6 +32,7 @@ typedef struct
 {
     cellMonitorTaskData_S cellMonitorTaskData;
     packMonitorTaskData_S packMonitorTaskData;
+    shutdownCircuitStatus_S statusUpdateTaskData;
 } gcanTaskInputData_S;
 
 /* ==================================================================== */
@@ -63,8 +65,8 @@ void updateHighFrequencyVariables(gcanTaskInputData_S* gcanData)
     update_and_queue_param_float(&bmsTractiveSystemVoltage_V, gcanData->packMonitorTaskData.linkVoltage);
 
     // Flags
-//     update_and_queue_param_u8(&imdFault_state, gcanData->statusUpdateTaskData.shutdownCircuitData.imdLatchOpen);
-//     update_and_queue_param_u8(&bmsFault_state, gcanData->statusUpdateTaskData.shutdownCircuitData.bmsLatchOpen);
+    update_and_queue_param_u8(&imdFault_state, gcanData->statusUpdateTaskData.imdLatchOpen);
+    update_and_queue_param_u8(&bmsFault_state, gcanData->statusUpdateTaskData.bmsLatchOpen);
 }
 
 void updateMediumFrequencyVariables(gcanTaskInputData_S* gcanData)
