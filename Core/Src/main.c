@@ -22,10 +22,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "gcanUpdateTask.h"
 #include "printTask.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
 #include "utils.h"
+#include "GopherCAN.h"
+#include "gopher_sense.h"
 #include <stdbool.h>
 
 /* USER CODE END Includes */
@@ -206,7 +209,10 @@ int main(void)
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
-  
+
+  init_can(&hcan2, GCAN0);
+  gsense_init(&hcan2, MCU_GSENSE_GPIO_Port, MCU_GSENSE_Pin);  
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -617,7 +623,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, MCU_FAULT_Pin|MCU_HEART_Pin|PORTB_CS_Pin|PORTA_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, MCU_FAULT_Pin|MCU_GSENSE_Pin|MCU_HEART_Pin|PORTB_CS_Pin
+                          |PORTA_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, PRECHARGE_DONE_Pin|PACK_MON_CS_N_Pin, GPIO_PIN_RESET);
@@ -634,8 +641,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : MCU_FAULT_Pin MCU_HEART_Pin PORTB_CS_Pin PORTA_CS_Pin */
-  GPIO_InitStruct.Pin = MCU_FAULT_Pin|MCU_HEART_Pin|PORTB_CS_Pin|PORTA_CS_Pin;
+  /*Configure GPIO pins : MCU_FAULT_Pin MCU_GSENSE_Pin MCU_HEART_Pin PORTB_CS_Pin
+                           PORTA_CS_Pin */
+  GPIO_InitStruct.Pin = MCU_FAULT_Pin|MCU_GSENSE_Pin|MCU_HEART_Pin|PORTB_CS_Pin
+                          |PORTA_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -780,10 +789,15 @@ void startUpdatePackMon(void const * argument)
 void startServiceGcanTask(void const * argument)
 {
   /* USER CODE BEGIN startServiceGcanTask */
+  initGcanUpdateTask();
+  TickType_t lastServiceGcanTaskTick;
+  const TickType_t serviceGcanTaskPeriod = pdMS_TO_TICKS(10);
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    runGcanUpdateTask();
+    vTaskDelayUntil(&lastServiceGcanTaskTick, serviceGcanTaskPeriod);
   }
   /* USER CODE END startServiceGcanTask */
 }

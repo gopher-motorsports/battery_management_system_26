@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define SDC2_GPIO_Port GPIOC
 #define MCU_FAULT_Pin GPIO_PIN_0
 #define MCU_FAULT_GPIO_Port GPIOA
+#define MCU_GSENSE_Pin GPIO_PIN_1
+#define MCU_GSENSE_GPIO_Port GPIOA
 #define MCU_HEART_Pin GPIO_PIN_2
 #define MCU_HEART_GPIO_Port GPIOA
 #define PORTB_CS_Pin GPIO_PIN_3

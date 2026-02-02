@@ -105,6 +105,23 @@ typedef enum
     NUM_ALERT_RESPONSES
 } AlertResponse_E;
 
+// Alerts are bit encoded before being sent over GopherCAN
+
+typedef enum {
+  OVERVOLTAGE_WARNING_ALERT,
+  UNDERVOLTAGE_WARNING_ALERT,
+  OVERVOLTAGE_FAULT_ALERT,
+  UNDERVOLTAGE_FAULT_ALERT,
+  CELL_IMBALANCE_ALERT,
+  OVERTEMP_WARNING_ALERT,
+  OVERTEMP_FAULT_ALERT,
+  BAD_VOLTAGE_SENSE_STATUS_ALERT,
+  BAD_CELL_TEMP_SENSE_STATUS_ALERT,
+  BAD_BOARD_TEMP_SENSE_STATUS_ALERT,
+  INSUFFICIENT_TEMP_SENSORS_ALERT,
+  TELEMETRY_COMMUNICATION_ALERT    
+} CELL_MONITOR_GCAN_ALERT_ENCODE;
+
 /* ==================================================================== */
 /* ============================== STRUCTS============================== */
 /* ==================================================================== */
@@ -128,6 +145,8 @@ typedef struct
     const uint32_t numAlertResponse;
     // Array of alert responses
     const AlertResponse_E* alertResponse;
+    // Alerts are bit encoded before sending over GopherCAN
+    uint8_t gcanAlertEncode;
 } Alert_S;
 
 /* ==================================================================== */

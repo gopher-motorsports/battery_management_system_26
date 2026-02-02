@@ -215,7 +215,8 @@ Alert_S overvoltageWarningAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = OVERVOLTAGE_WARNING_ALERT_SET_TIME_MS}, 
     .setTime_MS = OVERVOLTAGE_WARNING_ALERT_SET_TIME_MS, .clearTime_MS = OVERVOLTAGE_WARNING_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false, 
-    .numAlertResponse = NUM_OVERVOLTAGE_WARNING_ALERT_RESPONSE, .alertResponse =  overvoltageWarningAlertResponse
+    .numAlertResponse = NUM_OVERVOLTAGE_WARNING_ALERT_RESPONSE, .alertResponse =  overvoltageWarningAlertResponse,
+    .gcanAlertEncode = OVERVOLTAGE_WARNING_ALERT
 };
 
 // Undervoltage Warning Alert
@@ -227,7 +228,8 @@ Alert_S undervoltageWarningAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = UNDERVOLTAGE_WARNING_ALERT_SET_TIME_MS}, 
     .setTime_MS = UNDERVOLTAGE_WARNING_ALERT_SET_TIME_MS, .clearTime_MS = UNDERVOLTAGE_WARNING_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_UNDERVOLTAGE_WARNING_ALERT_RESPONSE, .alertResponse = undervoltageWarningAlertResponse
+    .numAlertResponse = NUM_UNDERVOLTAGE_WARNING_ALERT_RESPONSE, .alertResponse = undervoltageWarningAlertResponse,
+    .gcanAlertEncode = UNDERVOLTAGE_WARNING_ALERT
 };
 
 // Overvoltage Fault Alert
@@ -239,7 +241,8 @@ Alert_S overvoltageFaultAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = OVERVOLTAGE_FAULT_ALERT_SET_TIME_MS}, 
     .setTime_MS = OVERVOLTAGE_FAULT_ALERT_SET_TIME_MS, .clearTime_MS = OVERVOLTAGE_FAULT_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false, 
-    .numAlertResponse = NUM_OVERVOLTAGE_FAULT_ALERT_RESPONSE, .alertResponse =  overvoltageFaultAlertResponse
+    .numAlertResponse = NUM_OVERVOLTAGE_FAULT_ALERT_RESPONSE, .alertResponse =  overvoltageFaultAlertResponse,
+    .gcanAlertEncode = OVERVOLTAGE_FAULT_ALERT
 };
 
 // Undervoltage Fault Alert
@@ -251,7 +254,8 @@ Alert_S undervoltageFaultAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = UNDERVOLTAGE_FAULT_ALERT_SET_TIME_MS}, 
     .setTime_MS = UNDERVOLTAGE_FAULT_ALERT_SET_TIME_MS, .clearTime_MS = UNDERVOLTAGE_FAULT_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_UNDERVOLTAGE_FAULT_ALERT_RESPONSE, .alertResponse = undervoltageFaultAlertResponse
+    .numAlertResponse = NUM_UNDERVOLTAGE_FAULT_ALERT_RESPONSE, .alertResponse = undervoltageFaultAlertResponse,
+    .gcanAlertEncode = UNDERVOLTAGE_FAULT_ALERT
 };
 
 // Cell Imbalance Alert
@@ -263,7 +267,8 @@ Alert_S cellImbalanceAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = CELL_IMBALANCE_ALERT_SET_TIME_MS}, 
     .setTime_MS = CELL_IMBALANCE_ALERT_SET_TIME_MS, .clearTime_MS = CELL_IMBALANCE_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_CELL_IMBALANCE_ALERT_RESPONSE, .alertResponse = cellImbalanceAlertResponse
+    .numAlertResponse = NUM_CELL_IMBALANCE_ALERT_RESPONSE, .alertResponse = cellImbalanceAlertResponse,
+    .gcanAlertEncode = CELL_IMBALANCE_ALERT
 };
 
 // Overtemperature Warning Alert
@@ -275,7 +280,8 @@ Alert_S overtempWarningAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = OVERTEMPERATURE_WARNING_ALERT_SET_TIME_MS}, 
     .setTime_MS = OVERTEMPERATURE_WARNING_ALERT_SET_TIME_MS, .clearTime_MS = OVERTEMPERATURE_WARNING_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_OVERTEMP_WARNING_ALERT_RESPONSE, .alertResponse = overtempWarningAlertResponse
+    .numAlertResponse = NUM_OVERTEMP_WARNING_ALERT_RESPONSE, .alertResponse = overtempWarningAlertResponse,
+    .gcanAlertEncode = OVERTEMP_WARNING_ALERT
 };
 
 // Overtemperature Fault Alert
@@ -287,7 +293,8 @@ Alert_S overtempFaultAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = OVERTEMPERATURE_FAULT_ALERT_SET_TIME_MS}, 
     .setTime_MS = OVERTEMPERATURE_FAULT_ALERT_SET_TIME_MS, .clearTime_MS = OVERTEMPERATURE_FAULT_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_OVERTEMP_FAULT_ALERT_RESPONSE, .alertResponse = overtempFaultAlertResponse
+    .numAlertResponse = NUM_OVERTEMP_FAULT_ALERT_RESPONSE, .alertResponse = overtempFaultAlertResponse,
+    .gcanAlertEncode = OVERTEMP_FAULT_ALERT
 };
 
 // Bad voltage sensor status
@@ -299,7 +306,8 @@ Alert_S badVoltageSenseStatusAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BAD_VOLTAGE_SENSE_STATUS_ALERT_SET_TIME_MS}, 
     .setTime_MS = BAD_VOLTAGE_SENSE_STATUS_ALERT_SET_TIME_MS, .clearTime_MS = BAD_VOLTAGE_SENSE_STATUS_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_BAD_VOLTAGE_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badVoltageSenseStatusAlertResponse
+    .numAlertResponse = NUM_BAD_VOLTAGE_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badVoltageSenseStatusAlertResponse,
+    .gcanAlertEncode = BAD_VOLTAGE_SENSE_STATUS_ALERT
 };
 
 // Bad cell temperature sensor status
@@ -311,7 +319,8 @@ Alert_S badCellTempSenseStatusAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BAD_CELL_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS}, 
     .setTime_MS = BAD_CELL_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS, .clearTime_MS = BAD_CELL_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_BAD_CELL_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badCellTempSenseStatusAlertResponse
+    .numAlertResponse = NUM_BAD_CELL_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badCellTempSenseStatusAlertResponse,
+    .gcanAlertEncode = BAD_CELL_TEMP_SENSE_STATUS_ALERT
 };
 
 // Bad board temperature sensor status
@@ -323,7 +332,8 @@ Alert_S badBoardTempSenseStatusAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BAD_BOARD_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS}, 
     .setTime_MS = BAD_BOARD_TEMP_SENSE_STATUS_ALERT_SET_TIME_MS, .clearTime_MS = BAD_BOARD_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_BAD_BOARD_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badBoardTempSenseStatusAlertResponse
+    .numAlertResponse = NUM_BAD_BOARD_TEMP_SENSE_STATUS_ALERT_RESPONSE, .alertResponse = badBoardTempSenseStatusAlertResponse,
+    .gcanAlertEncode = BAD_BOARD_TEMP_SENSE_STATUS_ALERT
 };
 
 // Lost more than 75% of temp sensors in pack
@@ -335,7 +345,8 @@ Alert_S insufficientTempSensorsAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = INSUFFICIENT_TEMP_SENSOR_ALERT_SET_TIME_MS}, 
     .setTime_MS = INSUFFICIENT_TEMP_SENSOR_ALERT_SET_TIME_MS, .clearTime_MS = INSUFFICIENT_TEMP_SENSOR_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_INSUFFICIENT_TEMP_SENSORS_ALERT_RESPONSE, .alertResponse = insufficientTempSensorsAlertResponse
+    .numAlertResponse = NUM_INSUFFICIENT_TEMP_SENSORS_ALERT_RESPONSE, .alertResponse = insufficientTempSensorsAlertResponse,
+    .gcanAlertEncode = INSUFFICIENT_TEMP_SENSORS_ALERT
 };
 
 // Chain break, loss of comms
@@ -347,7 +358,8 @@ Alert_S telemetryCommunicationAlert =
     .alertStatus = ALERT_CLEARED, .alertTimer = (Timer_S){.timCount = 0, .lastUpdate = 0, .timThreshold = BMB_COMMUNICATION_FAILURE_ALERT_SET_TIME_MS}, 
     .setTime_MS = BMB_COMMUNICATION_FAILURE_ALERT_SET_TIME_MS, .clearTime_MS = BMB_COMMUNICATION_FAILURE_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
-    .numAlertResponse = NUM_TELEMETRY_COMMS_ALERT_RESPONSE, .alertResponse = telemetryCommunicationAlertResponse
+    .numAlertResponse = NUM_TELEMETRY_COMMS_ALERT_RESPONSE, .alertResponse = telemetryCommunicationAlertResponse,
+    .gcanAlertEncode = TELEMETRY_COMMUNICATION_ALERT
 };
 
 // Overcurrent
