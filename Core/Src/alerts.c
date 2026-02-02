@@ -346,7 +346,7 @@ Alert_S insufficientTempSensorsAlert =
     .setTime_MS = INSUFFICIENT_TEMP_SENSOR_ALERT_SET_TIME_MS, .clearTime_MS = INSUFFICIENT_TEMP_SENSOR_ALERT_CLEAR_TIME_MS, 
     .alertConditionPresent = false,
     .numAlertResponse = NUM_INSUFFICIENT_TEMP_SENSORS_ALERT_RESPONSE, .alertResponse = insufficientTempSensorsAlertResponse,
-    .gcanAlertEncode = NUM_INSUFFICIENT_TEMP_SENSORS_ALERT_RESPONSE
+    .gcanAlertEncode = INSUFFICIENT_TEMP_SENSORS_ALERT
 };
 
 // Chain break, loss of comms

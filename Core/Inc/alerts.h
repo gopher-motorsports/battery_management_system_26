@@ -106,27 +106,20 @@ typedef enum
 } AlertResponse_E;
 
 // Alerts are bit encoded before being sent over GopherCAN
-// Stored as BBBB bbbb
-// Upper nibble stores info about which GopherCAN param the alert is in
-// Lower nibble stores info about which bit of the uint8_t the alert is in
 
 typedef enum {
-  // Byte 0
-  OVERVOLTAGE_WARNING_ALERT           = (0U << 4) | 0U,
-  UNDERVOLTAGE_WARNING_ALERT          = (0U << 4) | 1U,
-  OVERVOLTAGE_FAULT_ALERT             = (0U << 4) | 2U,
-  UNDERVOLTAGE_FAULT_ALERT            = (0U << 4) | 3U,
-  CELL_IMBALANCE_ALERT                = (0U << 4) | 4U,
-  OVERTEMP_WARNING_ALERT              = (0U << 4) | 5U,
-  OVERTEMP_FAULT_ALERT                = (0U << 4) | 6U,
-  BAD_VOLTAGE_SENSE_STATUS_ALERT      = (0U << 4) | 7U,
-
-  // Byte 1
-  BAD_CELL_TEMP_SENSE_STATUS_ALERT    = (1U << 4) | 0U,
-  BAD_BOARD_TEMP_SENSE_STATUS_ALERT   = (1U << 4) | 1U,
-  INSUFFICIENT_TEMP_SENSORS_ALERT     = (1U << 4) | 2U,
-  TELEMETRY_COMMUNICATION_ALERT       = (1U << 4) | 3U,
-
+  OVERVOLTAGE_WARNING_ALERT,
+  UNDERVOLTAGE_WARNING_ALERT,
+  OVERVOLTAGE_FAULT_ALERT,
+  UNDERVOLTAGE_FAULT_ALERT,
+  CELL_IMBALANCE_ALERT,
+  OVERTEMP_WARNING_ALERT,
+  OVERTEMP_FAULT_ALERT,
+  BAD_VOLTAGE_SENSE_STATUS_ALERT,
+  BAD_CELL_TEMP_SENSE_STATUS_ALERT,
+  BAD_BOARD_TEMP_SENSE_STATUS_ALERT,
+  INSUFFICIENT_TEMP_SENSORS_ALERT,
+  TELEMETRY_COMMUNICATION_ALERT    
 } CELL_MONITOR_GCAN_ALERT_ENCODE;
 
 /* ==================================================================== */

@@ -78,7 +78,7 @@ typedef struct
     float avgDieTemp;
 
     // Alerts Bit Encoded for GopherCAN
-    uint8_t cellMonitorGcanAlerts[2]
+    uint16_t cellMonitorGcanAlerts;
 
 } cellMonitorTaskData_S;
 

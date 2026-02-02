@@ -11,7 +11,7 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      1
+#define FORCE_BALANCING_ON      0
 
 #define NUM_CELL_TEMP_ADCS      7
 #define BOARD_TEMP_ADC_INDEX    7
@@ -116,11 +116,14 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
             numAlertsSet++;
 
             // Bit encoding for GopherCAN
-            uint8_t byteIndex = alert->gcanAlertEncode >> 4;
-            uint8_t bitIndex  = alert->gcanAlertEncode & 0x0F;
-
-            taskData->cellMonitorGcanAlerts[byteIndex] |= (1U << bitIndex);
-
+            uint8_t bitIndex  = alert->gcanAlertEncode;
+            taskData->cellMonitorGcanAlerts |= (1U << bitIndex);
+        }
+        else 
+        {
+            // Bit encoding for GopherCAN
+            uint8_t bitIndex = alert->gcanAlertEncode;
+            taskData->cellMonitorGcanAlerts &= ~(1U << bitIndex);
         }
     }
     setBmsFault(responseStatus[BMS_FAULT]);
