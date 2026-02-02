@@ -126,7 +126,8 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
             taskData->cellMonitorGcanAlerts &= ~(1U << bitIndex);
         }
     }
-    setBmsFault(responseStatus[BMS_FAULT]);
+    bmsFaultByTask.cellMonitorBmsFault = responseStatus[BMS_FAULT];
+    setBmsFault();
 }
 
 /* ==================================================================== */

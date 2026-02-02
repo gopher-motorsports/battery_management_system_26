@@ -165,7 +165,8 @@ static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
             }
         }
     }
-    setBmsFault(responseStatus[BMS_FAULT]);    
+    bmsFaultByTask.packMonitorBmsFault = responseStatus[BMS_FAULT];
+    setBmsFault();
 }
 
 /* ==================================================================== */

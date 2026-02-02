@@ -149,6 +149,14 @@ typedef struct
     uint8_t gcanAlertEncode;
 } Alert_S;
 
+typedef struct 
+{
+    bool cellMonitorBmsFault;
+    bool packMonitorBmsFault;
+} BMSFaultState_S;
+
+static BMSFaultState_S bmsFaultByTask;
+
 /* ==================================================================== */
 /* ====================== FUNCTION POINTER TYPES ====================== */
 /* ==================================================================== */
@@ -189,6 +197,6 @@ AlertStatus_E getAlertStatus(Alert_S* alert);
 */
 void runAlertMonitor(Alert_S* alert);
 
-void setBmsFault(bool set);
+void setBmsFault();
 
 #endif /* INC_ALERTS_H_ */
