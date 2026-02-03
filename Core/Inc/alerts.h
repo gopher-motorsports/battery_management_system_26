@@ -8,6 +8,7 @@
 #include "timer.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
+#include <stdbool.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -155,8 +156,6 @@ typedef struct
     bool packMonitorBmsFault;
 } BMSFaultState_S;
 
-static BMSFaultState_S bmsFaultByTask;
-
 /* ==================================================================== */
 /* ====================== FUNCTION POINTER TYPES ====================== */
 /* ==================================================================== */
@@ -180,6 +179,8 @@ extern packMonitorAlertCondition packMonitorAlertConditionArray[];
 extern const uint32_t NUM_CELL_MONITOR_ALERTS;
 extern const uint32_t NUM_PACK_MONITOR_ALERTS;
 
+extern BMSFaultState_S bmsFaultByTask;
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
@@ -197,6 +198,9 @@ AlertStatus_E getAlertStatus(Alert_S* alert);
 */
 void runAlertMonitor(Alert_S* alert);
 
+/*!
+  @brief   Reads the BMS fault asserts from multiple tasks and controls the BMS_FAULT pin
+*/
 void setBmsFault();
 
 #endif /* INC_ALERTS_H_ */
