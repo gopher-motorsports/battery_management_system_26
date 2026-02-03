@@ -150,6 +150,8 @@ typedef struct
     uint8_t gcanAlertEncode;
 } Alert_S;
 
+// Struct for managing bms alerts from multiple tasks
+// If task is added, setBmsFault function must also be updated
 typedef struct 
 {
     bool cellMonitorBmsFault;
