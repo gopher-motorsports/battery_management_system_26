@@ -78,16 +78,16 @@ void updateCellMonitorStatistics(cellMonitor_S *bmb)
             pBmb->minCellVoltage = minCellVoltage;
             pBmb->sumCellVoltage = sumVoltage;
             pBmb->avgCellVoltage = (sumVoltage / numGoodCellVoltage);
-            pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
         }
+        pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
 
         if(numGoodCellTemp > 0)
         {
             pBmb->maxCellTemp = maxCellTemp;
             pBmb->minCellTemp = minCellTemp;
             pBmb->avgCellTemp = (sumCellTemp / numGoodCellTemp);
-            pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
         }
+        pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
     }
 }
 
