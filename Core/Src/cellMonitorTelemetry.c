@@ -205,9 +205,12 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }    
 
     // Check for sleepy BMBs
-    if(cellMonitorData[0].statusGroupC.sleepDetected)
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
     {
-        return TRANSACTION_POR_ERROR;
+        if(cellMonitorData[i].statusGroupC.sleepDetected)
+        {
+            return TRANSACTION_POR_ERROR;
+        }
     }
 
     status = readCellVoltages(chainInfoData, cellMonitorData, FILTERED_CELL_VOLTAGE);
