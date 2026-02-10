@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "gcanUpdateTask.h"
 #include "printTask.h"
+#include "chargerTask.h"
 #include "statusUpdateTask.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
@@ -50,6 +51,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CAN_HandleTypeDef hcan1;
 CAN_HandleTypeDef hcan2;
 
 SPI_HandleTypeDef hspi1;
@@ -80,6 +82,9 @@ osStaticThreadDef_t updatePackMonControlBlock;
 osThreadId serviceGcanHandle;
 uint32_t serviceGcanBuffer[ 1024 ];
 osStaticThreadDef_t serviceGcanControlBlock;
+osThreadId chargerTaskHandle;
+uint32_t chargerTaskBuffer[ 1024 ];
+osStaticThreadDef_t chargerTaskControlBlock;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -95,11 +100,13 @@ static void MX_SPI2_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_CAN2_Init(void);
+static void MX_CAN1_Init(void);
 void startPrintTask(void const * argument);
 void startStatusUpdateTask(void const * argument);
 void startUpdateCellMon(void const * argument);
 void startUpdatePackMon(void const * argument);
 void startServiceGcanTask(void const * argument);
+void startChargerTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -208,6 +215,7 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM14_Init();
   MX_CAN2_Init();
+  MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
 
@@ -252,6 +260,10 @@ int main(void)
   /* definition and creation of serviceGcan */
   osThreadStaticDef(serviceGcan, startServiceGcanTask, osPriorityNormal, 0, 1024, serviceGcanBuffer, &serviceGcanControlBlock);
   serviceGcanHandle = osThreadCreate(osThread(serviceGcan), NULL);
+
+  /* definition and creation of chargerTask */
+  osThreadStaticDef(chargerTask, startChargerTask, osPriorityAboveNormal, 0, 1024, chargerTaskBuffer, &chargerTaskControlBlock);
+  chargerTaskHandle = osThreadCreate(osThread(chargerTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -317,6 +329,43 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN1_Init(void)
+{
+
+  /* USER CODE BEGIN CAN1_Init 0 */
+
+  /* USER CODE END CAN1_Init 0 */
+
+  /* USER CODE BEGIN CAN1_Init 1 */
+
+  /* USER CODE END CAN1_Init 1 */
+  hcan1.Instance = CAN1;
+  hcan1.Init.Prescaler = 8;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_6TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = ENABLE;
+  hcan1.Init.AutoWakeUp = ENABLE;
+  hcan1.Init.AutoRetransmission = DISABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN1_Init 2 */
+
+  /* USER CODE END CAN1_Init 2 */
+
 }
 
 /**
@@ -793,6 +842,30 @@ void startServiceGcanTask(void const * argument)
     vTaskDelayUntil(&lastServiceGcanTaskTick, serviceGcanTaskPeriod);
   }
   /* USER CODE END startServiceGcanTask */
+}
+
+/* USER CODE BEGIN Header_startChargerTask */
+/**
+* @brief Function implementing the chargerTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startChargerTask */
+
+void startChargerTask(void const * argument)
+{
+  /* USER CODE BEGIN startChargerTask */
+  initChargerTask();
+  TickType_t lastChargerTaskTick;
+  const TickType_t chargerTaskPeriod = pdMS_TO_TICKS(100);
+
+  /* Infinite loop */
+  for(;;)
+  {
+    runChargerTask();
+    vTaskDelayUntil(&lastChargerTaskTick, chargerTaskPeriod);
+  }
+  /* USER CODE END startChargerTask */
 }
 
 /**
