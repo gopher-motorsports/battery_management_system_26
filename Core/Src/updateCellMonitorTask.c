@@ -78,7 +78,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     }
     else
     {
-        if(taskData->minCellVoltage > MIN_CELL_VOLTAGE_LIMIT)
+        if(taskData->minCellVoltage > MIN_CELL_FAULT_VOLTAGE)
         {
             floor = taskData->minCellVoltage + 0.001f;
         }
