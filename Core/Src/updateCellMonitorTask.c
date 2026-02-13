@@ -60,7 +60,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
                 }
             }
 
-            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 120;
+            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 1;
         }      
 
         static uint32_t lastBalancingUpdate = 0;
