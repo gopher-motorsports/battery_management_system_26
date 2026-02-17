@@ -143,10 +143,6 @@ void initUpdateCellMonitorTask()
     // Disable balancing until we have the first minCellVoltage reading to set the floor
     taskData.balancingEnabled = 0;
 
-    // TODO: Alerts
-    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
-
 }
 
 void runUpdateCellMonitorTask()
