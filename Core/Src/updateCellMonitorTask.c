@@ -6,17 +6,17 @@
 #include "taskStatistics.h"
 #include "alerts.h"
 #include <stdio.h>
+#include "GopherCAN.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      0
+#define FORCE_BALANCING_ON      1
 
 #define NUM_CELL_TEMP_ADCS      7
 #define BOARD_TEMP_ADC_INDEX    7
 #define REG_TEMP_ADC_INDEX      8
-
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -81,7 +81,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
         }
     }
 
-    taskData->balancingEnabled = FORCE_BALANCING_ON;
+    taskData->balancingEnabled = (FORCE_BALANCING_ON || forceEnableBalancing_state.data);
 
     return status;
 }

@@ -119,7 +119,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
     float maxDieTemp = MIN_TEMP_SENSOR_VALUE_C;
     float minDieTemp = 200.0f;
     float sumDieTemp = 0.0f;
-    uint32_t numGoodDieTemp;
+    uint32_t numGoodDieTemp = 0;
 
 	for(int32_t i = 0; i < NUM_CELL_MON; i++)
 	{

@@ -8,7 +8,7 @@
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-const FLOAT_CAN_STRUCT *cellVoltageParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR] =
+FLOAT_CAN_STRUCT *cellVoltageParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR] =
 {
     {&segment1Cell1Voltage_V, &segment1Cell2Voltage_V, &segment1Cell3Voltage_V, &segment1Cell4Voltage_V, &segment1Cell5Voltage_V, &segment1Cell6Voltage_V, &segment1Cell7Voltage_V, &segment1Cell8Voltage_V, &segment1Cell9Voltage_V, &segment1Cell10Voltage_V, &segment1Cell11Voltage_V, &segment1Cell12Voltage_V, &segment1Cell13Voltage_V, &segment1Cell14Voltage_V},
     {&segment2Cell1Voltage_V, &segment2Cell2Voltage_V, &segment2Cell3Voltage_V, &segment2Cell4Voltage_V, &segment2Cell5Voltage_V, &segment2Cell6Voltage_V, &segment2Cell7Voltage_V, &segment2Cell8Voltage_V, &segment2Cell9Voltage_V, &segment2Cell10Voltage_V, &segment2Cell11Voltage_V, &segment2Cell12Voltage_V, &segment2Cell13Voltage_V, &segment2Cell14Voltage_V},
@@ -22,7 +22,7 @@ const FLOAT_CAN_STRUCT *cellVoltageParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONIT
     {&segment10Cell1Voltage_V, &segment10Cell2Voltage_V, &segment10Cell3Voltage_V, &segment10Cell4Voltage_V, &segment10Cell5Voltage_V, &segment10Cell6Voltage_V, &segment10Cell7Voltage_V, &segment10Cell8Voltage_V, &segment10Cell9Voltage_V, &segment10Cell10Voltage_V, &segment10Cell11Voltage_V, &segment10Cell12Voltage_V, &segment10Cell13Voltage_V, &segment10Cell14Voltage_V}
 };
 
-const FLOAT_CAN_STRUCT *cellTempParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR] =
+FLOAT_CAN_STRUCT *cellTempParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR] =
 {
     {&segment1Cell1Temperature_C, &segment1Cell2Temperature_C, &segment1Cell3Temperature_C, &segment1Cell4Temperature_C, &segment1Cell5Temperature_C, &segment1Cell6Temperature_C, &segment1Cell7Temperature_C, &segment1Cell8Temperature_C, &segment1Cell9Temperature_C, &segment1Cell10Temperature_C, &segment1Cell11Temperature_C, &segment1Cell12Temperature_C, &segment1Cell13Temperature_C, &segment1Cell14Temperature_C},
     {&segment2Cell1Temperature_C, &segment2Cell2Temperature_C, &segment2Cell3Temperature_C, &segment2Cell4Temperature_C, &segment2Cell5Temperature_C, &segment2Cell6Temperature_C, &segment2Cell7Temperature_C, &segment2Cell8Temperature_C, &segment2Cell9Temperature_C, &segment2Cell10Temperature_C, &segment2Cell11Temperature_C, &segment2Cell12Temperature_C, &segment2Cell13Temperature_C, &segment2Cell14Temperature_C},
@@ -36,7 +36,7 @@ const FLOAT_CAN_STRUCT *cellTempParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR]
     {&segment10Cell1Temperature_C, &segment10Cell2Temperature_C, &segment10Cell3Temperature_C, &segment10Cell4Temperature_C, &segment10Cell5Temperature_C, &segment10Cell6Temperature_C, &segment10Cell7Temperature_C, &segment10Cell8Temperature_C, &segment10Cell9Temperature_C, &segment10Cell10Temperature_C, &segment10Cell11Temperature_C, &segment10Cell12Temperature_C, &segment10Cell13Temperature_C, &segment10Cell14Temperature_C}
 };
 
-const FLOAT_CAN_STRUCT *cellStatParams[NUM_CELL_MON][NUM_STAT_PARAMS] =
+FLOAT_CAN_STRUCT *cellStatParams[NUM_CELL_MON][NUM_STAT_PARAMS] =
 {
     {&segment1MaxCellVoltage_V, &segment1MinCellVoltage_V, &segment1AvgCellVoltage_V, &segment1DieTemperature_C, &segment1MaxCellTemperature_C, &segment1MinCellTemperature_C, &segment1AvgCellTemperature_C, &segment1BoardTemperature_C},
     {&segment2MaxCellVoltage_V, &segment2MinCellVoltage_V, &segment2AvgCellVoltage_V, &segment2DieTemperature_C, &segment2MaxCellTemperature_C, &segment2MinCellTemperature_C, &segment2AvgCellTemperature_C, &segment2BoardTemperature_C},

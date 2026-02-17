@@ -114,7 +114,7 @@ static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)
     printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
     printf("Link Voltage: %f V,       ", packTaskPrintData->linkVoltage);
     printf("Conversion Time: %hu us  ", packTaskPrintData->conversionTime_us);
-    printf("Qualification Timer: %u us\n", packTaskPrintData->socData.socByOcvQualificationTimer.timCount);
+    printf("Qualification Timer: %lu us\n", packTaskPrintData->socData.socByOcvQualificationTimer.timCount);
     printf("SOC: %f by OCV, %f by CC   SOE: %f by OCV, %f by CC\n", packTaskPrintData->socData.socByOcv, packTaskPrintData->socData.socByCoulombCounting, packTaskPrintData->socData.soeByOcv, packTaskPrintData->socData.soeByCoulombCounting);
 }
 
@@ -155,14 +155,14 @@ void runPrintTask()
 
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
-    // printCellTemps(&cellTaskPrintData);
+    printCellTemps(&cellTaskPrintData);
 
     printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
     printf("Max Cell Temp: %f\n", cellTaskPrintData.maxCellTemp);
     printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
 
-    printPackMonData(&packTaskPrintData);
+    // printPackMonData(&packTaskPrintData);
 
     printf("\n");
 

@@ -739,8 +739,10 @@ static void MX_GPIO_Init(void)
 void startPrintTask(void const * argument)
 {
   /* USER CODE BEGIN 5 */
+  (void)argument;
+
   initPrintTask();
-  TickType_t lastPrintTaskTick;
+  TickType_t lastPrintTaskTick = xTaskGetTickCount();
   const TickType_t printTaskPeriod = pdMS_TO_TICKS(2000);
 
   /* Infinite loop */
@@ -762,8 +764,10 @@ void startPrintTask(void const * argument)
 void startStatusUpdateTask(void const * argument)
 {
   /* USER CODE BEGIN startStatusUpdateTask */
+  (void)argument;
+
   initStatusUpdateTask();
-  TickType_t lastStatusUpdateTaskTick;
+  TickType_t lastStatusUpdateTaskTick = xTaskGetTickCount();
   const TickType_t statusUpdateTaskPeriod = pdMS_TO_TICKS(10);
 
   /* Infinite loop */
@@ -785,8 +789,10 @@ void startStatusUpdateTask(void const * argument)
 void startUpdateCellMon(void const * argument)
 {
   /* USER CODE BEGIN startUpdateCellMon */
+  (void)argument;
+
   initUpdateCellMonitorTask();
-  TickType_t lastUpdateCellMonitorTaskTick;
+  TickType_t lastUpdateCellMonitorTaskTick = xTaskGetTickCount();
   const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(100);
 
   /* Infinite loop */
@@ -808,8 +814,10 @@ void startUpdateCellMon(void const * argument)
 void startUpdatePackMon(void const * argument)
 {
   /* USER CODE BEGIN startUpdatePackMon */
+  (void)argument;
+
   initUpdatePackMonitorTask();
-  TickType_t lastUpdatePackMonitorTaskTick;
+  TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
   const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(2);
 
   /* Infinite loop */
@@ -831,8 +839,10 @@ void startUpdatePackMon(void const * argument)
 void startServiceGcanTask(void const * argument)
 {
   /* USER CODE BEGIN startServiceGcanTask */
+  (void)argument;
+
   initGcanUpdateTask();
-  TickType_t lastServiceGcanTaskTick;
+  TickType_t lastServiceGcanTaskTick = xTaskGetTickCount();
   const TickType_t serviceGcanTaskPeriod = pdMS_TO_TICKS(10);
 
   /* Infinite loop */
@@ -851,12 +861,13 @@ void startServiceGcanTask(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_startChargerTask */
-
 void startChargerTask(void const * argument)
 {
   /* USER CODE BEGIN startChargerTask */
+  (void)argument;
+
   initChargerTask();
-  TickType_t lastChargerTaskTick;
+  TickType_t lastChargerTaskTick = xTaskGetTickCount();
   const TickType_t chargerTaskPeriod = pdMS_TO_TICKS(100);
 
   /* Infinite loop */

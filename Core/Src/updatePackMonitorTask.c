@@ -7,6 +7,7 @@
 #include "packData.h"
 #include "alerts.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 /* ==================================================================== */
@@ -212,7 +213,7 @@ void runUpdatePackMonitorTask()
         taskData.prechargeTemp = lookup(packMonitorData.voltageAdc[PRECHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
         taskData.dischargeTemp = lookup(packMonitorData.voltageAdc[DISCHARGE_TEMP_INDEX], &prechargeDischargeTempTable);
 
-        taskData.shuntResistance_nOhms = lroundf(lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntResistanceTable));
+        taskData.shuntResistance_nOhms = (int32_t)lroundf(lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntResistanceTable));
 
         taskData.packCurrent = packMonitorData.currentAdc1_uV * 1000 / taskData.shuntResistance_nOhms;
         taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;

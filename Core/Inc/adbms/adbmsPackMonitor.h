@@ -351,7 +351,7 @@ typedef struct __attribute__((packed))
 
 } ADBMS_OvercurrentStatus;
 
-typedef struct __attribute__((packed))
+typedef struct
 {
     ADBMS_ConfigAPackMonitor configGroupA;
     ADBMS_ConfigBPackMonitor configGroupB;
