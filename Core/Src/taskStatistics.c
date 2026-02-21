@@ -198,20 +198,20 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
             sumBoardTemp += pBmb->regTemp;
         }
 
-        // if(pBmb->dieTempStatus == GOOD)
-        // {
-        //     if (pBmb->dieTemp > maxDieTemp)
-        //     {
-        //         maxDieTemp = pBmb->dieTemp;
-        //     }
-        //     if (pBmb->dieTemp < minDieTemp)
-        //     {
-        //         minDieTemp = pBmb->dieTemp;
-        //     }
+        if(pBmb->dieTempStatus == GOOD)
+        {
+            if (pBmb->dieTemp > maxDieTemp)
+            {
+                maxDieTemp = pBmb->dieTemp;
+            }
+            if (pBmb->dieTemp < minDieTemp)
+            {
+                minDieTemp = pBmb->dieTemp;
+            }
 
-        //     numGoodDieTemp++;
-        //     sumDieTemp += pBmb->dieTemp;
-        // }
+            numGoodDieTemp++;
+            sumDieTemp += pBmb->dieTemp;
+        }
 	}
 
     // TODO: Should i ignore this if bad sensors or open wires?

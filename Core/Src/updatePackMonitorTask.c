@@ -132,9 +132,6 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
             updateTimer(&taskData->socData.socByOcvQualificationTimer);
         }
 
-        // Get minCellVoltage value from cell monitor task
-        taskData->minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
-
         // Update soc
         updateSocSoe(&taskData->socData, taskData->minCellVoltage);
     }    
@@ -186,6 +183,11 @@ void initUpdatePackMonitorTask()
 
 void runUpdatePackMonitorTask()
 {
+    // Get minCellVoltage value from cell monitor task
+    vTaskSuspendAll();
+    taskData.minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
+    xTaskResumeAll();
+
     TRANSACTION_STATUS_E telemetryStatus = updatePackTelemetry(&packMonInfo, &packMonitorData);
 
     if(telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR)

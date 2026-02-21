@@ -34,6 +34,9 @@ typedef struct
     float regTemp;
     SENSOR_STATUS_E regTempStatus;
 
+    float dieTemp;
+    SENSOR_STATUS_E dieTempStatus;
+
     // Cell monitor local voltage statistics
     float maxCellVoltage;
     float minCellVoltage;

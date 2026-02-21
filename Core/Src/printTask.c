@@ -76,30 +76,15 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
     printf("|  Board   |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("    %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
+        printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
+    }
+	printf("\n");
+    printf("|   Die    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        printf("   %3.1f   |", cellTaskPrintData->cellMonitor[i].dieTemp);
     }
 	printf("\n\n");
-    // printf("|   Die   |");
-    // for(int32_t j = 0; j < NUM_CELL_MON; j++)
-    // {
-    //     if(dieTempStatus == GOOD)
-    //     {
-    //         if((dieTemp < 0.0f) || dieTemp >= 100.0f)
-    //         {
-    //             printf("   %3.1f   |", (double)dieTemp);
-    //         }
-    //         else
-    //         {
-    //             printf("    %3.1f   |", (double)dieTemp);
-    //         }
-    //         // printf("  %04X", gBms.cellVoltage[i]);    
-    //     }
-    //     else
-    //     {
-    //         printf(" NO SIGNAL |");
-    //     }
-    // }
-	// printf("\n");
 }
 
 static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)

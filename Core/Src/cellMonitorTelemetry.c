@@ -47,6 +47,8 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
 
 static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
 
+static TRANSACTION_STATUS_E readDeviceStatus(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
 /* ==================================================================== */
@@ -228,6 +230,11 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     return readAuxVoltages(chainInfoData, cellMonitorData);
 }
 
+static TRANSACTION_STATUS_E readDeviceStatus(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
+{
+    return readStatusA(chainInfoData, cellMonitorData);    
+}
+
 static TRANSACTION_STATUS_E startNewBalancingReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
 {
     TRANSACTION_STATUS_E status = startCellConversions(chainInfoData, REDUNDANT_MODE, SINGLE_SHOT_MODE, DISCHARGE_DISABLED, FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
@@ -264,6 +271,10 @@ TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
             telemetryStatus = runCellMonitorCommandBlock(readCellAdcs, chainInfoData, cellMonitorData);
         }
 
+        if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            telemetryStatus = runCellMonitorCommandBlock(readDeviceStatus, chainInfoData, cellMonitorData);
+        }
     }
 
     if((!initialized) || (telemetryStatus == TRANSACTION_POR_ERROR))

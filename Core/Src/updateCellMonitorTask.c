@@ -223,6 +223,9 @@ void runUpdateCellMonitorTask()
 
             taskData.cellMonitor[i].regTemp = lookup(cellMonitorData[i].auxVoltage[REG_TEMP_ADC_INDEX], &cellTempTable);
             taskData.cellMonitor[i].regTempStatus = GOOD;
+
+            taskData.cellMonitor[i].dieTemp = cellMonitorData[i].statusGroupA.dieTemp;
+            taskData.cellMonitor[i].dieTempStatus = GOOD;
         }
 
         updateBatteryStatistics(&taskData);
