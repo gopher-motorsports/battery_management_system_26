@@ -181,7 +181,10 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
     }
 
     // Toggle temperature sensor mux
-    cellMonitorData->configGroupA.gpo10State ^= 1;
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        cellMonitorData[i].configGroupA.gpo10State ^= 1;
+    }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
