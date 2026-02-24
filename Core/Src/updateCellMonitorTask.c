@@ -30,6 +30,8 @@ static cellMonitorTaskData_S taskData;
 
 cellMonitorTaskData_S publicCellMonitorTaskData;
 
+extern TIM_HandleTypeDef htim3;
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
@@ -37,6 +39,8 @@ cellMonitorTaskData_S publicCellMonitorTaskData;
 static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMonitorData, cellMonitorTaskData_S* taskData);
 
 static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData);
+
+static void updateCooling(cellMonitorTaskData_S* taskData);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -130,6 +134,23 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
     setBmsFault();
 }
 
+static void updateCooling(cellMonitorTaskData_S* taskData)
+{
+    // Fan frequency is 25 kHz
+    // Pulse value can be set between 0 and 40 corresponding to 0% to 100% duty cycle
+    // Set kp to 4 so that at 60 C fans are at 4 * 10 = 40 -> 100% duty cycle
+    const float kp = 4.0f;
+    const float tempSetPoint = 50.0f;
+
+    // Calculate error
+    float error = tempSetPoint - taskData->maxCellTemp;
+    float pulse = kp * error;
+
+    // Load the pulse register
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
+
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -142,6 +163,9 @@ void initUpdateCellMonitorTask()
 
     // Disable balancing until we have the first minCellVoltage reading to set the floor
     taskData.balancingEnabled = 0;
+
+    // Start fan PWM output
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
 }
 
@@ -252,6 +276,9 @@ void runUpdateCellMonitorTask()
 
     // Regardless of whether or not chain initialized, run alert monitor
     runCellMonitorAlertMonitor(&taskData);
+
+    // Update fan pwm
+    updateCooling(&taskData);
 
     // Copy task data to public struct
     vTaskSuspendAll();
