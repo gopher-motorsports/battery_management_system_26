@@ -146,7 +146,7 @@ static void updateCooling(cellMonitorTaskData_S* taskData)
     float error = tempSetPoint - taskData->maxCellTemp;
     float pulse = kp * error;
 
-    // Load the pulse register
+    // Load the pulse register (min value where fan runs is 10)
     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
 
 }
