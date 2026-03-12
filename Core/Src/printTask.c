@@ -52,6 +52,19 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
         }
         printf("\n");
     }
+    printf("|   MIN    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        float min = 5.0f;
+        for(int32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            if(cellTaskPrintData->cellMonitor[i].cellVoltage[j] < min)
+            {
+                min = cellTaskPrintData->cellMonitor[i].cellVoltage[j];
+            }
+        }
+        printf("  %5.3f   |", min);
+    }
 	printf("\n");
 }
 
@@ -151,9 +164,12 @@ void runPrintTask()
 
     printf("\n");
 
-    if(!printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS)
-    && !printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS)) {
-    printf("NO ALERTS ACTIVE\n");
+    bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
+    bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
+
+    if(!cellAlerts && !packAlerts)
+    {
+        printf("NO ALERTS ACTIVE\n");
     }
 
 }
