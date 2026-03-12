@@ -138,17 +138,23 @@ static void updateCooling(cellMonitorTaskData_S* taskData)
 {
     // Fan frequency is 25 kHz
     // Pulse value can be set between 0 and 40 corresponding to 0% to 100% duty cycle
-    // Set kp to 4 so that at 60 C fans are at 4 * 10 = 40 -> 100% duty cycle
-    const float kp = 4.0f;
+    // Set kp so that fans turn on at 50 C and are at 100% duty cycle at 60 C
+    const float kp = 3.0f;
     const float tempSetPoint = 50.0f;
 
     // Calculate error
-    float error = tempSetPoint - taskData->maxCellTemp;
-    float pulse = kp * error;
-
-    // Load the pulse register (min value where fan runs is 10)
-    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
-
+    float error = taskData->maxCellTemp - tempSetPoint;
+    if(error > 0)
+    {
+        // Calculate pulse with offset (min value where fan turns on is 10)
+        float pulse = (kp * error) + 10.0f;
+        if(pulse > 40)
+        {
+            pulse = 40;
+        }
+        // Load the pulse register
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
+    }
 }
 
 /* ==================================================================== */
@@ -277,8 +283,13 @@ void runUpdateCellMonitorTask()
     // Regardless of whether or not chain initialized, run alert monitor
     runCellMonitorAlertMonitor(&taskData);
 
-    // Update fan pwm
-    updateCooling(&taskData);
+    // Update fan pwm (30 second period)
+    static uint32_t lastCoolingUpdate = 0;
+    if(HAL_GetTick() - lastCoolingUpdate > 30000)
+    {
+        lastCoolingUpdate = HAL_GetTick();
+        updateCooling(&taskData);
+    }
 
     // Copy task data to public struct
     vTaskSuspendAll();
