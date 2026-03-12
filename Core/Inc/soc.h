@@ -16,7 +16,7 @@ typedef struct
 {
     Timer_S socByOcvQualificationTimer; // The qualification timer to determine whether SOC by OCV can be used
 
-    uint32_t milliCoulombCounter;       // The coulomb counter
+    int32_t milliCoulombCounter;        // The coulomb counter
 
     float socByOcv;                     // The state of charge using open circuit voltage
     float soeByOcv;                     // The state of energy using open circuit voltage

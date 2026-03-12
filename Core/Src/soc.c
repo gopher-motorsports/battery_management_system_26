@@ -8,7 +8,7 @@
 
 static float getSocFromCellVoltage(float cellVoltage);
 static float getSoeFromSoc(float soc);
-static float calculatePercent(uint32_t val, uint32_t max);
+static float calculatePercent(int32_t val, int32_t max);
 
 /* ==================================================================== */
 /*!
@@ -31,13 +31,16 @@ static float getSoeFromSoc(float soc)
     return lookup(soc, &stateOfEnergyTable);
 }
 
-static float calculatePercent(uint32_t val, uint32_t max)
+static float calculatePercent(int32_t val, int32_t max)
 {
     if (val > max)
     {
         val = max;
     }
-
+    else if (val < 0)
+    {
+        val = 0;
+    }
     if(max == 0)
     {
         return 0.0f;
@@ -61,6 +64,7 @@ void updateSocSoe(Soc_S* soc, float minCellVoltage)
     {
         soc->socByCoulombCounting = soc->socByOcv;
         soc->soeByCoulombCounting = soc->soeByOcv;
+        soc->milliCoulombCounter = (int32_t)(soc->socByCoulombCounting * PACK_MILLICOULOMBS);
     }
     else
     {

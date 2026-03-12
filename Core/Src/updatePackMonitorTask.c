@@ -134,7 +134,7 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
 
         // Update soc
         updateSocSoe(&taskData->socData, taskData->minCellVoltage);
-    }    
+    }
 }
 
 static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
@@ -217,7 +217,7 @@ void runUpdatePackMonitorTask()
 
         taskData.shuntResistance_nOhms = (int32_t)lroundf(lookup(packMonitorData.voltageAdc[SHUNT_TEMP1_INDEX], &shuntResistanceTable));
 
-        taskData.packCurrent = packMonitorData.currentAdc1_uV * 1000 / taskData.shuntResistance_nOhms;
+        taskData.packCurrent = (float)packMonitorData.currentAdc1_uV * 1000 / taskData.shuntResistance_nOhms;
         taskData.packVoltage = packMonitorData.batteryVoltage1 * HV_DIV_GAIN;
         taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
