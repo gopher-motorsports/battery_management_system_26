@@ -52,11 +52,21 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     {
         for(uint16_t i = 0; i < NUM_CELL_MON; i++)
         {
+            float pwmDutyCycle = 100.0f;
+
+            static uint32_t lastPwmUpdate = 0;
+            // Update pwm every 10 sec based on die temp
+            if(HAL_GetTick() - lastPwmUpdate > 10000)
+            {
+                lastPwmUpdate = HAL_GetTick();
+                pwmDutyCycle = lookup(taskData->cellMonitor[i].dieTemp, &dischargePwmTable);
+            }
+            
             for(uint16_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
                 if(taskData->cellMonitor[i].cellVoltage[j] > floor)
                 {
-                    cellMonitorData[i].dischargePWM[j] = 50.0f;
+                    cellMonitorData[i].dischargePWM[j] = pwmDutyCycle;
                 }
                 else
                 {

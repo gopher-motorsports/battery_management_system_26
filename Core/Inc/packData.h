@@ -69,5 +69,6 @@ extern const LookupTable_S prechargeDischargeTempTable;
 extern const LookupTable_S shuntResistanceTable;
 extern const LookupTable_S stateOfChargeTable;
 extern const LookupTable_S stateOfEnergyTable;
+extern const LookupTable_S dischargePwmTable;
 
 #endif /* INC_PACKDATA_H_ */
