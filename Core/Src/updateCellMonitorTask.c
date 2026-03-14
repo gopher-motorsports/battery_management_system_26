@@ -58,13 +58,17 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
             // Update pwm every 10 sec based on die temp
             if(HAL_GetTick() - lastPwmUpdate > 10000)
             {
-                lastPwmUpdate = HAL_GetTick();
+                // Only considered an update once each cell monitor duty cycle has been computed
+                if(i == (NUM_CELL_MON - 1))
+                {
+                    lastPwmUpdate = HAL_GetTick();
+                }
                 pwmDutyCycle = lookup(taskData->cellMonitor[i].dieTemp, &dischargePwmTable);
             }
             
             for(uint16_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
-                if(taskData->cellMonitor[i].cellVoltage[j] > floor)
+                if(taskData->cellMonitor[i].cellVoltage[j] > (floor + 0.001))
                 {
                     cellMonitorData[i].dischargePWM[j] = pwmDutyCycle;
                 }

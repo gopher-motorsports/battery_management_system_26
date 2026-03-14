@@ -793,12 +793,14 @@ void startUpdateCellMon(void const * argument)
 
   initUpdateCellMonitorTask();
   TickType_t lastUpdateCellMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(100);
+  const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(500);
 
   /* Infinite loop */
   for(;;)
   {
+    // uint32_t taskStart = HAL_GetTick();
     runUpdateCellMonitorTask();
+    // printf("%lu\n", (HAL_GetTick() - taskStart));
     vTaskDelayUntil(&lastUpdateCellMonitorTaskTick, updateCellMonitorTaskPeriod);
   }
   /* USER CODE END startUpdateCellMon */
