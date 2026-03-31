@@ -247,3 +247,24 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->avgDieTemp = sumDieTemp / numGoodDieTemp;
     }
 }
+
+/*!
+    @brief Sorts an array of values into ascending order, note that the array will be modified
+    @param array - Array of floating point values to sort
+    @param n - Size of the array
+!*/
+void sort(float *array, uint32_t n)
+{
+    for(uint32_t i = 1; i < n; i++)
+    {
+        float key = array[i];
+        int32_t j = i - 1;
+
+        while(j >= 0 && array[j] > key)
+        {
+            array[j + 1] = array[j];
+            j--;
+        }
+        array[j + 1] = key;
+    }
+}

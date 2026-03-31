@@ -12,11 +12,13 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      0
+#define FORCE_BALANCING_ON      1
 
 #define NUM_CELL_TEMP_ADCS      7
 #define BOARD_TEMP_ADC_INDEX    7
 #define REG_TEMP_ADC_INDEX      8
+
+#define ALLOWED_TEMP_VARIATION_C   20.0f
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -187,6 +189,9 @@ void runUpdateCellMonitorTask()
             }
         }
 
+        uint32_t tempArrayIndex = 0;
+        float tempArray[NUM_SERIES_CELLS];
+
         // Filter and assign all cell temps and board temps
         for(uint32_t i = 0; i < NUM_CELL_MON; i++)
         {
@@ -196,16 +201,14 @@ void runUpdateCellMonitorTask()
             // Cell temps
             for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
             {
+                // Use lookup table to calculate temperature
                 float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
                 taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
 
-                if(fequals(cellTemp, MIN_TEMP_SENSOR_VALUE_C) || fequals(cellTemp, MAX_TEMP_SENSOR_VALUE_C))
+                // Add each temperature to array for filtering
+                if(tempArrayIndex < NUM_SERIES_CELLS)
                 {
-                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
-                }
-                else
-                {
-                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                    tempArray[tempArrayIndex++] = cellTemp;
                 }
             }
 
@@ -226,6 +229,31 @@ void runUpdateCellMonitorTask()
 
             taskData.cellMonitor[i].dieTemp = cellMonitorData[i].statusGroupA.dieTemp;
             taskData.cellMonitor[i].dieTempStatus = GOOD;
+        }
+
+        // Calculate median temperature to eliminate outlier temp readings due to cold solder joints
+        sort(tempArray, tempArrayIndex);
+        float median = tempArray[tempArrayIndex / 2];
+
+        // Set sensor status to BAD if the reading is an outlier
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            // Cell indexes are offset depending on the mux state, which is set by gpio10
+            uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+
+            for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+            {
+                float cellTemp = taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset];
+            
+                if(fabsf(cellTemp - median) > ALLOWED_TEMP_VARIATION_C)
+                {
+                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                }
+                else
+                {
+                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                }
+            }
         }
 
         updateBatteryStatistics(&taskData);

@@ -82,7 +82,15 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
         printf("|    %02ld    |", i+1);
         for(int32_t j = 0; j < NUM_CELL_MON; j++)
         {
-            printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] = GOOD)
+            {
+                printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            else if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] = BAD)
+            {
+                printf("  %3.1f (!)|", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            
         }
         printf("\n");
     }
