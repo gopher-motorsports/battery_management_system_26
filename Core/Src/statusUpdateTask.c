@@ -2,7 +2,6 @@
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include <stdint.h>
 #include "main.h"
 #include "statusUpdateTask.h"
 #include "alerts.h"
@@ -14,6 +13,16 @@
 #define HEARTBEAT_BLINK_MS      500
 
 #define CLEAR_ON_START_MS       15000
+
+/* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern ADC_HandleTypeDef hadc1;
+extern TIM_HandleTypeDef htim3;
+
+volatile uint32_t adcRawValue;
+volatile uint32_t adcNewDataFlag;
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -51,7 +60,15 @@ static void updateSdcStatus(shutdownCircuitStatus_S *shutdownCircuitData)
     shutdownCircuitData->imdLatchOpen = ((HAL_GPIO_ReadPin(IMD_FAULT_READ_GPIO_Port, IMD_FAULT_READ_Pin)) && (HAL_GetTick() > CLEAR_ON_START_MS));
     shutdownCircuitData->bmsLatchOpen = ((HAL_GPIO_ReadPin(BMS_FAULT_READ_GPIO_Port, BMS_FAULT_READ_Pin)) && (HAL_GetTick() > CLEAR_ON_START_MS));
     shutdownCircuitData->bmsInhibitActive = HAL_GPIO_ReadPin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin) ^ 1; // TODO
-    shutdownCircuitData->sdcSenseFaultActive = HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin);
+    shutdownCircuitData->sdcStatusI2BInterlock = HAL_GPIO_ReadPin(SDC1_GPIO_Port, SDC1_Pin);
+    shutdownCircuitData->sdcStatusTBInterlock = HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin);
+
+    if(adcNewDataFlag)
+    {
+        adcNewDataFlag = 0;
+        shutdownCircuitData->shutdownEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f;
+        printf("Voltage: %f\n", shutdownCircuitData->shutdownEndVoltage_V);
+    }
 }
 
 // static void runStatusAlertMonitor(shutdownCircuitStatus_S *shutdownCircuitData)
@@ -94,6 +111,8 @@ void initStatusUpdateTask()
     HAL_GPIO_WritePin(MCU_GSENSE_GPIO_Port, MCU_GSENSE_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET); // TODO: Should fault be asserted initially?
+
+    HAL_ADC_Start_IT(&hadc1);
 }
 
 void runStatusUpdateTask()

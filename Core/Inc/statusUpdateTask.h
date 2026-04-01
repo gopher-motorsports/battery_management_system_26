@@ -6,12 +6,20 @@
 /* ==================================================================== */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
 #define NUM_SDC_SENSE_INPUTS    6
+
+/* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern volatile uint32_t adcRawValue;
+extern volatile uint32_t adcNewDataFlag;
 
 /* ==================================================================== */
 /* ============================== STRUCTS ============================= */
@@ -22,7 +30,10 @@ typedef struct
     bool imdLatchOpen;
     bool bmsLatchOpen;
     bool bmsInhibitActive;
-    bool sdcSenseFaultActive;
+    bool sdcStatusI2BInterlock;
+    bool sdcStatusTBInterlock;
+
+    float shutdownEndVoltage_V;
 } shutdownCircuitStatus_S;
 
 /* ==================================================================== */

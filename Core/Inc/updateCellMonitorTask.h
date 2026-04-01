@@ -55,6 +55,7 @@ typedef struct
 typedef struct
 {
     cellMonitor_S cellMonitor[NUM_CELL_MON];
+    SENSOR_STATUS_E cellMonitorStatus[NUM_CELL_MON];
 
     bool balancingEnabled;
     float balancingFloor;

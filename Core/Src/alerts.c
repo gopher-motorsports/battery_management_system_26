@@ -85,7 +85,8 @@ static bool badBoardTempSensorStatusPresent(cellMonitorTaskData_S* taskData)
 
 static bool insufficientTempSensePresent(cellMonitorTaskData_S* taskData)
 {
-    const uint32_t maxNumBadCellTempAllowed = NUM_CELLS_PER_CELL_MONITOR * (100 - MIN_PERCENT_CELL_TEMPS_MONITORED) / 100;
+    // Round down to stay within rules requirement
+    const uint32_t maxNumBadCellTempAllowed = (uint32_t)(NUM_CELLS_PER_CELL_MONITOR * (100 - MIN_PERCENT_CELL_TEMPS_MONITORED) / 100);
     for (uint32_t i = 0; i < NUM_CELL_MON; i++)
     {
         if(taskData->cellMonitor[i].numBadCellTemp > maxNumBadCellTempAllowed)
@@ -96,17 +97,17 @@ static bool insufficientTempSensePresent(cellMonitorTaskData_S* taskData)
     return false;
 }
 
-// static bool telemetryCommunicationErrorPresent(cellMonitorTaskData_S* taskData)
-// {
-//     for(uint32_t i = 0; i < NUM_CELL_MON; i++)
-//     {
-//         if(taskData->cellMonitorStatus[i] != GOOD)
-//         {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
+static bool telemetryCommunicationErrorPresent(cellMonitorTaskData_S* taskData)
+{
+    for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        if(taskData->cellMonitorStatus[i] != GOOD)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 static bool packOvercurrentFaultPresent(packMonitorTaskData_S* taskData)
 {
@@ -118,7 +119,7 @@ static bool packVoltageOutOfRange(packMonitorTaskData_S* taskData)
     return 
     (
         (taskData->packVoltage > (MAX_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
-        (taskData->packVoltage < (MIN_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
+        (taskData->packVoltage < (MIN_PACK_VOLTAGE - VOLTAGE_MARGIN)) ||
         (taskData->linkVoltage > (MAX_PACK_VOLTAGE + VOLTAGE_MARGIN)) ||
         (taskData->linkVoltage < (-VOLTAGE_MARGIN))
     );
@@ -412,7 +413,7 @@ Alert_S* cellMonitorAlerts[] =
     &badCellTempSenseStatusAlert,
     &badBoardTempSenseStatusAlert,
     &insufficientTempSensorsAlert,
-    // &telemetryCommunicationAlert,
+    &telemetryCommunicationAlert,
 };
 
 Alert_S* packMonitorAlerts[] = 
@@ -433,8 +434,8 @@ cellMonitorAlertCondition cellMonitorAlertConditionArray[] =
     badVoltageSensorStatusPresent,
     badCellTempSensorStatusPresent,
     badBoardTempSensorStatusPresent,
-    insufficientTempSensePresent
-    // telemetryCommunicationErrorPresent,
+    insufficientTempSensePresent,
+    telemetryCommunicationErrorPresent
 };
 
 packMonitorAlertCondition packMonitorAlertConditionArray[] = 

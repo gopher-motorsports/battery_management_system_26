@@ -12,7 +12,7 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      1
+#define FORCE_BALANCING_ON      0
 
 #define NUM_CELL_TEMP_ADCS      7
 #define BOARD_TEMP_ADC_INDEX    7
@@ -191,6 +191,7 @@ void runUpdateCellMonitorTask()
 
         uint32_t tempArrayIndex = 0;
         float tempArray[NUM_SERIES_CELLS];
+        static uint32_t cellTempStatusInitialized = 0;
 
         // Filter and assign all cell temps and board temps
         for(uint32_t i = 0; i < NUM_CELL_MON; i++)
@@ -232,28 +233,34 @@ void runUpdateCellMonitorTask()
         }
 
         // Calculate median temperature to eliminate outlier temp readings due to cold solder joints
-        sort(tempArray, tempArrayIndex);
-        float median = tempArray[tempArrayIndex / 2];
-
-        // Set sensor status to BAD if the reading is an outlier
-        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        // Runs twice upon start up, then does not run again
+        if(cellTempStatusInitialized > 1)
         {
-            // Cell indexes are offset depending on the mux state, which is set by gpio10
-            uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+            sort(tempArray, tempArrayIndex);
+            float median = tempArray[tempArrayIndex / 2];
 
-            for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+            // Set sensor status to BAD if the reading is an outlier
+            for(uint32_t i = 0; i < NUM_CELL_MON; i++)
             {
-                float cellTemp = taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset];
-            
-                if(fabsf(cellTemp - median) > ALLOWED_TEMP_VARIATION_C)
+                // Cell indexes are offset depending on the mux state, which is set by gpio10
+                uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+
+                for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
                 {
-                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
-                }
-                else
-                {
-                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                    float cellTemp = taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset];
+                
+                    if(fabsf(cellTemp - median) > ALLOWED_TEMP_VARIATION_C)
+                    {
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                    }
+                    else
+                    {
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                    }
                 }
             }
+
+            cellTempStatusInitialized++;
         }
 
         updateBatteryStatistics(&taskData);
@@ -276,6 +283,32 @@ void runUpdateCellMonitorTask()
     else if(telemetryStatus == TRANSACTION_COMMAND_COUNTER_ERROR)
     {
         Debug("Persistent Command Counter Error!\n");
+    }
+
+    // Update cell monitor status
+    if(chainInfo.chainStatus == MULTIPLE_CHAIN_BREAK)
+    {
+        uint32_t numCellMonitorA = chainInfo.availableDevices[PORTA];
+        uint32_t numCellMonitorB = chainInfo.availableDevices[PORTB];
+
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            if((i < numCellMonitorA) || (i >= (NUM_CELL_MON - numCellMonitorB)))
+            {
+                taskData.cellMonitorStatus[i] = GOOD;
+            }
+            else
+            {
+                taskData.cellMonitorStatus[i] = BAD;
+            }
+        }
+    }
+    else
+    {
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            taskData.cellMonitorStatus[i] = GOOD;
+        }
     }
 
     // Regardless of whether or not chain initialized, run alert monitor

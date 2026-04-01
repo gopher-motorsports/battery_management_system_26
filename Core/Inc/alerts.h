@@ -49,7 +49,7 @@
 #define BAD_BOARD_TEMP_SENSE_STATUS_ALERT_CLEAR_TIME_MS  1000
 
 // The minimum percent of cell temps that must be monitored to pass rules
-#define MIN_PERCENT_CELL_TEMPS_MONITORED             25
+#define MIN_PERCENT_CELL_TEMPS_MONITORED              20
 #define INSUFFICIENT_TEMP_SENSOR_ALERT_SET_TIME_MS    5000
 #define INSUFFICIENT_TEMP_SENSOR_ALERT_CLEAR_TIME_MS  5000
 
