@@ -74,7 +74,7 @@ osThreadId printTaskHandle;
 uint32_t printTaskBuffer[ 2048 ];
 osStaticThreadDef_t printTaskControlBlock;
 osThreadId statusUpdateTasHandle;
-uint32_t idleTaskBuffer[ 128 ];
+uint32_t idleTaskBuffer[ 256 ];
 osStaticThreadDef_t idleTaskControlBlock;
 osThreadId updateCellMonHandle;
 uint32_t updateCellMonBuffer[ 1024 ];
@@ -292,7 +292,7 @@ int main(void)
   printTaskHandle = osThreadCreate(osThread(printTask), NULL);
 
   /* definition and creation of statusUpdateTas */
-  osThreadStaticDef(statusUpdateTas, startStatusUpdateTask, osPriorityIdle, 0, 128, idleTaskBuffer, &idleTaskControlBlock);
+  osThreadStaticDef(statusUpdateTas, startStatusUpdateTask, osPriorityIdle, 0, 256, idleTaskBuffer, &idleTaskControlBlock);
   statusUpdateTasHandle = osThreadCreate(osThread(statusUpdateTas), NULL);
 
   /* definition and creation of updateCellMon */

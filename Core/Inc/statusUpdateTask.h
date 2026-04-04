@@ -39,6 +39,7 @@ typedef struct
     bool sdcStatusTBInterlock;
 
     float shutdownEndVoltage_V;
+    bool prechargeTimeElapsed;
 } shutdownCircuitStatus_S;
 
 /* ==================================================================== */

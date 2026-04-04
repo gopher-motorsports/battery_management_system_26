@@ -68,7 +68,7 @@ static void updateSdcStatus(shutdownCircuitStatus_S *shutdownCircuitData)
     {
         adcNewDataFlag = 0;
         shutdownCircuitData->shutdownEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
-        printf("Voltage: %f, Precharge Delay Complete: %u\n", shutdownCircuitData->shutdownEndVoltage_V, (uint32_t)(prechargeDelayComplete));
+        shutdownCircuitData->prechargeTimeElapsed = prechargeDelayComplete;
     }
 }
 
