@@ -140,6 +140,12 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         return status;
     }
 
+    status = startRedundantCellConversions(chainInfoData, CONTINUOUS_MODE, DISCHARGE_DISABLED, CELL_OPEN_WIRE_DISABLED);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
     status = startAuxConversions(chainInfoData, AUX_ALL_CHANNELS, AUX_OPEN_WIRE_DISABLED);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
@@ -226,6 +232,12 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }
 
     status = readCellVoltages(chainInfoData, cellMonitorData, FILTERED_CELL_VOLTAGE);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = readRedundantCellVoltages(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;

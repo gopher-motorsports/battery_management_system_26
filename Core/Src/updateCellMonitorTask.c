@@ -176,6 +176,7 @@ void runUpdateCellMonitorTask()
             for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
                 taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
+                taskData.cellMonitor[i].redundantCellVoltage[j] = cellMonitorData[i].redundantCellVoltage[j];
 
                 // TODO: Could also add check for battery current to limit bounds more
                 if((taskData.cellMonitor[i].cellVoltage[j] > MAX_CELL_VOLTAGE_LIMIT) || (taskData.cellMonitor[i].cellVoltage[j] < MIN_CELL_VOLTAGE_LIMIT))

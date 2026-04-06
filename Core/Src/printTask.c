@@ -24,6 +24,8 @@ packMonitorTaskData_S packTaskPrintData;
 
 static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 
+static void printRedundantCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
+
 static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
 
 static void printPackMonData(packMonitorTaskData_S* packTaskPrintData);
@@ -64,6 +66,30 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
             }
         }
         printf("  %5.3f   |", min);
+    }
+	printf("\n");
+}
+
+static void printRedundantCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
+{
+    printf("Redundant Cell Voltage:\n");
+    for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    {
+        printf("|    %02ld    |", i+1);
+        for(int32_t j = 0; j < NUM_CELL_MON; j++)
+        {
+            float voltage = cellTaskPrintData->cellMonitor[j].cellVoltage[i];
+            float redundantVoltage = cellTaskPrintData->cellMonitor[j].redundantCellVoltage[i];
+            if(fabsf(voltage - redundantVoltage) < 0.001f)
+            {
+                printf("  %5.3f   |", redundantVoltage);
+            }
+            else
+            {
+                printf("  %5.3f ! |", redundantVoltage);
+            }
+        }
+        printf("\n");
     }
 	printf("\n");
 }
@@ -162,7 +188,8 @@ void runPrintTask()
 
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
-    printCellTemps(&cellTaskPrintData);
+    printRedundantCellVoltages(&cellTaskPrintData);
+    // printCellTemps(&cellTaskPrintData);
 
     printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
