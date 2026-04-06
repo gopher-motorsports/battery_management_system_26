@@ -14,18 +14,6 @@
 
 #define NUM_SDC_SENSE_INPUTS    6
 
-#define SHDN_END_V_GAIN         11
-#define SHDN_END_V_THRESHOLD    10.0f
-#define PRECHARGE_WINDOW_MS     3000
-
-/* ==================================================================== */
-/* ======================= EXTERNAL VARIABLES ========================= */
-/* ==================================================================== */
-
-extern volatile uint32_t adcRawValue;
-extern volatile uint32_t adcNewDataFlag;
-extern volatile bool prechargeDelayComplete;
-
 /* ==================================================================== */
 /* ============================== STRUCTS ============================= */
 /* ==================================================================== */
@@ -38,8 +26,6 @@ typedef struct
     bool sdcStatusI2BInterlock;
     bool sdcStatusTBInterlock;
 
-    float shutdownEndVoltage_V;
-    bool prechargeTimeElapsed;
 } shutdownCircuitStatus_S;
 
 /* ==================================================================== */

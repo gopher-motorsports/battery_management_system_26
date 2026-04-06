@@ -56,6 +56,17 @@ static packMonitorTaskData_S taskData;
 packMonitorTaskData_S publicPackMonitorTaskData;
 
 /* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern ADC_HandleTypeDef hadc1;
+extern TIM_HandleTypeDef htim3;
+
+volatile uint32_t adcRawValue = 0;
+volatile uint32_t adcNewDataFlag = 0;
+volatile bool prechargeDelayComplete = 0;
+
+/* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
@@ -179,6 +190,10 @@ void initUpdatePackMonitorTask()
     // Initialize SOC/SOE qualification timer
     taskData.socData.socByOcvQualificationTimer = (Timer_S){.timCount = CELL_POLARIZATION_REST_MS, .lastUpdate = 0, .timThreshold = CELL_POLARIZATION_REST_MS};
 
+    // Start ADC to measure voltage at end of shutdown circuit and timer to trigger ADC conversions
+    HAL_ADC_Start_IT(&hadc1);
+    HAL_TIM_Base_Start(&htim3);
+
 }
 
 void runUpdatePackMonitorTask()
@@ -222,6 +237,14 @@ void runUpdatePackMonitorTask()
         taskData.packPower = taskData.packCurrent * taskData.packVoltage;
 
         taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
+
+        // Update status at end of shutdown circuit using TIM3 interrupts on ADC1
+        if(adcNewDataFlag)
+        {
+            adcNewDataFlag = 0;
+            taskData.shutdownEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
+            taskData.prechargeDelayComplete = prechargeDelayComplete;
+        }
 
         if((taskData.linkVoltage < (0.93f * taskData.packVoltage)) || (taskData.linkVoltage < 10.0f))
         {

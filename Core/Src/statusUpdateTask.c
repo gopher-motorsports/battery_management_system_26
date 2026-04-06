@@ -15,17 +15,6 @@
 #define CLEAR_ON_START_MS       15000
 
 /* ==================================================================== */
-/* ======================= EXTERNAL VARIABLES ========================= */
-/* ==================================================================== */
-
-extern ADC_HandleTypeDef hadc1;
-extern TIM_HandleTypeDef htim3;
-
-volatile uint32_t adcRawValue = 0;
-volatile uint32_t adcNewDataFlag = 0;
-volatile bool prechargeDelayComplete = 0;
-
-/* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
@@ -64,12 +53,6 @@ static void updateSdcStatus(shutdownCircuitStatus_S *shutdownCircuitData)
     shutdownCircuitData->sdcStatusI2BInterlock = HAL_GPIO_ReadPin(SDC1_GPIO_Port, SDC1_Pin);
     shutdownCircuitData->sdcStatusTBInterlock = HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin);
 
-    if(adcNewDataFlag)
-    {
-        adcNewDataFlag = 0;
-        shutdownCircuitData->shutdownEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
-        shutdownCircuitData->prechargeTimeElapsed = prechargeDelayComplete;
-    }
 }
 
 // static void runStatusAlertMonitor(shutdownCircuitStatus_S *shutdownCircuitData)
@@ -111,11 +94,8 @@ void initStatusUpdateTask()
     HAL_GPIO_WritePin(MCU_FAULT_GPIO_Port, MCU_FAULT_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(MCU_GSENSE_GPIO_Port, MCU_GSENSE_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET); // TODO: Should fault be asserted initially?
+    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET); // TODO: Should fault be asserted initially?
 
-    // Start ADC to measure voltage at end of shutdown circuit and timer to trigger ADC conversions
-    HAL_ADC_Start_IT(&hadc1);
-    HAL_TIM_Base_Start(&htim3);
 }
 
 void runStatusUpdateTask()
