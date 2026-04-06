@@ -125,6 +125,7 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         cellMonitorData[i].configGroupA.gpo8State = 1;
         cellMonitorData[i].configGroupA.gpo9State = 1;
         cellMonitorData[i].configGroupA.gpo10State = 0;
+        cellMonitorData[i].configGroupA.soakTime = AUX_SOAK_TIME_4_1_MS;
     }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);

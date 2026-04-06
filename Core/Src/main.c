@@ -891,7 +891,7 @@ void startPrintTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    // runPrintTask();
+    runPrintTask();
     vTaskDelayUntil(&lastPrintTaskTick, printTaskPeriod);
   }
   /* USER CODE END 5 */
