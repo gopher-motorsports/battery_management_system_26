@@ -199,8 +199,6 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
         return status;
     }
 
-    cellMonitorData[0].configGroupB.dischargeCell[0] = 1;
-
     status = writeCellMonitorConfigB(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
