@@ -96,30 +96,30 @@ static void printRedundantCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
 
 static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
 {
-    printf("Cell Temp:\n");
-    printf("|   BMB    |");
-    for(int32_t i = 0; i < NUM_CELL_MON; i++)
-    {
-        printf("     %02ld   |", i+1);
-    }
-    printf("\n");
-    for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
-    {
-        printf("|    %02ld    |", i+1);
-        for(int32_t j = 0; j < NUM_CELL_MON; j++)
-        {
-            if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == GOOD)
-            {
-                printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
-            }
-            else if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == BAD)
-            {
-                printf("  %3.1f ! |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
-            }
+    // printf("Cell Temp:\n");
+    // printf("|   BMB    |");
+    // for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    // {
+    //     printf("     %02ld   |", i+1);
+    // }
+    // printf("\n");
+    // for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    // {
+    //     printf("|    %02ld    |", i+1);
+    //     for(int32_t j = 0; j < NUM_CELL_MON; j++)
+    //     {
+    //         if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == GOOD)
+    //         {
+    //             printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+    //         }
+    //         else if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == BAD)
+    //         {
+    //             printf("  %3.1f ! |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+    //         }
             
-        }
-        printf("\n");
-    }
+    //     }
+    //     printf("\n");
+    // }
     printf("|  Board   |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
@@ -189,7 +189,7 @@ void runPrintTask()
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
     printRedundantCellVoltages(&cellTaskPrintData);
-    // printCellTemps(&cellTaskPrintData);
+    printCellTemps(&cellTaskPrintData);
 
     printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
