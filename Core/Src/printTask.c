@@ -131,13 +131,15 @@ static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts)
 
     for (uint16_t i = 0; i < num_alerts; i++) {
         if (alerts[i]->alertStatus == ALERT_SET) {
-            printf("ALERT: %s\n", alerts[i]->alertName);
+            printf("ALERT: %s   ", alerts[i]->alertName);
             alertActive = true;
         } else if (alerts[i]->alertStatus == ALERT_LATCHED) {
-            printf("ALERT: %s LATCHED\n", alerts[i]->alertName);
+            printf("ALERT: %s LATCHED   ", alerts[i]->alertName);
             alertActive = true;
         }
     }
+
+    printf("\n");
 
     return alertActive;
 }
@@ -166,6 +168,7 @@ void runPrintTask()
 
     printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
+    printf("SOE: %f\n", packTaskPrintData.socData.soeByOcv);
     printf("Max Cell Temp: %f\n", cellTaskPrintData.maxCellTemp);
     printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
 
