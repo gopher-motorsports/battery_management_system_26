@@ -237,7 +237,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->maxBoardTemp = maxBoardTemp;
         taskData->minBoardTemp = minBoardTemp;
         taskData->avgBoardTemp = sumBoardTemp / numGoodBoardTemp;
-        taskData->numBadBoardTemp = NUM_BOARD_TEMP_SENSORS - numGoodBoardTemp;
+        taskData->numBadBoardTemp = (NUM_BOARD_TEMP_SENSORS * NUM_CELL_MON) - numGoodBoardTemp;
     }
 
     if(numGoodDieTemp > 0)
