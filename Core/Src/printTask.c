@@ -200,12 +200,12 @@ void runPrintTask()
 
     printf("\n");
 
-    bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
-    bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
+    // bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
+    // bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
 
-    if(!cellAlerts && !packAlerts)
-    {
-        printf("NO ALERTS ACTIVE\n");
-    }
+    // if(!cellAlerts && !packAlerts)
+    // {
+    //     printf("NO ALERTS ACTIVE\n");
+    // }
 
 }
