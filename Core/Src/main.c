@@ -959,14 +959,14 @@ void startUpdatePackMon(void const * argument)
   /* USER CODE BEGIN startUpdatePackMon */
   (void)argument;
 
-  initUpdatePackMonitorTask();
+  // initUpdatePackMonitorTask();
   TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
   const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(2);
 
   /* Infinite loop */
   for(;;)
   {
-    runUpdatePackMonitorTask();
+    // runUpdatePackMonitorTask();
     vTaskDelayUntil(&lastUpdatePackMonitorTaskTick, updatePackMonitorTaskPeriod);
   }
   /* USER CODE END startUpdatePackMon */
