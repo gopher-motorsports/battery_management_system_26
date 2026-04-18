@@ -192,31 +192,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
         adcRawValue = HAL_ADC_GetValue(hadc);
         adcNewDataFlag = 1;
         HAL_ADC_Start_IT(&hadc1);
-
-        // One condition for closing IR+ is that sufficient time has passed since closing IR-
-        float shutdownEndVoltage = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
-        if(shutdownEndVoltage > SHDN_END_V_THRESHOLD)
-        {
-            if(!counterActive)
-            {
-                // Shutdown circuit just closed, record time
-                sdcCloseTime = HAL_GetTick();
-                counterActive = true;
-            }
-
-            if(((HAL_GetTick() - sdcCloseTime) >= PRECHARGE_WINDOW_MS) && (sdcCloseTime != 0))
-            {
-                // Enough time has passed, ready to close IR+ if other conditions are met
-                prechargeDelayComplete = true;
-            }
-        }
-        else
-        {
-            // Shutdown circuit open
-            counterActive = false;
-            sdcCloseTime = 0;
-            prechargeDelayComplete = false;
-        }
     }
 }
 
@@ -886,7 +861,7 @@ void startPrintTask(void const * argument)
 
   initPrintTask();
   TickType_t lastPrintTaskTick = xTaskGetTickCount();
-  const TickType_t printTaskPeriod = pdMS_TO_TICKS(2000);
+  const TickType_t printTaskPeriod = pdMS_TO_TICKS(1000);
 
   /* Infinite loop */
   for(;;)

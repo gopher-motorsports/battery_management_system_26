@@ -44,6 +44,16 @@
 #define DISCHARGE_TEMP_INDEX    7
 
 /* ==================================================================== */
+/* ========================= ENUMERATED TYPES========================== */
+/* ==================================================================== */
+
+typedef enum
+{
+    OPEN_IR = 0,
+    CLOSE_IR
+} PositiveIRControl_E;
+
+/* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
@@ -71,6 +81,10 @@ volatile bool prechargeDelayComplete = 0;
 /* ==================================================================== */
 
 static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, packMonitorTaskData_S* taskData);
+
+static void controlPositiveIR(PositiveIRControl_E irCommand);
+
+static void updatePrechargeLogic(packMonitorTaskData_S* taskData);
 
 static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData);
 
@@ -145,6 +159,79 @@ static void calculatePackParameters(ADBMS_PackMonitorData* packMonitorData, pack
 
         // Update soc
         updateSocSoe(&taskData->socData, taskData->minCellVoltage);
+    }
+}
+
+static void controlPositiveIR(PositiveIRControl_E irCommand)
+{
+    if(irCommand == OPEN_IR)
+    {
+        HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_RESET);
+    }
+    else if(irCommand == CLOSE_IR)
+    {
+        HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_SET);
+    }
+}
+
+static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
+{
+    uint32_t now = HAL_GetTick();
+
+    // Update status at end of shutdown circuit using TIM3 interrupts on ADC1
+    if(adcNewDataFlag)
+    {
+        adcNewDataFlag = 0;
+        taskData->sdcEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SDC_END_V_GAIN;
+    }
+
+    bool sdcClosed = (taskData->sdcEndVoltage_V > SDC_END_V_THRESHOLD);
+    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > 60.0f);
+    bool sdcDelayComplete = (now - taskData->sdcCloseTime) >= PRECHARGE_WINDOW_MS;
+    bool positiveIRCooldownComplete = (now - taskData->positiveIROpenTime) >= POSITIVE_IR_COOLDOWN_MS;
+
+    switch(taskData->positiveIRStatus)
+    {
+        case IR_STATE_SDC_OPEN:
+        {
+            if(sdcClosed)
+            {
+                taskData->sdcCloseTime = now;
+                taskData->positiveIRStatus = IR_STATE_PRECHARGING;
+            }
+            break;
+        }
+        case IR_STATE_PRECHARGING:
+        {
+            if(!sdcClosed)
+            {
+                controlPositiveIR(OPEN_IR);
+                taskData->positiveIROpenTime = now;
+                taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
+                break;
+            }
+            else if(linkReady && sdcDelayComplete && positiveIRCooldownComplete)
+            {
+                controlPositiveIR(CLOSE_IR);
+                taskData->positiveIRStatus = IR_STATE_CLOSED;
+            }
+            break;
+        }
+        case IR_STATE_CLOSED:
+        {
+            if((!sdcClosed) || (!linkReady))
+            {
+                controlPositiveIR(OPEN_IR);
+                taskData->positiveIROpenTime = now;
+                taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
+            }
+            break;
+        }
+        default:
+        {
+            taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
+            break;
+        }
     }
 }
 
@@ -238,23 +325,21 @@ void runUpdatePackMonitorTask()
 
         taskData.linkVoltage = (packMonitorData.voltageAdc[LINK_PLUS_DIV_INDEX] - packMonitorData.voltageAdc[LINK_MINUS_DIV_INDEX]) * LINK_DIV_GAIN;
 
-        // Update status at end of shutdown circuit using TIM3 interrupts on ADC1
-        if(adcNewDataFlag)
-        {
-            adcNewDataFlag = 0;
-            taskData.shutdownEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
-            taskData.prechargeDelayComplete = prechargeDelayComplete;
-        }
-
-        if((taskData.linkVoltage < (0.93f * taskData.packVoltage)) || (taskData.linkVoltage < 10.0f))
-        {
-            HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_RESET);
-        } else 
-        {
-            HAL_GPIO_WritePin(PRECHARGE_DONE_GPIO_Port, PRECHARGE_DONE_Pin, GPIO_PIN_SET);
-        }
-
         calculatePackParameters(&packMonitorData, &taskData);
+    }
+
+    // Regardless of status, update precharge logic
+    updatePrechargeLogic(&taskData);
+
+    static uint32_t lastPrint = 0;
+
+    if(HAL_GetTick() - lastPrint > 1000)
+    {
+        lastPrint = HAL_GetTick();
+        printf("IR+ STATE\n");
+        printf("BATTERY VOLTAGE: %f V\n", taskData.packVoltage);
+        printf("LINK VOLTAGE: %f V\n", taskData.linkVoltage);
+        printf("SHDN END VOLTAGE: %f V\n\n", taskData.sdcEndVoltage_V);                
     }
 
     // Regardless of status, run alert monitor

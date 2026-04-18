@@ -205,15 +205,15 @@ void runAlertMonitor(Alert_S* alert)
 
 void setBmsFault()
 {
-    if(bmsFaultByTask.cellMonitorBmsFault || bmsFaultByTask.packMonitorBmsFault)
-    {
-        // BMS fault pin is active high so if any fault is asserted the pin should be set
-	    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
-    }
-    else
-    {
+    // if(bmsFaultByTask.cellMonitorBmsFault || bmsFaultByTask.packMonitorBmsFault)
+    // {
+    //     // BMS fault pin is active high so if any fault is asserted the pin should be set
+	//     HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
+    // }
+    // else
+    // {
         HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
-    }
+    // }
 }
 
 /* ==================================================================== */
