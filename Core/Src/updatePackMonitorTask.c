@@ -43,6 +43,15 @@
 #define REF_1P25_INDEX          6
 #define DISCHARGE_TEMP_INDEX    7
 
+// Shutdown circuit and precharge control
+#define SDC_END_V_DIV_GAIN      11.0f
+#define SDC_END_V_THRESHOLD     10.0f
+
+#define ADC_MAX_COUNTS          4095.0f
+#define ADC_REF_VOLTAGE         3.3f
+
+#define PRECHARGE_WINDOW_MS     3000
+
 /* ==================================================================== */
 /* ========================= ENUMERATED TYPES========================== */
 /* ==================================================================== */
@@ -63,7 +72,15 @@ static ADBMS_PackMonitorData packMonitorData;
 
 static packMonitorTaskData_S taskData;
 
+static const float adcCountsToSdcVoltsGain = (ADC_REF_VOLTAGE / ADC_MAX_COUNTS) * SDC_END_V_DIV_GAIN;
+
+/* ==================================================================== */
+/* ========================= GLOBAL VARIABLES ========================= */
+/* ==================================================================== */
+
 packMonitorTaskData_S publicPackMonitorTaskData;
+
+volatile uint32_t adcRawValue = 0;
 
 /* ==================================================================== */
 /* ======================= EXTERNAL VARIABLES ========================= */
@@ -71,10 +88,6 @@ packMonitorTaskData_S publicPackMonitorTaskData;
 
 extern ADC_HandleTypeDef hadc1;
 extern TIM_HandleTypeDef htim3;
-
-volatile uint32_t adcRawValue = 0;
-volatile uint32_t adcNewDataFlag = 0;
-volatile bool prechargeDelayComplete = 0;
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
@@ -178,17 +191,13 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
 {
     uint32_t now = HAL_GetTick();
 
-    // Update status at end of shutdown circuit using TIM3 interrupts on ADC1
-    if(adcNewDataFlag)
-    {
-        adcNewDataFlag = 0;
-        taskData->sdcEndVoltage_V = (adcRawValue / 4095.0f) * 3.3f * SDC_END_V_GAIN;
-    }
+    // Update status at end of shutdown circuit (using TIM3 interrupts on ADC1 for ADC trigger)
+    uint16_t localAdcValue = adcRawValue;
+    taskData->sdcEndVoltage_V = localAdcValue * adcCountsToSdcVoltsGain;
 
     bool sdcClosed = (taskData->sdcEndVoltage_V > SDC_END_V_THRESHOLD);
-    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > 60.0f);
-    bool sdcDelayComplete = (now - taskData->sdcCloseTime) >= PRECHARGE_WINDOW_MS;
-    bool positiveIRCooldownComplete = (now - taskData->positiveIROpenTime) >= POSITIVE_IR_COOLDOWN_MS;
+    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > MIN_PACK_VOLTAGE);
+    bool sdcDelayComplete = ((now - taskData->sdcCloseTime) > PRECHARGE_WINDOW_MS) && (taskData->sdcCloseTime != 0);
 
     switch(taskData->positiveIRStatus)
     {
@@ -206,11 +215,10 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
             if(!sdcClosed)
             {
                 controlPositiveIR(OPEN_IR);
-                taskData->positiveIROpenTime = now;
                 taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
                 break;
             }
-            else if(linkReady && sdcDelayComplete && positiveIRCooldownComplete)
+            else if(linkReady && sdcDelayComplete)
             {
                 controlPositiveIR(CLOSE_IR);
                 taskData->positiveIRStatus = IR_STATE_CLOSED;
@@ -219,10 +227,9 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
         }
         case IR_STATE_CLOSED:
         {
-            if((!sdcClosed) || (!linkReady))
+            if(!sdcClosed)
             {
                 controlPositiveIR(OPEN_IR);
-                taskData->positiveIROpenTime = now;
                 taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
             }
             break;
@@ -280,7 +287,6 @@ void initUpdatePackMonitorTask()
     // Start ADC to measure voltage at end of shutdown circuit and timer to trigger ADC conversions
     HAL_ADC_Start_IT(&hadc1);
     HAL_TIM_Base_Start(&htim3);
-
 }
 
 void runUpdatePackMonitorTask()
@@ -329,6 +335,7 @@ void runUpdatePackMonitorTask()
     }
 
     // Regardless of status, update precharge logic
+    // TODO: Need a way to detect if you lose comms with the 2950 and have stale link/batt voltage values
     updatePrechargeLogic(&taskData);
 
     static uint32_t lastPrint = 0;

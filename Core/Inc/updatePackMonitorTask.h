@@ -9,15 +9,6 @@
 #include <stdint.h>
 
 /* ==================================================================== */
-/* ============================= DEFINES ============================== */
-/* ==================================================================== */
-
-#define SDC_END_V_GAIN              11
-#define SDC_END_V_THRESHOLD         10.0f
-#define PRECHARGE_WINDOW_MS         3000
-#define POSITIVE_IR_COOLDOWN_MS     3000
-
-/* ==================================================================== */
 /* ========================= ENUMERATED TYPES========================== */
 /* ==================================================================== */
 
@@ -32,8 +23,7 @@ typedef enum
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-extern volatile uint32_t adcRawValue;
-extern volatile uint32_t adcNewDataFlag;
+extern volatile uint16_t adcRawValue;
 
 /* ==================================================================== */
 /* ============================== STRUCTS ============================= */
@@ -56,7 +46,6 @@ typedef struct
     // Parameters for positive IR control
     float sdcEndVoltage_V;
     uint32_t sdcCloseTime;
-    uint32_t positiveIROpenTime;
     PositiveIRStatus_E positiveIRStatus;
 
     // minCellVoltage from cell monitor task
