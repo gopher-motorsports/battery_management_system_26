@@ -133,6 +133,18 @@ static void printForPrechargeTest(packMonitorTaskData_S* packTaskPrintData)
     printf("BATTERY VOLTAGE: %f V\n", packTaskPrintData->packVoltage);
     printf("LINK VOLTAGE: %f V\n", packTaskPrintData->linkVoltage);
     printf("SHDN END VOLTAGE: %f V\n", packTaskPrintData->sdcEndVoltage_V);
+    if(packTaskPrintData->positiveIRStatus == IR_STATE_SDC_OPEN)
+    {
+        printf("STATE: SDC_OPEN\n");
+    }
+    else if(packTaskPrintData->positiveIRStatus == IR_STATE_PRECHARGING)
+    {
+        printf("STATE: PRECHARGING\n");
+    }
+    else if(packTaskPrintData->positiveIRStatus == IR_STATE_CLOSED)
+    {
+        printf("STATE: IR CLOSED\n");
+    }
     // printf("Precharge Temp: %f C\n", packTaskPrintData->prechargeTemp);
     // printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
 }
@@ -187,14 +199,14 @@ void runPrintTask()
     // printPackMonData(&packTaskPrintData);
     // printForPrechargeTest(&packTaskPrintData);
 
-    // printf("\n");
+    printf("\n");
 
-    // bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
-    // bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
+    bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
+    bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
 
-    // if(!cellAlerts && !packAlerts)
-    // {
-    //     printf("NO ALERTS ACTIVE\n");
-    // }
+    if(!cellAlerts && !packAlerts)
+    {
+        printf("NO ALERTS ACTIVE\n");
+    }
 
 }

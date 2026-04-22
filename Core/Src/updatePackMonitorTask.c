@@ -192,12 +192,14 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
     uint32_t now = HAL_GetTick();
 
     // Update status at end of shutdown circuit (using TIM3 interrupts on ADC1 for ADC trigger)
-    uint16_t localAdcValue = adcRawValue;
+    uint16_t localAdcValue = (uint16_t)adcRawValue;
     taskData->sdcEndVoltage_V = localAdcValue * adcCountsToSdcVoltsGain;
 
     bool sdcClosed = (taskData->sdcEndVoltage_V > SDC_END_V_THRESHOLD);
-    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > MIN_PACK_VOLTAGE);
+    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > 20.0f);
     bool sdcDelayComplete = ((now - taskData->sdcCloseTime) > PRECHARGE_WINDOW_MS) && (taskData->sdcCloseTime != 0);
+
+    printf("%u, %u, %u, %f V\n", (uint32_t)sdcClosed, (uint32_t)linkReady, (uint32_t)sdcDelayComplete, taskData->sdcEndVoltage_V);
 
     switch(taskData->positiveIRStatus)
     {
@@ -230,6 +232,7 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
             if(!sdcClosed)
             {
                 controlPositiveIR(OPEN_IR);
+                taskData->sdcCloseTime = 0;
                 taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
             }
             break;
@@ -340,13 +343,29 @@ void runUpdatePackMonitorTask()
 
     static uint32_t lastPrint = 0;
 
-    if(HAL_GetTick() - lastPrint > 1000)
+    if(HAL_GetTick() - lastPrint > 1500)
     {
         lastPrint = HAL_GetTick();
-        printf("IR+ STATE\n");
+
+        printf("\e[1;1H\e[2J");
+
+        printf("// Pack Parameters //\n");
         printf("BATTERY VOLTAGE: %f V\n", taskData.packVoltage);
         printf("LINK VOLTAGE: %f V\n", taskData.linkVoltage);
-        printf("SHDN END VOLTAGE: %f V\n\n", taskData.sdcEndVoltage_V);                
+        printf("SHDN END VOLTAGE: %f V\n", taskData.sdcEndVoltage_V);
+        printf("SDC CLOSE TIME: %u ms\n", taskData.sdcCloseTime);
+        if(taskData.positiveIRStatus == IR_STATE_SDC_OPEN)
+        {
+            printf("STATE: SDC_OPEN\n");
+        }
+        else if(taskData.positiveIRStatus == IR_STATE_PRECHARGING)
+        {
+            printf("STATE: PRECHARGING\n");
+        }
+        else if(taskData.positiveIRStatus == IR_STATE_CLOSED)
+        {
+            printf("STATE: IR CLOSED\n");
+        }               
     }
 
     // Regardless of status, run alert monitor

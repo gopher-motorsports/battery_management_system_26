@@ -234,7 +234,7 @@ void runUpdateCellMonitorTask()
 
         // Calculate median temperature to eliminate outlier temp readings due to cold solder joints
         // Runs twice upon start up, then does not run again
-        if(cellTempStatusInitialized < 2)
+        if(cellTempStatusInitialized < 3)
         {
             sort(tempArray, tempArrayIndex);
             float median = tempArray[tempArrayIndex / 2];
