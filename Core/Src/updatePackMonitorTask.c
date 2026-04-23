@@ -29,6 +29,7 @@
 #define CONV_COUNT_IIR_FILTER           553
 #define CONV_UPPER_BOUND                1500
 #define CONV_LOWER_BOUND                500
+#define PACK_MON_ACCN_SETTING           ACCUMULATE_4_SAMPLES
 #define ACCUMULATION_REGISTER_COUNT     ((PACK_MON_ACCN_SETTING + 1) * 4)
 #define MIN_VALID_IADC_READING_UV       10
 #define ACCUMULATED_CURRENT_THRES_UV    100
@@ -199,7 +200,7 @@ void runUpdatePackMonitorTask()
 {
     // Get minCellVoltage value from cell monitor task
     vTaskSuspendAll();
-    taskData.minCellVoltage = 3.73f;
+    taskData.minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
     xTaskResumeAll();
 
     TRANSACTION_STATUS_E telemetryStatus = updatePackTelemetry(&packMonInfo, &packMonitorData);
