@@ -963,7 +963,7 @@ void startUpdatePackMon(void const * argument)
 
   initUpdatePackMonitorTask();
   TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(2);
+  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(24);
 
   /* Infinite loop */
   for(;;)

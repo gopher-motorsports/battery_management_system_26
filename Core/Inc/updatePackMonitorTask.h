@@ -56,7 +56,7 @@ typedef struct
     uint16_t conversionTime_us;
 
     Soc_S socData;
-    
+       
 } packMonitorTaskData_S;
 
 /* ==================================================================== */

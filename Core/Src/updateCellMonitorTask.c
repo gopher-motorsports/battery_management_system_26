@@ -12,7 +12,7 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      1
+#define FORCE_BALANCING_ON      0
 
 #define NUM_CELL_TEMP_ADCS      7
 #define BOARD_TEMP_ADC_INDEX    7
