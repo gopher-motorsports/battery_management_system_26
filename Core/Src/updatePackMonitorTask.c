@@ -198,7 +198,7 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
     bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > 20.0f);
     bool sdcDelayComplete = ((now - taskData->sdcCloseTime) > PRECHARGE_WINDOW_MS) && (taskData->sdcCloseTime != 0);
 
-    printf("%u, %u, %u, %f V\n", (uint32_t)sdcClosed, (uint32_t)linkReady, (uint32_t)sdcDelayComplete, taskData->sdcEndVoltage_V);
+    // printf("%u, %u, %u, %f V\n", (uint32_t)sdcClosed, (uint32_t)linkReady, (uint32_t)sdcDelayComplete, taskData->sdcEndVoltage_V);
 
     switch(taskData->positiveIRStatus)
     {
@@ -340,32 +340,32 @@ void runUpdatePackMonitorTask()
     // TODO: Need a way to detect if you lose comms with the 2950 and have stale link/batt voltage values
     updatePrechargeLogic(&taskData);
 
-    static uint32_t lastPrint = 0;
+    // static uint32_t lastPrint = 0;
 
-    if(HAL_GetTick() - lastPrint > 1500)
-    {
-        lastPrint = HAL_GetTick();
+    // if(HAL_GetTick() - lastPrint > 1500)
+    // {
+    //     lastPrint = HAL_GetTick();
 
-        printf("\e[1;1H\e[2J");
+    //     printf("\e[1;1H\e[2J");
 
-        printf("// Pack Parameters //\n");
-        printf("BATTERY VOLTAGE: %f V\n", taskData.packVoltage);
-        printf("LINK VOLTAGE: %f V\n", taskData.linkVoltage);
-        printf("SHDN END VOLTAGE: %f V\n", taskData.sdcEndVoltage_V);
-        printf("SDC CLOSE TIME: %u ms\n", taskData.sdcCloseTime);
-        if(taskData.positiveIRStatus == IR_STATE_SDC_OPEN)
-        {
-            printf("STATE: SDC_OPEN\n");
-        }
-        else if(taskData.positiveIRStatus == IR_STATE_PRECHARGING)
-        {
-            printf("STATE: PRECHARGING\n");
-        }
-        else if(taskData.positiveIRStatus == IR_STATE_CLOSED)
-        {
-            printf("STATE: IR CLOSED\n");
-        }               
-    }
+    //     printf("// Pack Parameters //\n");
+    //     printf("BATTERY VOLTAGE: %f V\n", taskData.packVoltage);
+    //     printf("LINK VOLTAGE: %f V\n", taskData.linkVoltage);
+    //     printf("SHDN END VOLTAGE: %f V\n", taskData.sdcEndVoltage_V);
+    //     printf("SDC CLOSE TIME: %u ms\n", taskData.sdcCloseTime);
+    //     if(taskData.positiveIRStatus == IR_STATE_SDC_OPEN)
+    //     {
+    //         printf("STATE: SDC_OPEN\n");
+    //     }
+    //     else if(taskData.positiveIRStatus == IR_STATE_PRECHARGING)
+    //     {
+    //         printf("STATE: PRECHARGING\n");
+    //     }
+    //     else if(taskData.positiveIRStatus == IR_STATE_CLOSED)
+    //     {
+    //         printf("STATE: IR CLOSED\n");
+    //     }               
+    // }
 
     // Regardless of status, run alert monitor
     runPackMonitorAlertMonitor(&taskData);
