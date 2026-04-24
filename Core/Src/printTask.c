@@ -187,9 +187,9 @@ void runPrintTask()
     packTaskPrintData = publicPackMonitorTaskData;
     xTaskResumeAll();
 
-    // printf("\e[1;1H\e[2J");
-    // printCellVoltages(&cellTaskPrintData);
-    // printCellTemps(&cellTaskPrintData);
+    printf("\e[1;1H\e[2J");
+    printCellVoltages(&cellTaskPrintData);
+    printCellTemps(&cellTaskPrintData);
 
     // printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     // printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);

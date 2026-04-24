@@ -856,7 +856,7 @@ void startPrintTask(void const * argument)
 
   initPrintTask();
   TickType_t lastPrintTaskTick = xTaskGetTickCount();
-  const TickType_t printTaskPeriod = pdMS_TO_TICKS(1000);
+  const TickType_t printTaskPeriod = pdMS_TO_TICKS(2000);
 
   /* Infinite loop */
   for(;;)
@@ -906,7 +906,7 @@ void startUpdateCellMon(void const * argument)
 
   initUpdateCellMonitorTask();
   TickType_t lastUpdateCellMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(500);
+  const TickType_t updateCellMonitorTaskPeriod = pdMS_TO_TICKS(100);
 
   /* Infinite loop */
   for(;;)
