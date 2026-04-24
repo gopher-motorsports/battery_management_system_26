@@ -126,6 +126,8 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         cellMonitorData[i].configGroupA.gpo9State = 1;
         cellMonitorData[i].configGroupA.gpo10State = 0;
         cellMonitorData[i].configGroupA.soakTime = AUX_SOAK_TIME_4_1_MS;
+
+        cellMonitorData[i].configGroupB.undervoltageThreshold = MIN_CELL_WARNING_VOLTAGE;
     }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
@@ -188,6 +190,13 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
     }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    // Need to add read command in between writes to config A and B or we get command counter error
+    status = readCellMonitorSerialId(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
