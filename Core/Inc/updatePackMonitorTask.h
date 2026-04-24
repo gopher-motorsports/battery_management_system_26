@@ -9,20 +9,21 @@
 #include <stdint.h>
 
 /* ==================================================================== */
-/* ============================= DEFINES ============================== */
+/* ========================= ENUMERATED TYPES========================== */
 /* ==================================================================== */
 
-#define SHDN_END_V_GAIN         11
-#define SHDN_END_V_THRESHOLD    10.0f
-#define PRECHARGE_WINDOW_MS     3000
+typedef enum
+{
+    IR_STATE_SDC_OPEN,          // Shutdown circuit open, battery isolated
+    IR_STATE_PRECHARGING,       // Shutdown circuit closed, precharging LINK bus
+    IR_STATE_CLOSED,            // IR+ and IR- closed, normal operation
+} PositiveIRStatus_E;
 
 /* ==================================================================== */
 /* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
 extern volatile uint32_t adcRawValue;
-extern volatile uint32_t adcNewDataFlag;
-extern volatile bool prechargeDelayComplete;
 
 /* ==================================================================== */
 /* ============================== STRUCTS ============================= */
@@ -42,9 +43,10 @@ typedef struct
 
     float linkVoltage;
 
-    // Delay between shut down circuit closing and IR+ closing by measuring end of shut down circuit
-    bool prechargeDelayComplete;
-    float shutdownEndVoltage_V;
+    // Parameters for positive IR control
+    float sdcEndVoltage_V;
+    uint32_t sdcCloseTime;
+    PositiveIRStatus_E positiveIRStatus;
 
     // minCellVoltage from cell monitor task
     float minCellVoltage;
