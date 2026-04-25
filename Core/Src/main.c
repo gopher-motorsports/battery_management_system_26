@@ -65,6 +65,7 @@ DMA_HandleTypeDef hdma_spi2_rx;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim14;
 
@@ -106,6 +107,7 @@ static void MX_CAN2_Init(void);
 static void MX_CAN1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM5_Init(void);
 void startPrintTask(void const * argument);
 void startStatusUpdateTask(void const * argument);
 void startUpdateCellMon(void const * argument);
@@ -232,6 +234,7 @@ int main(void)
   MX_CAN1_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
 
@@ -258,7 +261,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of printTask */
-  osThreadStaticDef(printTask, startPrintTask, osPriorityNormal, 0, 2048, printTaskBuffer, &printTaskControlBlock);
+  osThreadStaticDef(printTask, startPrintTask, osPriorityBelowNormal, 0, 2048, printTaskBuffer, &printTaskControlBlock);
   printTaskHandle = osThreadCreate(osThread(printTask), NULL);
 
   /* definition and creation of statusUpdateTas */
@@ -640,6 +643,51 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 64-1;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 4294967295;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+
+}
+
+/**
   * @brief TIM7 Initialization Function
   * @param None
   * @retval None
@@ -840,6 +888,16 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void configureTimerForRunTimeStats(void)
+{
+    HAL_TIM_Base_Start(&htim5);
+}
+
+unsigned long getRunTimeCounterValue(void)
+{
+    return __HAL_TIM_GET_COUNTER(&htim5);
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_startPrintTask */
@@ -861,7 +919,11 @@ void startPrintTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    runPrintTask();
+    // runPrintTask();
+    char buffer[1024];
+    vTaskGetRunTimeStats(buffer);
+    printf("\r\n--- RTOS Runtime Stats ---\r\n%s\r\n", buffer);
+    
     vTaskDelayUntil(&lastPrintTaskTick, printTaskPeriod);
   }
   /* USER CODE END 5 */
@@ -933,7 +995,7 @@ void startUpdatePackMon(void const * argument)
 
   initUpdatePackMonitorTask();
   TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(24);
+  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(2);
 
   /* Infinite loop */
   for(;;)
