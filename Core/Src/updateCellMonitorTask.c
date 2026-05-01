@@ -54,11 +54,29 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     {
         for(uint16_t i = 0; i < NUM_CELL_MON; i++)
         {
+            float pwmDutyCycle = 100.0f;
+
+            static uint32_t lastPwmUpdate = 0;
+            // Update pwm every 10 sec based on die temp
+            if(HAL_GetTick() - lastPwmUpdate > 10000)
+            {
+                // Only considered an update once each cell monitor duty cycle has been computed
+                if(i == (NUM_CELL_MON - 1))
+                {
+                    lastPwmUpdate = HAL_GetTick();
+                }
+                pwmDutyCycle = lookup(taskData->cellMonitor[i].dieTemp, &dischargePwmTable);
+            }
+            
             for(uint16_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
-                if(taskData->cellMonitor[i].cellVoltage[j] > floor)
+                if(taskData->cellMonitor[i].cellVoltage[j] > (floor + 0.001))
                 {
-                    cellMonitorData[i].dischargePWM[j] = 50.0f;
+                    cellMonitorData[i].dischargePWM[j] = pwmDutyCycle;
+                }
+                else
+                {
+                    cellMonitorData[i].dischargePWM[j] = 0.0f;
                 }
             }
 
@@ -76,14 +94,38 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     }
     else
     {
-        floor = taskData->minCellVoltage + 0.001f;
+        if(taskData->minCellVoltage > MIN_CELL_FAULT_VOLTAGE)
+        {
+            floor = taskData->minCellVoltage + 0.001f;
+        }
+
         for(uint16_t i = 0; i < NUM_CELL_MON; i++)
         {
             cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 0;
         }
     }
 
-    taskData->balancingEnabled = (FORCE_BALANCING_ON || forceEnableBalancing_state.data);
+    // Only enable balancing if all cell voltages are good
+    // (The first time this code runs the chain will be initialized, but no adcs will be read yet.)
+    // TODO: Maybe it makes more sense to use alerts code for this
+    static bool allVoltageSensorStatusGood = false;
+
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        if(taskData->cellMonitor[i].numBadCellVoltage == 0)
+        {
+            allVoltageSensorStatusGood = true;   
+        }
+        else
+        {
+            allVoltageSensorStatusGood = false;
+        }
+    }
+
+    if(allVoltageSensorStatusGood)
+    {
+        taskData->balancingEnabled = (FORCE_BALANCING_ON || forceEnableBalancing_state.data);
+    }
 
     return status;
 }
@@ -235,7 +277,7 @@ void runUpdateCellMonitorTask()
 
         // Calculate median temperature to eliminate outlier temp readings due to cold solder joints
         // Runs twice upon start up, then does not run again
-        if(cellTempStatusInitialized < 2)
+        if(cellTempStatusInitialized < 3)
         {
             sort(tempArray, tempArrayIndex);
             float median = tempArray[tempArrayIndex / 2];

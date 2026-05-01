@@ -186,37 +186,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
     if(hadc == &hadc1)
     {
-        static bool counterActive = 0;
-        static uint32_t sdcCloseTime = 0;
-
         adcRawValue = HAL_ADC_GetValue(hadc);
-        adcNewDataFlag = 1;
-        HAL_ADC_Start_IT(&hadc1);
-
-        // One condition for closing IR+ is that sufficient time has passed since closing IR-
-        float shutdownEndVoltage = (adcRawValue / 4095.0f) * 3.3f * SHDN_END_V_GAIN;
-        if(shutdownEndVoltage > SHDN_END_V_THRESHOLD)
-        {
-            if(!counterActive)
-            {
-                // Shutdown circuit just closed, record time
-                sdcCloseTime = HAL_GetTick();
-                counterActive = true;
-            }
-
-            if(((HAL_GetTick() - sdcCloseTime) >= PRECHARGE_WINDOW_MS) && (sdcCloseTime != 0))
-            {
-                // Enough time has passed, ready to close IR+ if other conditions are met
-                prechargeDelayComplete = true;
-            }
-        }
-        else
-        {
-            // Shutdown circuit open
-            counterActive = false;
-            sdcCloseTime = 0;
-            prechargeDelayComplete = false;
-        }
     }
 }
 
@@ -418,7 +388,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_10;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -643,9 +613,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 64000-1;
+  htim3.Init.Prescaler = 64-1;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 499;
+  htim3.Init.Period = 1000-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -941,7 +911,9 @@ void startUpdateCellMon(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+    // uint32_t taskStart = HAL_GetTick();
     runUpdateCellMonitorTask();
+    // printf("%lu\n", (HAL_GetTick() - taskStart));
     vTaskDelayUntil(&lastUpdateCellMonitorTaskTick, updateCellMonitorTaskPeriod);
   }
   /* USER CODE END startUpdateCellMon */
@@ -961,7 +933,7 @@ void startUpdatePackMon(void const * argument)
 
   // initUpdatePackMonitorTask();
   TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(2);
+  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(24);
 
   /* Infinite loop */
   for(;;)

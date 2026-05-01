@@ -78,16 +78,16 @@ void updateCellMonitorStatistics(cellMonitor_S *bmb)
             pBmb->minCellVoltage = minCellVoltage;
             pBmb->sumCellVoltage = sumVoltage;
             pBmb->avgCellVoltage = (sumVoltage / numGoodCellVoltage);
-            pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
         }
+        pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
 
         if(numGoodCellTemp > 0)
         {
             pBmb->maxCellTemp = maxCellTemp;
             pBmb->minCellTemp = minCellTemp;
             pBmb->avgCellTemp = (sumCellTemp / numGoodCellTemp);
-            pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
         }
+        pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
     }
 }
 
@@ -237,7 +237,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->maxBoardTemp = maxBoardTemp;
         taskData->minBoardTemp = minBoardTemp;
         taskData->avgBoardTemp = sumBoardTemp / numGoodBoardTemp;
-        taskData->numBadBoardTemp = NUM_BOARD_TEMP_SENSORS - numGoodBoardTemp;
+        taskData->numBadBoardTemp = (NUM_BOARD_TEMP_SENSORS * NUM_CELL_MON) - numGoodBoardTemp;
     }
 
     if(numGoodDieTemp > 0)
