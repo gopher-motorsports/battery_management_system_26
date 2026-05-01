@@ -82,7 +82,7 @@ static void printRedundantCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
         {
             float voltage = cellTaskPrintData->cellMonitor[j].cellVoltage[i];
             float redundantVoltage = cellTaskPrintData->cellMonitor[j].redundantCellVoltage[i];
-            if(fabsf(voltage - redundantVoltage) < 0.002f)
+            if(fabsf(voltage - redundantVoltage) < 0.005f)
             {
                 printf("  %5.3f   |", redundantVoltage);
             }
