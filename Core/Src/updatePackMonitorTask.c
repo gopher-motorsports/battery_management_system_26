@@ -267,6 +267,16 @@ static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
                 // Set the alert response to active
                 responseStatus[response] = true;
             }
+
+            // Bit encoding for GopherCAN
+            uint8_t bitIndex = alert->gcanAlertEncode;
+            taskData->packMonitorGcanAlerts |= (1U << bitIndex);
+        }
+        else 
+        {
+            // Bit encoding for GopherCAN
+            uint8_t bitIndex = alert->gcanAlertEncode;
+            taskData->packMonitorGcanAlerts &= ~(1U << bitIndex);
         }
     }
     bmsFaultByTask.packMonitorBmsFault = responseStatus[BMS_FAULT];

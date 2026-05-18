@@ -123,6 +123,11 @@ typedef enum {
   TELEMETRY_COMMUNICATION_ALERT    
 } CELL_MONITOR_GCAN_ALERT_ENCODE;
 
+typedef enum {
+    PACK_OVERCURRENT_FAULT_ALERT,
+    PACK_VOLTAGE_OUT_OF_RANGE_ALERT
+} PACK_MONITOR_GCAN_ALERT_ENCODE;
+
 /* ==================================================================== */
 /* ============================== STRUCTS============================== */
 /* ==================================================================== */

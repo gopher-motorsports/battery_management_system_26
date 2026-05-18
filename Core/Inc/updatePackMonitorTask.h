@@ -58,7 +58,10 @@ typedef struct
     uint16_t conversionTime_us;
 
     Soc_S socData;
-       
+
+    // Alerts Bit Encoded for GopherCAN
+    uint8_t packMonitorGcanAlerts;
+
 } packMonitorTaskData_S;
 
 /* ==================================================================== */

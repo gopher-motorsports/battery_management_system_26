@@ -89,31 +89,28 @@ void updateMediumFrequencyVariables(gcanTaskInputData_S* gcanData)
 
     // update_and_queue_param_u8(&bmsNumActiveAlerts_info,);
     update_and_queue_param_u16(&cellMonitorAlerts_info, gcanData->cellMonitorTaskData.cellMonitorGcanAlerts);
-    // update_and_queue_param_u8(&packMonitorAlerts_info, );
-    // update_and_queue_param_u8(&forceEnableBalancing_state, );
+    update_and_queue_param_u8(&packMonitorAlerts_info, gcanData->packMonitorTaskData.packMonitorGcanAlerts);
     // update_and_queue_param_u8(&bmsInhibitActive_state, );
 }
 
 void updateLowFrequencyVariables(gcanTaskInputData_S* gcanData, uint32_t cellMonitorIndex)
 {
-    // Log all segment variables
-    // for(uint32_t i = 0; i < NUM_CELL_MON; i++)
-    // {
-        // for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
-        // {
-        //     update_and_queue_param_float(cellVoltageParams[cellMonitorIndex][j], gcanData->telemetryTaskData.bmb[cellMonitorIndex].cellVoltage[j]);
-        //     update_and_queue_param_float(cellTempParams[cellMonitorIndex][j], gcanData->telemetryTaskData.bmb[cellMonitorIndex].cellTemp[j]);
-        // }
+    // Log all module variables
+    for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+    {
+        update_and_queue_param_float(cellVoltageParams[cellMonitorIndex][j], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].cellVoltage[j]);
+        // update_and_queue_param_float(cellTempParams[cellMonitorIndex][j], gcanData->telemetryTaskData.bmb[cellMonitorIndex].cellTemp[j]);
+    }
 
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][0], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].maxCellVoltage);
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][1], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].minCellVoltage);
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][2], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].avgCellVoltage);
-        // update_and_queue_param_float(cellStatParams[cellMonitorIndex][3], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].dieTemp);
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][4], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].maxCellTemp);
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][5], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].minCellTemp);
-        update_and_queue_param_float(cellStatParams[cellMonitorIndex][6], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].avgCellTemp);
-        // update_and_queue_param_float(cellStatParams[cellMonitorIndex][7], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].boardTemp);
-    // }
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][0], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].maxCellVoltage);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][1], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].minCellVoltage);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][2], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].avgCellVoltage);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][3], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].dieTemp);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][4], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].maxCellTemp);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][5], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].minCellTemp);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][6], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].avgCellTemp);
+    update_and_queue_param_float(cellStatParams[cellMonitorIndex][7], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].boardTemp1);
+
 }
 
 /* ==================================================================== */

@@ -160,7 +160,7 @@ static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
             numAlertsSet++;
 
             // Bit encoding for GopherCAN
-            uint8_t bitIndex  = alert->gcanAlertEncode;
+            uint8_t bitIndex = alert->gcanAlertEncode;
             taskData->cellMonitorGcanAlerts |= (1U << bitIndex);
         }
         else 
