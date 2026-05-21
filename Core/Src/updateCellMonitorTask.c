@@ -70,7 +70,7 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
             
             for(uint16_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
-                if(taskData->cellMonitor[i].cellVoltage[j] > (floor + 0.001))
+                if(taskData->cellMonitor[i].cellVoltage[j] > (floor + 0.010))
                 {
                     cellMonitorData[i].dischargePWM[j] = pwmDutyCycle;
                 }
