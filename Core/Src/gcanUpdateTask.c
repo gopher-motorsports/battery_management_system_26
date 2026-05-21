@@ -120,7 +120,7 @@ void updateLowFrequencyVariables(gcanTaskInputData_S* gcanData, uint32_t cellMon
 void initGcanUpdateTask()
 {
     // Initially set all param statuses to no send needed, so that they only send if the value changes
-    gsense_reset();
+    // gsense_reset();
 }
 
 void runGcanUpdateTask()
@@ -129,6 +129,7 @@ void runGcanUpdateTask()
     vTaskSuspendAll();
     gcanTaskInputData.cellMonitorTaskData = publicCellMonitorTaskData;
     gcanTaskInputData.packMonitorTaskData = publicPackMonitorTaskData;
+    gcanTaskInputData.statusUpdateTaskData = publicShutdownCircuitData;
     xTaskResumeAll();
 
     // High frequency update variables - 100Hz

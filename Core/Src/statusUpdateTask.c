@@ -47,8 +47,8 @@ static void updateHeartbeat()
 
 static void updateSdcStatus(shutdownCircuitStatus_S *shutdownCircuitData)
 {
-    shutdownCircuitData->imdLatchOpen = ((HAL_GPIO_ReadPin(IMD_FAULT_READ_GPIO_Port, IMD_FAULT_READ_Pin)) && (HAL_GetTick() > CLEAR_ON_START_MS));
-    shutdownCircuitData->bmsLatchOpen = ((HAL_GPIO_ReadPin(BMS_FAULT_READ_GPIO_Port, BMS_FAULT_READ_Pin)) && (HAL_GetTick() > CLEAR_ON_START_MS));
+    shutdownCircuitData->imdLatchOpen = ((!(HAL_GPIO_ReadPin(IMD_FAULT_READ_GPIO_Port, IMD_FAULT_READ_Pin))) && (HAL_GetTick() > CLEAR_ON_START_MS));
+    shutdownCircuitData->bmsLatchOpen = ((!(HAL_GPIO_ReadPin(BMS_FAULT_READ_GPIO_Port, BMS_FAULT_READ_Pin))) && (HAL_GetTick() > CLEAR_ON_START_MS));
     shutdownCircuitData->bmsInhibitActive = HAL_GPIO_ReadPin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin) ^ 1; // TODO
     shutdownCircuitData->sdcStatusI2BInterlock = HAL_GPIO_ReadPin(SDC1_GPIO_Port, SDC1_Pin);
     shutdownCircuitData->sdcStatusTBInterlock = HAL_GPIO_ReadPin(SDC2_GPIO_Port, SDC2_Pin);
