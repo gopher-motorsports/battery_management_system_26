@@ -19,7 +19,7 @@
 
 // Communication timeout ms
 #define ELCON_CHARGER_COMM_TIMEOUT  3000
-#define CHARGER_BOARD_COMM_TIMEOUT  10000
+#define POWER_LIMIT_COMM_TIMEOUT  10000
 
 // Power limit
 #define DEFAULT_POWER_LIMIT_W       1500.0f
@@ -61,20 +61,20 @@ static float getPowerLimit()
 {
     // Calculate the power limit
     float powerLimit = DEFAULT_POWER_LIMIT_W;
-    // if((HAL_GetTick() - chargingPowerLimit.info.last_rx) <= CHARGER_BOARD_COMM_TIMEOUT)
-    // {
-    //     powerLimit = chargingPowerLimit.data;
+    if(((HAL_GetTick() - chargingPowerLimit.info.last_rx) <= POWER_LIMIT_COMM_TIMEOUT) && (chargingPowerLimit.info.last_rx != 0))
+    {
+        powerLimit = chargingPowerLimit.data;
         
-    //     // Clamp power limit
-    //     if(powerLimit > ABSOLUTE_POWER_LIMIT_W)
-    //     {
-    //         powerLimit = ABSOLUTE_POWER_LIMIT_W;
-    //     }
-    //     else if(powerLimit < 0.0f)
-    //     {
-    //         powerLimit = 0.0f;
-    //     }
-    // }
+        // Clamp power limit
+        if(powerLimit > ABSOLUTE_POWER_LIMIT_W)
+        {
+            powerLimit = ABSOLUTE_POWER_LIMIT_W;
+        }
+        else if(powerLimit < 0.0f)
+        {
+            powerLimit = 0.0f;
+        }
+    }
 
     return powerLimit;
 }
