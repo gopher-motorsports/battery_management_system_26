@@ -1,6 +1,7 @@
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
+
 #include "adbms/adbmsSpi.h"
 #include "utils.h"
 #include <string.h>
@@ -319,7 +320,7 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint8_t registerSize, uint32
 static TRANSACTION_STATUS_E readRegister(uint16_t command, uint8_t registerSize, uint32_t numDevs, uint8_t *rxData, PORT_INSTANCE_S *portInstance, uint8_t localCommandCounter, PORT_E port)
 {
     // Size in bytes: Command Word(2) + Command CRC(2) + [Register data(registerSize) + Data CRC(2)] * numDevs
-    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * registerSize + CRC_SIZE_BYTES);
+    uint32_t packetLength = COMMAND_PACKET_LENGTH + (numDevs * (registerSize + CRC_SIZE_BYTES));
 
     // Put txBuffer and rxBuffer on heap
     uint8_t txBuffer[packetLength];
@@ -359,14 +360,13 @@ static TRANSACTION_STATUS_E readRegister(uint16_t command, uint8_t registerSize,
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
 
-
 void activatePort(CHAIN_INFO_S* chainInfo, uint32_t usDelay)
 {
     for(uint8_t i = 0; i < (chainInfo->numDevs + 1); i++)
     {
         HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_RESET);
         HAL_GPIO_WritePin(chainInfo->commPorts[chainInfo->currentPort].csPort, chainInfo->commPorts[chainInfo->currentPort].csPin, GPIO_PIN_SET);
-        delayMicroseconds(usDelay);
+        delayMicroseconds(usDelay, chainInfo->delayTimerHandle);
     }
 
 }
@@ -419,7 +419,7 @@ TRANSACTION_STATUS_E updateChainStatus(CHAIN_INFO_S *chainInfo)
             }
             else if((readStatus == TRANSACTION_COMMAND_COUNTER_ERROR) && (returnStatus != TRANSACTION_POR_ERROR))
             {
-                // On a command counter error, track error if no POR error is alread present, and continue loop until available devices can be determined
+                // On a command counter error, track error if no POR error is already present, and continue loop until available devices can be determined
                 returnStatus = TRANSACTION_COMMAND_COUNTER_ERROR;
             }
         }

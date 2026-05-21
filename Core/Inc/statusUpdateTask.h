@@ -1,23 +1,38 @@
-#ifndef INC_PACK_MONITOR_TELEMETRY_H_
-#define INC_PACK_MONITOR_TELEMETRY_H_
+#ifndef INC_STATUS_UPDATE_TASK_H_
+#define INC_STATUS_UPDATE_TASK_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include "adbms/adbmsPackMonitor.h"
-#include "debug.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define PACK_MON_ACCN_SETTING   ACCUMULATE_28_SAMPLES
+#define NUM_SDC_SENSE_INPUTS    6
+
+/* ==================================================================== */
+/* ============================== STRUCTS ============================= */
+/* ==================================================================== */
+
+typedef struct
+{
+    bool imdLatchOpen;
+    bool bmsLatchOpen;
+    bool bmsInhibitActive;
+    bool sdcStatusI2BInterlock;
+    bool sdcStatusTBInterlock;
+
+} shutdownCircuitStatus_S;
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
+void initStatusUpdateTask();
+void runStatusUpdateTask();
 
-#endif /* INC_PACK_MONITOR_TELEMETRY_H_ */
+#endif // INC_STATUS_UPDATE_TASK_H_

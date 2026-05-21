@@ -1,23 +1,25 @@
-#ifndef INC_PACK_MONITOR_TELEMETRY_H_
-#define INC_PACK_MONITOR_TELEMETRY_H_
+#ifndef INC_GCAN_UTILS_H_
+#define INC_GCAN_UTILS_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include "adbms/adbmsPackMonitor.h"
-#include "debug.h"
+#include "GopherCAN.h"
+#include "cellMonitorTelemetry.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define PACK_MON_ACCN_SETTING   ACCUMULATE_28_SAMPLES
+#define NUM_STAT_PARAMS     8
 
 /* ==================================================================== */
-/* =================== GLOBAL FUNCTION DECLARATIONS =================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
+extern FLOAT_CAN_STRUCT *cellVoltageParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR];
+extern FLOAT_CAN_STRUCT *cellTempParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR];
+extern FLOAT_CAN_STRUCT *cellStatParams[NUM_CELL_MON][NUM_STAT_PARAMS];
 
-#endif /* INC_PACK_MONITOR_TELEMETRY_H_ */
+#endif /* INC_GCAN_UTILS_H_ */

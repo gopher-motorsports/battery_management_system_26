@@ -1,29 +1,27 @@
-#ifndef INC_LOOKUPTABLE_H_
-#define INC_LOOKUPTABLE_H_
+#ifndef INC_CELL_MONITOR_TELEMETRY_H_
+#define INC_CELL_MONITOR_TELEMETRY_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include <stdint.h>
+#include "adbms/adbmsCellMonitor.h"
+#include "debug.h"
 
 /* ==================================================================== */
-/* ============================== STRUCTS============================== */
+/* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-// Generic Lookup Table
-typedef struct
-{
-    const float xScale;
-    const float xOffset;
-    const float* y;
-    const uint16_t size;
-} LookupTable_S;
+#define NUM_CELL_MON    10
+
+#define NUM_BOARD_TEMP_SENSORS  3
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
-float lookup(float x, const LookupTable_S* table);
+TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
 
-#endif /* INC_LOOKUPTABLE_H_ */
+TRANSACTION_STATUS_E updateCellBalancing(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+
+#endif /* INC_CELL_MONITOR_TELEMETRY_H_ */

@@ -21,6 +21,9 @@
 #define REGISTER_BYTE4      4
 #define REGISTER_BYTE5      5
 
+#define MAX_CELLV_SENSOR_VALUE  6.41505f
+#define MIN_CELLV_SENSOR_VALUE  -3.4152f
+
 // ADC result register encoding
 #define CELL_MON_CELL_ADC_GAIN          0.00015f
 #define CELL_MON_CELL_ADC_OFFSET        1.5f
@@ -181,7 +184,7 @@ typedef struct __attribute__((packed))
 
     // Byte 4
     uint8_t gpo9State : 1;
-    uint8_t gop10State : 1;
+    uint8_t gpo10State : 1;
     uint8_t reserved3 : 6;
 
     // Byte 5

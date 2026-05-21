@@ -57,8 +57,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SDC1_Pin GPIO_PIN_13
+#define SDC1_GPIO_Port GPIOC
+#define SDC2_Pin GPIO_PIN_14
+#define SDC2_GPIO_Port GPIOC
+#define SHDN_END_V_Pin GPIO_PIN_0
+#define SHDN_END_V_GPIO_Port GPIOC
 #define MCU_FAULT_Pin GPIO_PIN_0
 #define MCU_FAULT_GPIO_Port GPIOA
+#define MCU_GSENSE_Pin GPIO_PIN_1
+#define MCU_GSENSE_GPIO_Port GPIOA
 #define MCU_HEART_Pin GPIO_PIN_2
 #define MCU_HEART_GPIO_Port GPIOA
 #define PORTB_CS_Pin GPIO_PIN_3
@@ -71,6 +79,8 @@ void Error_Handler(void);
 #define ISO_SPI_MISO_GPIO_Port GPIOA
 #define ISO_SPI_MOSI_Pin GPIO_PIN_7
 #define ISO_SPI_MOSI_GPIO_Port GPIOA
+#define PRECHARGE_DONE_Pin GPIO_PIN_10
+#define PRECHARGE_DONE_GPIO_Port GPIOB
 #define PACK_MON_CS_N_Pin GPIO_PIN_12
 #define PACK_MON_CS_N_GPIO_Port GPIOB
 #define PACK_MON_MISO_Pin GPIO_PIN_14

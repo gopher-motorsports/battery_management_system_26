@@ -8,26 +8,101 @@
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define TEMP_LUT_LENGTH 33
+#define TEMP_SCALE      0.05f
+#define TEMP_OFFSET     0.0f
+
+#define SOC_VOLTAGE_SCALE   0.005f
+#define SOC_VOLTAGE_OFFSET  3.0f
+
+#define SOE_FROM_SOC_SCALE  0.01f
+#define SOE_FROM_SOC_OFFSET 0.0f
+
+#define DIE_TEMP_SCALE      5.0f
+#define DIE_TEMP_OFFSET     90.0f
+
+#define CELL_MON_TEMP_LUT_LENGTH        60
+#define PACK_MON_TEMP_LUT_LENGTH        24
+#define VOLT_LUT_LENGTH                 14
+#define SOC_LUT_LENGTH                  255
+#define SOE_LUT_LENGTH                  101
+#define PWM_LUT_LENGTH                  7
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
 /* ==================================================================== */
 
-const float temperatureArray[TEMP_LUT_LENGTH] =
+const float cellTemp[CELL_MON_TEMP_LUT_LENGTH] = {192.476f, 150.979f, 129.608f, 115.467f, 104.982f, 96.679f, 89.815f, 83.964f, 78.861f, 74.331f, 70.253f, 66.539f, 63.122f, 59.954f, 56.994f, 54.212f, 51.582f, 49.084f, 46.700f, 44.417f, 42.221f, 40.102f, 38.051f, 36.059f, 34.120f, 32.226f, 30.373f, 28.554f, 26.764f, 25.000f, 23.256f, 21.529f, 19.814f, 18.108f, 16.406f, 14.705f, 13.000f, 11.287f, 9.562f, 7.821f, 6.057f, 4.266f, 2.441f, 0.575f, -1.341f, -3.315f, -5.359f, -7.487f, -9.715f, -12.066f, -14.566f, -17.252f, -20.174f, -23.405f, -27.054f, -31.300f, -36.472f, -43.279f, -53.870f };
+
+const float shuntTemp[PACK_MON_TEMP_LUT_LENGTH] = {141.141f, 106.872f, 88.574f, 76.083f, 66.539f, 58.747f, 52.097f, 46.236f, 40.941f, 36.059f, 31.480f, 27.120f, 22.910f, 18.790f, 14.705f, 10.599f, 6.412f, 2.071f, -2.517f, -7.487f, -13.046f, -19.568f, -27.848f, -40.281f };
+
+const float prechargeDischargeTemp[PACK_MON_TEMP_LUT_LENGTH] = { 138.573f, 105.208f, 87.343f, 75.128f, 65.783f, 58.146f, 51.624f, 45.872f, 40.672f, 35.876f, 31.374f, 27.086f, 22.943f, 18.887f, 14.864f, 10.819f, 6.691f, 2.410f, -2.117f, -7.022f, -12.513f, -18.959f, -27.150f, -39.462f };
+
+const float shuntResistance_nOhm[VOLT_LUT_LENGTH] = {84400.0f, 83100.0f, 82200.0f, 81300.0f, 81000.0f, 80100.0f, 80400.0f, 80000.0f, 79500.0f, 79600.0f, 79100.0f, 78900.0f, 78700.0f, 78600.0f};
+
+// State of charge for COSMX cells
+const float stateOfCharge[SOC_LUT_LENGTH] = {0.0000f, 0.0002f, 0.0005f, 0.0009f, 0.0013f, 0.0014f, 0.0018f, 0.0022f, 0.0026f, 0.0027f, 0.0031f, 0.0035f, 0.0037f, 0.0042f, 0.0047f, 0.0048f, 0.0053f, 0.0057f, 0.0059f, 0.0065f, 0.0070f, 0.0072f, 0.0077f, 0.0082f, 0.0084f, 0.0090f, 0.0094f, 0.0098f, 0.0104f, 0.0109f, 0.0115f, 0.0117f, 0.0124f, 0.0131f, 0.0133f, 0.0139f, 0.0147f, 0.0150f, 0.0156f, 0.0160f, 0.0167f, 0.0174f, 0.0182f, 0.0184f, 0.0192f, 0.0198f, 0.0205f, 0.0212f, 0.0221f, 0.0229f, 0.0233f, 0.0244f, 0.0249f, 0.0253f, 0.0263f, 0.0270f, 0.0277f, 0.0288f, 0.0298f, 0.0303f, 0.0313f, 0.0325f, 0.0328f, 0.0341f, 0.0353f, 0.0366f, 0.0369f, 0.0381f, 0.0397f, 0.0401f, 0.0415f, 0.0432f, 0.0436f, 0.0453f, 0.0470f, 0.0477f, 0.0495f, 0.0519f, 0.0526f, 0.0548f, 0.0581f, 0.0617f, 0.0623f, 0.0674f, 0.0724f, 0.0743f, 0.0833f, 0.0903f, 0.0938f, 0.1048f, 0.1156f, 0.1170f, 0.1261f, 0.1324f, 0.1354f, 0.1404f, 0.1475f, 0.1497f, 0.1585f, 0.1652f, 0.1720f, 0.1752f, 0.1834f, 0.1913f, 0.1944f, 0.2037f, 0.2125f, 0.2164f, 0.2274f, 0.2405f, 0.2427f, 0.2540f, 0.2677f, 0.2716f, 0.2828f, 0.2988f, 0.3036f, 0.3154f, 0.3335f, 0.3385f, 0.3530f, 0.3736f, 0.3847f, 0.3900f, 0.4080f, 0.4213f, 0.4263f, 0.4428f, 0.4568f, 0.4583f, 0.4729f, 0.4850f, 0.4885f, 0.4996f, 0.5094f, 0.5130f, 0.5210f, 0.5305f, 0.5318f, 0.5418f, 0.5495f, 0.5560f, 0.5591f, 0.5668f, 0.5728f, 0.5758f, 0.5805f, 0.5874f, 0.5884f, 0.5951f, 0.6015f, 0.6040f, 0.6087f, 0.6149f, 0.6166f, 0.6215f, 0.6274f, 0.6296f, 0.6339f, 0.6398f, 0.6443f, 0.6463f, 0.6525f, 0.6569f, 0.6589f, 0.6650f, 0.6710f, 0.6717f, 0.6777f, 0.6834f, 0.6864f, 0.6904f, 0.6966f, 0.6991f, 0.7038f, 0.7095f, 0.7121f, 0.7169f, 0.7227f, 0.7275f, 0.7299f, 0.7360f, 0.7406f, 0.7429f, 0.7489f, 0.7554f, 0.7561f, 0.7619f, 0.7680f, 0.7707f, 0.7746f, 0.7810f, 0.7825f, 0.7873f, 0.7932f, 0.7957f, 0.7998f, 0.8058f, 0.8102f, 0.8122f, 0.8181f, 0.8222f, 0.8244f, 0.8302f, 0.8355f, 0.8362f, 0.8421f, 0.8473f, 0.8501f, 0.8541f, 0.8594f, 0.8614f, 0.8658f, 0.8713f, 0.8734f, 0.8778f, 0.8827f, 0.8880f, 0.8890f, 0.8945f, 0.8999f, 0.9009f, 0.9060f, 0.9117f, 0.9125f, 0.9177f, 0.9233f, 0.9251f, 0.9289f, 0.9343f, 0.9367f, 0.9400f, 0.9454f, 0.9477f, 0.9508f, 0.9560f, 0.9606f, 0.9613f, 0.9664f, 0.9696f, 0.9714f, 0.9758f, 0.9801f, 0.9807f, 0.9851f, 0.9888f, 0.9906f, 0.9930f, 0.9962f, 0.9977f, 0.9992f, 0.9999f, 0.9999f, 1.0000f, 1.0000f };
+
+// State of energy for COSMX cells. References SOC table
+const float stateOfEnergy[SOE_LUT_LENGTH] =
 {
-    120, 115, 110, 105, 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0, -5, -10, -15, -20, -25, -30, -35, -40
+    0.00f, 0.01f, 0.02f, 0.03f, 0.03f, 0.04f, 0.05f, 0.06f, 0.07f, 0.08f, 0.09f, 0.10f, 0.11f,
+    0.12f, 0.13f, 0.14f, 0.15f, 0.15f, 0.16f, 0.17f, 0.18f, 0.19f, 0.20f, 0.21f, 0.22f, 0.23f,
+    0.24f, 0.25f, 0.26f, 0.27f, 0.28f, 0.29f, 0.30f, 0.31f, 0.32f, 0.33f, 0.34f, 0.35f, 0.36f,
+    0.37f, 0.37f, 0.38f, 0.39f, 0.40f, 0.41f, 0.42f, 0.43f, 0.44f, 0.45f, 0.46f, 0.47f, 0.48f,
+    0.49f, 0.50f, 0.51f, 0.52f, 0.53f, 0.54f, 0.55f, 0.56f, 0.57f, 0.58f, 0.59f, 0.60f, 0.61f,
+    0.62f, 0.63f, 0.64f, 0.65f, 0.66f, 0.67f, 0.68f, 0.70f, 0.71f, 0.72f, 0.73f, 0.74f, 0.75f,
+    0.76f, 0.77f, 0.78f, 0.79f, 0.80f, 0.81f, 0.82f, 0.83f, 0.84f, 0.86f, 0.87f, 0.88f, 0.89f,
+    0.90f, 0.91f, 0.92f, 0.93f, 0.94f, 0.95f, 0.97f, 0.98f, 0.99f, 1.00
 };
 
-const float cellMonTempVoltageArray[TEMP_LUT_LENGTH] =
-{
-    0.1741318359, 0.193533737, 0.2155192602, 0.2404628241, 0.2687907644, 0.3009857595, 0.3375901116, 0.3792069573, 0.4264981201, 0.480176881, 0.5409934732, 0.6097106855, 0.6870667304, 0.7737227417, 0.870193244, 0.976760075, 1.093373849, 1.219552143, 1.354289544, 1.496, 1.642514054, 1.791149899, 1.938865924, 2.082484747, 2.218959086, 2.345635446, 2.460468742, 2.562151894, 2.650145243, 2.724613713, 2.786297043, 2.836345972, 2.87615517
+// Cell Balancing PWM
+const float dischargePwm[PWM_LUT_LENGTH] = {100.0f, 90.0f, 75.0f, 60.0f, 40.0f, 20.0f, 0.0f};
+
+const LookupTable_S cellTempTable = {
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = cellTemp,
+    .size = CELL_MON_TEMP_LUT_LENGTH
 };
 
-const float packMonTempVoltageArray[TEMP_LUT_LENGTH] =
-{
-    0.07274892878, 0.08085466952, 0.09003979786, 0.1004607387, 0.1122956068, 0.125746056, 0.1410386496, 0.1584253665, 0.1781827039, 0.2006086569, 0.2260166583, 0.2547253866, 0.287043253, 0.3232464663, 0.363549985, 0.4080715554, 0.4567905452, 0.5095054071, 0.5657960997, 0.625, 0.6862107512, 0.7483079456, 0.8100208574, 0.8700220368, 0.9270383884, 0.9799613326, 1.027936473, 1.070417736, 1.107179664, 1.138291157, 1.164061264, 1.184970744, 1.20160226
+const LookupTable_S shuntTempTable = { 
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = shuntTemp,
+    .size = PACK_MON_TEMP_LUT_LENGTH
 };
 
-LookupTable_S cellMonTempTable =  { .length = TEMP_LUT_LENGTH, .x = cellMonTempVoltageArray, .y = temperatureArray};
-LookupTable_S packMonTempTable = { .length = TEMP_LUT_LENGTH, .x = packMonTempVoltageArray, .y = temperatureArray};
+const LookupTable_S prechargeDischargeTempTable = { 
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = prechargeDischargeTemp,
+    .size = PACK_MON_TEMP_LUT_LENGTH
+};
+
+const LookupTable_S shuntResistanceTable = {
+    .xScale = TEMP_SCALE,
+    .xOffset = TEMP_OFFSET,
+    .y = shuntResistance_nOhm,
+    .size = VOLT_LUT_LENGTH
+};
+
+const LookupTable_S stateOfChargeTable = {
+    .xScale = SOC_VOLTAGE_SCALE,
+    .xOffset = SOC_VOLTAGE_OFFSET,
+    .y = stateOfCharge,
+    .size = SOC_LUT_LENGTH
+};
+
+const LookupTable_S stateOfEnergyTable = {
+    .xScale = SOE_FROM_SOC_SCALE,
+    .xOffset = SOE_FROM_SOC_OFFSET,
+    .y = stateOfEnergy,
+    .size = SOE_LUT_LENGTH
+};
+
+const LookupTable_S dischargePwmTable = {
+    .xScale = DIE_TEMP_SCALE,
+    .xOffset = DIE_TEMP_OFFSET,
+    .y = dischargePwm,
+    .size = PWM_LUT_LENGTH
+};

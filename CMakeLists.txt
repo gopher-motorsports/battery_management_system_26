@@ -51,31 +51,31 @@ file(GLOB MAIN_SOURCES
     "${CMAKE_SOURCE_DIR}/Core/Src/adbms/*.c"
 )
 
-# # Gather all gophercan source files
-# file(GLOB GOPHERCAN_SOURCES
-#     "${CMAKE_SOURCE_DIR}/../gophercan-lib/*.c"
-# )
+# Gather all gophercan source files
+file(GLOB GOPHERCAN_SOURCES
+    "${CMAKE_SOURCE_DIR}/../gophercan-lib/*.c"
+)
 
-# # Gather all gopher sense source files
-# file(GLOB GOPHERSENSE_SOURCES
-#     "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/*.c"
-#     "${CMAKE_SOURCE_DIR}/../Gopher_Sense/Build/*.c"
-# )
+# Gather all gopher sense source files
+file(GLOB GOPHERSENSE_SOURCES
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib/*.c"
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/Build/*.c"
+)
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${MAIN_SOURCES}
-    # ${GOPHERCAN_SOURCES}
-    # ${GOPHERSENSE_SOURCES}
+    ${GOPHERCAN_SOURCES}
+    ${GOPHERSENSE_SOURCES}
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    # "${CMAKE_SOURCE_DIR}/../gophercan-lib"
-    # "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib"
-    # "${CMAKE_SOURCE_DIR}/../Gopher_Sense/Build"
+    "${CMAKE_SOURCE_DIR}/../gophercan-lib"
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/lib"
+    "${CMAKE_SOURCE_DIR}/../Gopher_Sense/Build"
 )
 
 # Add linked libraries

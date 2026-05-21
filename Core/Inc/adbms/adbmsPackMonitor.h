@@ -119,9 +119,9 @@ typedef enum
 
 typedef enum
 {
-    NON_REDUNDANT_MODE = 0,
-    REDUNDANT_MODE = (1 << 8)
-} ADC_MODE_REDUNDANT_E;
+    PACK_NON_REDUNDANT_MODE = 0,
+    PACK_REDUNDANT_MODE = (1 << 8)
+} PACK_ADC_MODE_REDUNDANT_E;
 
 typedef enum
 {
@@ -351,7 +351,7 @@ typedef struct __attribute__((packed))
 
 } ADBMS_OvercurrentStatus;
 
-typedef struct __attribute__((packed))
+typedef struct
 {
     ADBMS_ConfigAPackMonitor configGroupA;
     ADBMS_ConfigBPackMonitor configGroupB;
@@ -362,7 +362,7 @@ typedef struct __attribute__((packed))
     int32_t currentAdc1_uV;
     int32_t currentAdc2_uV;
 
-    float batteryVoltage1; // Why are these floats instead of int32_t?
+    float batteryVoltage1;
     float batteryVoltage2;
 
     int32_t currentAdcAccumulator1_uV;
@@ -371,7 +371,7 @@ typedef struct __attribute__((packed))
     int32_t batteryVoltageAccumulator1_uV;
     int32_t batteryVoltageAccumulator2_uV;
 
-    float voltageAdc[NUM_VOLTAGE_ADC]; // TODO: this is too long right now
+    float voltageAdc[NUM_VOLTAGE_ADC];
     float redundantVoltageAdc[NUM_RD_VOLTAGE_ADC];
 
     float referenceVoltage;
@@ -389,6 +389,8 @@ typedef struct __attribute__((packed))
 
     uint8_t serialId[REGISTER_SIZE_BYTES];
 
+    uint32_t convCountTimer_us;
+
 } ADBMS_PackMonitorData;
 
 /* ==================================================================== */
@@ -401,7 +403,7 @@ TRANSACTION_STATUS_E freezeRegisters(CHAIN_INFO_S* chainInfo);
 
 TRANSACTION_STATUS_E unfreezeRegisters(CHAIN_INFO_S* chainInfo);
 
-TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption);
+TRANSACTION_STATUS_E startAdcConversions(CHAIN_INFO_S* chainInfo, PACK_ADC_MODE_REDUNDANT_E redundantMode, ADC_MEASURE_OPTION_E measureOption);
 
 TRANSACTION_STATUS_E startRedundantAdcConversions(CHAIN_INFO_S* chainInfo, ADC_MEASURE_OPTION_E measureOption);
 

@@ -11,6 +11,25 @@
 #define NUM_COMMAND_BLOCK_RETRYS    3
 
 /* ==================================================================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
+/* ==================================================================== */
+
+extern TIM_HandleTypeDef htim2;     // For coulomb counting
+extern TIM_HandleTypeDef htim14;    // For spi microseconds delay
+
+extern SPI_HandleTypeDef hspi2;
+
+/* ==================================================================== */
+/* ========================= LOCAL VARIABLES ========================== */
+/* ==================================================================== */
+
+PORT_INSTANCE_S packMonPort = {
+    .spiHandle = &hspi2,
+    .csPort = PACK_MON_CS_N_GPIO_Port,
+    .csPin = PACK_MON_CS_N_Pin
+};
+
+/* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
 
@@ -18,7 +37,7 @@ static TRANSACTION_STATUS_E runPackMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 
 static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
-static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
+static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
 static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData);
 
@@ -52,6 +71,15 @@ static TRANSACTION_STATUS_E runPackMonitorCommandBlock(TRANSACTION_STATUS_E (*te
 
 static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
+    chainInfoData->commPorts[PORTA] = packMonPort;
+    chainInfoData->commPorts[PORTB] = packMonPort;
+    chainInfoData->numDevs = 1;
+    chainInfoData->currentPort = PORTA;
+    chainInfoData->chainStatus = MULTIPLE_CHAIN_BREAK;
+    chainInfoData->availableDevices[PORTA] = 1;
+    chainInfoData->availableDevices[PORTB] = 1;
+    chainInfoData->delayTimerHandle = &htim14;
+
     activatePort(chainInfoData, TIME_WAKE_US);
 
     TRANSACTION_STATUS_E status;
@@ -74,6 +102,7 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
 
     packMonitorData->configGroupA.gpo1HighZMode = 0;
     packMonitorData->configGroupA.gpo1State = 1;
+    packMonitorData->configGroupA.accumulationSetting = PACK_MON_ACCN_SETTING;
 
     status = writePackMonitorConfigA(chainInfoData, packMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
@@ -81,17 +110,28 @@ static TRANSACTION_STATUS_E initPackMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_P
         return status;
     }
 
-    status = startAdcConversions(chainInfoData, REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    status = startAdcConversions(chainInfoData, PACK_REDUNDANT_MODE, CONTINUOUS_MEASUREMENT);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = startVoltageConversions(chainInfoData, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = startAuxVoltageConversions(chainInfoData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
     }
 
     return readPackMonitorSerialId(chainInfoData, packMonitorData);
-
 }
 
-static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
+static TRANSACTION_STATUS_E startNewPackReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_PackMonitorData* packMonitorData)
 {
     activatePort(chainInfoData, TIME_READY_US);
 
@@ -118,6 +158,24 @@ static TRANSACTION_STATUS_E startNewReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS
 
     // Freeze read registers for new read cycle
     status = freezeRegisters(chainInfoData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    // Record elapsed time to use later for calculating conversion counter
+    static uint32_t lastTimerValue = 0;
+    uint32_t currentTimerValue = htim2.Instance->CNT;
+    packMonitorData->convCountTimer_us += (currentTimerValue - lastTimerValue);
+    lastTimerValue = currentTimerValue;
+
+    status = startVoltageConversions(chainInfoData, OPEN_WIRE_DISABLED, PACK_ALL_CHANNELS);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = startAuxVoltageConversions(chainInfoData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
@@ -157,7 +215,13 @@ static TRANSACTION_STATUS_E readPackAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
         return status;
     }
 
-    return readAuxiliaryVoltages(chainInfoData, packMonitorData);
+    status = readAuxiliaryVoltages(chainInfoData, packMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    return readStatRegister(chainInfoData, packMonitorData);
 }
 
 /* ==================================================================== */
@@ -172,11 +236,11 @@ TRANSACTION_STATUS_E updatePackTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Pack
 
     if(initialized)
     {
-        telemetryStatus = runPackMonitorCommandBlock(startNewReadCycle, chainInfoData, packMonitorData);
+        telemetryStatus = runPackMonitorCommandBlock(startNewPackReadCycle, chainInfoData, packMonitorData);
 
         if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
         {
-            telemetryStatus = runPackMonitorCommandBlock(updatePackTelemetry, chainInfoData, packMonitorData);
+            telemetryStatus = runPackMonitorCommandBlock(readPackAdcs, chainInfoData, packMonitorData);
         }
 
     }

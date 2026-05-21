@@ -1,29 +1,29 @@
-#ifndef INC_LOOKUPTABLE_H_
-#define INC_LOOKUPTABLE_H_
+#ifndef INC_CHARGER_H_
+#define INC_CHARGER_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include <stdint.h>
+#include <stdbool.h>
 
 /* ==================================================================== */
-/* ============================== STRUCTS============================== */
+/* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-// Generic Lookup Table
-typedef struct
-{
-    const float xScale;
-    const float xOffset;
-    const float* y;
-    const uint16_t size;
-} LookupTable_S;
+// Charger TX CAN EXT ID, Charger RX EXT ID is CHARGER_CAN_ID + 1
+#define CHARGER_CAN_ID_TX                   0x1806E5F4
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
-float lookup(float x, const LookupTable_S* table);
+/*!
+  @brief   Send a CAN message to the charger
+  @param   voltageRequest - Charger Voltage Request
+  @param   currentRequest - Charger Current Request
+  @param   enable - Enable/Disable Request
+*/
+void sendChargerMessage(float voltageRequest, float currentRequest, bool enable);
 
-#endif /* INC_LOOKUPTABLE_H_ */
+#endif /* INC_CHARGER_H_ */
