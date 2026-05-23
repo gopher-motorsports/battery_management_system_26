@@ -236,6 +236,7 @@ int main(void)
   HAL_TIM_Base_Start(&htim2);
 
   init_can(&hcan2, GCAN0);
+  init_can(&hcan1, GCAN2);
   gsense_init(&hcan2, MCU_GSENSE_GPIO_Port, MCU_GSENSE_Pin);  
 
   /* USER CODE END 2 */
