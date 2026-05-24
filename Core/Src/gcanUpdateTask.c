@@ -99,7 +99,7 @@ void updateLowFrequencyVariables(gcanTaskInputData_S* gcanData, uint32_t cellMon
     for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
     {
         update_and_queue_param_float(cellVoltageParams[cellMonitorIndex][j], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].cellVoltage[j]);
-        // update_and_queue_param_float(cellTempParams[cellMonitorIndex][j], gcanData->telemetryTaskData.bmb[cellMonitorIndex].cellTemp[j]);
+        update_and_queue_param_float(cellTempParams[cellMonitorIndex][j], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].cellTemp[j]);
     }
 
     update_and_queue_param_float(cellStatParams[cellMonitorIndex][0], gcanData->cellMonitorTaskData.cellMonitor[cellMonitorIndex].maxCellVoltage);

@@ -295,6 +295,11 @@ void runUpdateCellMonitorTask()
                     {
                         taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
                     }
+                    else if((i == 5) && (j == 2))
+                    {
+                        // Ignore these sensors due to hardware issue
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                    }
                     else
                     {
                         taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
