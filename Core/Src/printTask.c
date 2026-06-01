@@ -6,6 +6,7 @@
 #include "updateCellMonitorTask.h"
 #include "cellMonitorTelemetry.h"
 #include "updatePackMonitorTask.h"
+#include "alerts.h"
 #include <stdio.h>
 #include <cmsis_os.h>
 
@@ -15,7 +16,7 @@
 
 cellMonitorTaskData_S cellTaskPrintData;
 
-packMonitorTask_S packTaskPrintData;
+packMonitorTaskData_S packTaskPrintData;
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
@@ -25,7 +26,11 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 
 static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
 
-static void printPackMonData(packMonitorTask_S* packTaskPrintData);
+static void printPackMonData(packMonitorTaskData_S* packTaskPrintData);
+
+static void printForPrechargeTest(packMonitorTaskData_S* packTaskPrintData);
+
+static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts);
 
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
@@ -37,7 +42,7 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
     printf("|   CELL   |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("    %02ld    |", i);
+        printf("    %02ld    |", i+1);
     }
     printf("\n");
     for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
@@ -49,6 +54,19 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
         }
         printf("\n");
     }
+    printf("|   MIN    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        float min = 5.0f;
+        for(int32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        {
+            if(cellTaskPrintData->cellMonitor[i].cellVoltage[j] < min)
+            {
+                min = cellTaskPrintData->cellMonitor[i].cellVoltage[j];
+            }
+        }
+        printf("  %5.3f   |", min);
+    }
 	printf("\n");
 }
 
@@ -58,7 +76,7 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
     printf("|   BMB    |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("     %02ld   |", i);
+        printf("     %02ld   |", i+1);
     }
     printf("\n");
     for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
@@ -66,51 +84,89 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
         printf("|    %02ld    |", i+1);
         for(int32_t j = 0; j < NUM_CELL_MON; j++)
         {
-            printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == GOOD)
+            {
+                printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            else if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == BAD)
+            {
+                printf("  %3.1f ! |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            
         }
         printf("\n");
     }
     printf("|  Board   |");
     for(int32_t i = 0; i < NUM_CELL_MON; i++)
     {
-        printf("    %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
+        printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
+    }
+	printf("\n");
+    printf("|   Die    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        printf("   %3.1f   |", cellTaskPrintData->cellMonitor[i].dieTemp);
     }
 	printf("\n\n");
-    // printf("|   Die   |");
-    // for(int32_t j = 0; j < NUM_CELL_MON; j++)
-    // {
-    //     if(dieTempStatus == GOOD)
-    //     {
-    //         if((dieTemp < 0.0f) || dieTemp >= 100.0f)
-    //         {
-    //             printf("   %3.1f   |", (double)dieTemp);
-    //         }
-    //         else
-    //         {
-    //             printf("    %3.1f   |", (double)dieTemp);
-    //         }
-    //         // printf("  %04X", gBms.cellVoltage[i]);    
-    //     }
-    //     else
-    //     {
-    //         printf(" NO SIGNAL |");
-    //     }
-    // }
-	// printf("\n");
 }
 
-static void printPackMonData(packMonitorTask_S* packTaskPrintData)
+static void printPackMonData(packMonitorTaskData_S* packTaskPrintData)
 {
     printf("// Pack Parameters //\n");
-    printf("Battery Current: %f A,    ", packTaskPrintData->packCurrent);
+    printf("Battery Current: %f A\n", packTaskPrintData->packCurrent);
     printf("Battery Voltage: %f V,    ", packTaskPrintData->packVoltage);
     printf("Power: %f W\n", packTaskPrintData->packPower);
-    printf("Shunt Temp: %f C,        ", packTaskPrintData->shuntTemp1);
+    printf("Shunt Temp: %f C\n", packTaskPrintData->shuntTemp1);
     printf("Shunt Resistance: %li nOhms\n", packTaskPrintData->shuntResistance_nOhms);
     printf("Precharge Temp: %f C,   ", packTaskPrintData->prechargeTemp);
     printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
     printf("Link Voltage: %f V,       ", packTaskPrintData->linkVoltage);
-    printf("Conversion Time: %hu us\n", packTaskPrintData->conversionTime_us);
+    printf("Conversion Time: %hu us  ", packTaskPrintData->conversionTime_us);
+    printf("Qualification Timer: %lu us\n", packTaskPrintData->socData.socByOcvQualificationTimer.timCount);
+    printf("MilliColoumb Counter: %i mC\n", packTaskPrintData->socData.milliCoulombCounter);
+    printf("mAH: %lu\n", (packTaskPrintData->socData.milliCoulombCounter / 3600));
+    printf("SOC: %f by OCV, %f by CC   SOE: %f by OCV, %f by CC\n", packTaskPrintData->socData.socByOcv * 100, packTaskPrintData->socData.socByCoulombCounting * 100, packTaskPrintData->socData.soeByOcv * 100, packTaskPrintData->socData.soeByCoulombCounting * 100);
+}
+
+static void printForPrechargeTest(packMonitorTaskData_S* packTaskPrintData)
+{
+    printf("// Pack Parameters //\n");
+    printf("BATTERY VOLTAGE: %f V\n", packTaskPrintData->packVoltage);
+    printf("LINK VOLTAGE: %f V\n", packTaskPrintData->linkVoltage);
+    printf("SHDN END VOLTAGE: %f V\n", packTaskPrintData->sdcEndVoltage_V);
+    if(packTaskPrintData->positiveIRStatus == IR_STATE_SDC_OPEN)
+    {
+        printf("STATE: SDC_OPEN\n");
+    }
+    else if(packTaskPrintData->positiveIRStatus == IR_STATE_PRECHARGING)
+    {
+        printf("STATE: PRECHARGING\n");
+    }
+    else if(packTaskPrintData->positiveIRStatus == IR_STATE_CLOSED)
+    {
+        printf("STATE: IR CLOSED\n");
+    }
+    // printf("Precharge Temp: %f C\n", packTaskPrintData->prechargeTemp);
+    // printf("Discharge Temp: %f C\n", packTaskPrintData->dischargeTemp);
+}
+
+static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts)
+{
+    bool alertActive = false;
+
+    for (uint16_t i = 0; i < num_alerts; i++) {
+        if (alerts[i]->alertStatus == ALERT_SET) {
+            printf("ALERT: %s   ", alerts[i]->alertName);
+            alertActive = true;
+        } else if (alerts[i]->alertStatus == ALERT_LATCHED) {
+            printf("ALERT: %s LATCHED   ", alerts[i]->alertName);
+            alertActive = true;
+        }
+    }
+
+    printf("\n");
+
+    return alertActive;
 }
 
 /* ==================================================================== */
@@ -135,11 +191,23 @@ void runPrintTask()
     printCellVoltages(&cellTaskPrintData);
     printCellTemps(&cellTaskPrintData);
 
-    printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
-    printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
-    printf("Max Cell Temp: %f\n", cellTaskPrintData.maxCellTemp);
-    printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
+    // printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
+    // printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
+    // printf("SOE: %f\n", packTaskPrintData.socData.soeByOcv);
+    // printf("Max Cell Temp: %f\n", cellTaskPrintData.maxCellTemp);
+    // printf("Min Cell Temp: %f\n", cellTaskPrintData.minCellTemp);
 
-    printPackMonData(&packTaskPrintData);
+    // printPackMonData(&packTaskPrintData);
+    // printForPrechargeTest(&packTaskPrintData);
+
+    printf("\n");
+
+    bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
+    bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
+
+    if(!cellAlerts && !packAlerts)
+    {
+        printf("NO ALERTS ACTIVE\n");
+    }
 
 }

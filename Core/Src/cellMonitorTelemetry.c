@@ -47,6 +47,8 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
 
 static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
 
+static TRANSACTION_STATUS_E readDeviceStatus(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
 /* ==================================================================== */
@@ -123,6 +125,9 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         cellMonitorData[i].configGroupA.gpo8State = 1;
         cellMonitorData[i].configGroupA.gpo9State = 1;
         cellMonitorData[i].configGroupA.gpo10State = 0;
+        cellMonitorData[i].configGroupA.soakTime = AUX_SOAK_TIME_4_1_MS;
+
+        cellMonitorData[i].configGroupB.undervoltageThreshold = MIN_CELL_WARNING_VOLTAGE;
     }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
@@ -179,9 +184,25 @@ static TRANSACTION_STATUS_E startNewCellReadCycle(CHAIN_INFO_S* chainInfoData, A
     }
 
     // Toggle temperature sensor mux
-    cellMonitorData->configGroupA.gpo10State ^= 1;
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        cellMonitorData[i].configGroupA.gpo10State ^= 1;
+    }
 
     status = writeCellMonitorConfigA(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    // Need to add read command in between writes to config A and B or we get command counter error
+    status = readCellMonitorSerialId(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
+    status = writeCellMonitorConfigB(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
@@ -205,9 +226,12 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     }    
 
     // Check for sleepy BMBs
-    if(cellMonitorData[0].statusGroupC.sleepDetected)
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
     {
-        return TRANSACTION_POR_ERROR;
+        if(cellMonitorData[i].statusGroupC.sleepDetected)
+        {
+            return TRANSACTION_POR_ERROR;
+        }
     }
 
     status = readCellVoltages(chainInfoData, cellMonitorData, FILTERED_CELL_VOLTAGE);
@@ -219,15 +243,14 @@ static TRANSACTION_STATUS_E readCellAdcs(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
     return readAuxVoltages(chainInfoData, cellMonitorData);
 }
 
+static TRANSACTION_STATUS_E readDeviceStatus(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
+{
+    return readStatusA(chainInfoData, cellMonitorData);    
+}
+
 static TRANSACTION_STATUS_E startNewBalancingReadCycle(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData)
 {
     TRANSACTION_STATUS_E status = startCellConversions(chainInfoData, REDUNDANT_MODE, SINGLE_SHOT_MODE, DISCHARGE_DISABLED, FILTER_RESET, CELL_OPEN_WIRE_DISABLED);
-    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
-    {
-        return status;
-    }
-
-    status = writeCellMonitorConfigB(chainInfoData, cellMonitorData);
     if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
     {
         return status;
@@ -261,6 +284,10 @@ TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_Cell
             telemetryStatus = runCellMonitorCommandBlock(readCellAdcs, chainInfoData, cellMonitorData);
         }
 
+        if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
+        {
+            telemetryStatus = runCellMonitorCommandBlock(readDeviceStatus, chainInfoData, cellMonitorData);
+        }
     }
 
     if((!initialized) || (telemetryStatus == TRANSACTION_POR_ERROR))

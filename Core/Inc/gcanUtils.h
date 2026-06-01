@@ -1,27 +1,25 @@
-#ifndef INC_CELL_MONITOR_TELEMETRY_H_
-#define INC_CELL_MONITOR_TELEMETRY_H_
+#ifndef INC_GCAN_UTILS_H_
+#define INC_GCAN_UTILS_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include "adbms/adbmsCellMonitor.h"
-#include "debug.h"
+#include "GopherCAN.h"
+#include "cellMonitorTelemetry.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define NUM_CELL_MON    10
-
-#define NUM_BOARD_TEMP_SENSORS  3
+#define NUM_STAT_PARAMS     8
 
 /* ==================================================================== */
-/* =================== GLOBAL FUNCTION DECLARATIONS =================== */
+/* ======================= EXTERNAL VARIABLES ========================= */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+extern FLOAT_CAN_STRUCT *cellVoltageParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR];
+extern FLOAT_CAN_STRUCT *cellTempParams[NUM_CELL_MON][NUM_CELLS_PER_CELL_MONITOR];
+extern FLOAT_CAN_STRUCT *cellStatParams[NUM_CELL_MON][NUM_STAT_PARAMS];
 
-TRANSACTION_STATUS_E updateCellBalancing(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
-
-#endif /* INC_CELL_MONITOR_TELEMETRY_H_ */
+#endif /* INC_GCAN_UTILS_H_ */

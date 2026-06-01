@@ -43,17 +43,17 @@ static float interpolate(float x, float x1, float x2, float y1, float y2)
 */
 float lookup(float x, const LookupTable_S* table)
 {
-    int16_t index = (int16_t)((x + table->xOffset) / table->xScale);
+    int16_t index = (int16_t)((x - table->xOffset) / table->xScale);
 
     if(index < 0)
     {
-        index = 0;
+        return table->y[0];
     }
     else if(index > (table->size - 2))
     {
-        index = (table->size - 2);
+        return table->y[table->size];
     }
 
     //Interpolate temperature from lookup table
-    return interpolate(x, (index * table->xScale), ((index + 1) * table->xScale), table->y[index], table->y[index + 1]);
+    return interpolate(x, ((index * table->xScale) + table->xOffset), (((index + 1) * table->xScale) + table->xOffset), table->y[index], table->y[index + 1]);
 }

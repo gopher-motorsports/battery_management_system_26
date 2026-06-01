@@ -1,27 +1,29 @@
-#ifndef INC_CELL_MONITOR_TELEMETRY_H_
-#define INC_CELL_MONITOR_TELEMETRY_H_
+#ifndef INC_CHARGER_H_
+#define INC_CHARGER_H_
 
 /* ==================================================================== */
 /* ============================= INCLUDES ============================= */
 /* ==================================================================== */
 
-#include "adbms/adbmsCellMonitor.h"
-#include "debug.h"
+#include <stdbool.h>
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define NUM_CELL_MON    10
-
-#define NUM_BOARD_TEMP_SENSORS  3
+// Charger TX CAN EXT ID, Charger RX EXT ID is CHARGER_CAN_ID + 1
+#define CHARGER_CAN_ID_TX                   0x1806E5F4
 
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
-TRANSACTION_STATUS_E updateCellTelemetry(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
+/*!
+  @brief   Send a CAN message to the charger
+  @param   voltageRequest - Charger Voltage Request
+  @param   currentRequest - Charger Current Request
+  @param   enable - Enable/Disable Request
+*/
+void sendChargerMessage(float voltageRequest, float currentRequest, bool enable);
 
-TRANSACTION_STATUS_E updateCellBalancing(CHAIN_INFO_S* chainInfoData, ADBMS_CellMonitorData* cellMonitorData);
-
-#endif /* INC_CELL_MONITOR_TELEMETRY_H_ */
+#endif /* INC_CHARGER_H_ */

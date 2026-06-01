@@ -26,7 +26,16 @@ typedef struct
     SENSOR_STATUS_E cellTempStatus[NUM_CELLS_PER_CELL_MONITOR];
 
     float boardTemp1;
+    SENSOR_STATUS_E boardTemp1Status;
+
     float boardTemp2;
+    SENSOR_STATUS_E boardTemp2Status;
+
+    float regTemp;
+    SENSOR_STATUS_E regTempStatus;
+
+    float dieTemp;
+    SENSOR_STATUS_E dieTempStatus;
 
     // Cell monitor local voltage statistics
     float maxCellVoltage;
@@ -46,6 +55,7 @@ typedef struct
 typedef struct
 {
     cellMonitor_S cellMonitor[NUM_CELL_MON];
+    SENSOR_STATUS_E cellMonitorStatus[NUM_CELL_MON];
 
     bool balancingEnabled;
     float balancingFloor;
@@ -65,11 +75,14 @@ typedef struct
     float maxBoardTemp;
     float minBoardTemp;
     float avgBoardTemp;
+    uint32_t numBadBoardTemp;
 
     float maxDieTemp;
     float minDieTemp;
     float avgDieTemp;
-    float numGoodDieTemps;
+
+    // Alerts Bit Encoded for GopherCAN
+    uint16_t cellMonitorGcanAlerts;
 
 } cellMonitorTaskData_S;
 

@@ -1,0 +1,1563 @@
+# Hardware config for Battery Management System Go4-26
+module_name: "BMS"
+use_hw_timer: false # Disable hw timer based DMA update
+
+buckets:
+    high_frequency_bms:
+        frequency_hz: 100
+        parameters: 
+            bmsBatteryCurrent_A:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            bmsBatteryVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            bmsTractiveSystemVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            bmsFault_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            imdFault_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+    medium_frequency_bms:
+        frequency_hz: 10
+        parameters: 
+            soeByOCV_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            soeByCoulombCounting_percent:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            maxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            minCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            avgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            cellImbalance_mV:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            maxCellTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            minCellTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            avgCellTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            maxBoardTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            minBoardTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            avgBoardTemp_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            bmsNumActiveAlerts_info:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            cellMonitorAlerts_info:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            packMonitorAlerts_info:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            forceEnableBalancing_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            bmsInhibitActive_state:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+    low_frequency_bms:
+        frequency_hz: 1
+        parameters:
+            # Module 1
+            module1MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module1Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 2
+            module2MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module2Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 3
+            module3MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module3Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 4
+            module4MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module4Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 5
+            module5MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module5Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 6
+            module6MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module6Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 7
+            module7MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module7Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 8
+            module8MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module8Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 9
+            module9MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module9Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+
+            # Module 10
+            module10MaxCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10MinCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10AvgCellVoltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10DieTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10MaxCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10MinCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10AvgCellTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10BoardTemperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell1Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell2Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell3Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell4Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell5Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell6Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell7Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell8Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell9Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell10Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell11Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell12Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell13Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell14Voltage_V:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell1Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell2Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell3Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell4Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell5Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell6Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell7Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell8Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell9Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell10Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell11Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell12Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell13Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            module10Cell14Temperature_C:
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1

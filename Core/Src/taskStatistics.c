@@ -78,16 +78,16 @@ void updateCellMonitorStatistics(cellMonitor_S *bmb)
             pBmb->minCellVoltage = minCellVoltage;
             pBmb->sumCellVoltage = sumVoltage;
             pBmb->avgCellVoltage = (sumVoltage / numGoodCellVoltage);
-            pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
         }
+        pBmb->numBadCellVoltage = NUM_CELLS_PER_CELL_MONITOR - numGoodCellVoltage;
 
         if(numGoodCellTemp > 0)
         {
             pBmb->maxCellTemp = maxCellTemp;
             pBmb->minCellTemp = minCellTemp;
             pBmb->avgCellTemp = (sumCellTemp / numGoodCellTemp);
-            pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
         }
+        pBmb->numBadCellTemp = NUM_CELLS_PER_CELL_MONITOR - numGoodCellTemp;
     }
 }
 
@@ -119,7 +119,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
     float maxDieTemp = MIN_TEMP_SENSOR_VALUE_C;
     float minDieTemp = 200.0f;
     float sumDieTemp = 0.0f;
-    uint32_t numGoodDieTemp;
+    uint32_t numGoodDieTemp = 0;
 
 	for(int32_t i = 0; i < NUM_CELL_MON; i++)
 	{
@@ -156,35 +156,62 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
             sumAvgCellTemp += pBmb->avgCellTemp;
         }
 
-        // if(pBmb->boardTempStatus == GOOD)
-        // {
-        //     if (pBmb->boardTemp > maxBoardTemp)
-        //     {
-        //         maxBoardTemp = pBmb->boardTemp;
-        //     }
-        //     if (pBmb->boardTemp < minBoardTemp)
-        //     {
-        //         minBoardTemp = pBmb->boardTemp;
-        //     }
+        if(pBmb->boardTemp1Status == GOOD)
+        {
+            if (pBmb->boardTemp1 > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->boardTemp1;
+            }
+            if (pBmb->boardTemp1 < minBoardTemp)
+            {
+                minBoardTemp = pBmb->boardTemp1;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->boardTemp1;
+        }
 
-        //     numGoodBoardTemp++;
-        //     sumBoardTemp += pBmb->boardTemp;
-        // }
+        if(pBmb->boardTemp2Status == GOOD)
+        {
+            if (pBmb->boardTemp2 > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->boardTemp2;
+            }
+            if (pBmb->boardTemp2 < minBoardTemp)
+            {
+                minBoardTemp = pBmb->boardTemp2;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->boardTemp2;
+        }
 
-        // if(pBmb->dieTempStatus == GOOD)
-        // {
-        //     if (pBmb->dieTemp > maxDieTemp)
-        //     {
-        //         maxDieTemp = pBmb->dieTemp;
-        //     }
-        //     if (pBmb->dieTemp < minDieTemp)
-        //     {
-        //         minDieTemp = pBmb->dieTemp;
-        //     }
+        if(pBmb->regTempStatus == GOOD)
+        {
+            if (pBmb->regTemp > maxBoardTemp)
+            {
+                maxBoardTemp = pBmb->regTemp;
+            }
+            if (pBmb->regTemp < minBoardTemp)
+            {
+                minBoardTemp = pBmb->regTemp;
+            }
+            numGoodBoardTemp++;
+            sumBoardTemp += pBmb->regTemp;
+        }
 
-        //     numGoodDieTemp++;
-        //     sumDieTemp += pBmb->dieTemp;
-        // }
+        if(pBmb->dieTempStatus == GOOD)
+        {
+            if (pBmb->dieTemp > maxDieTemp)
+            {
+                maxDieTemp = pBmb->dieTemp;
+            }
+            if (pBmb->dieTemp < minDieTemp)
+            {
+                minDieTemp = pBmb->dieTemp;
+            }
+
+            numGoodDieTemp++;
+            sumDieTemp += pBmb->dieTemp;
+        }
 	}
 
     // TODO: Should i ignore this if bad sensors or open wires?
@@ -210,6 +237,7 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->maxBoardTemp = maxBoardTemp;
         taskData->minBoardTemp = minBoardTemp;
         taskData->avgBoardTemp = sumBoardTemp / numGoodBoardTemp;
+        taskData->numBadBoardTemp = (NUM_BOARD_TEMP_SENSORS * NUM_CELL_MON) - numGoodBoardTemp;
     }
 
     if(numGoodDieTemp > 0)
@@ -217,5 +245,26 @@ void updateBatteryStatistics(cellMonitorTaskData_S *taskData)
         taskData->maxDieTemp = maxDieTemp;
         taskData->minDieTemp = minDieTemp;
         taskData->avgDieTemp = sumDieTemp / numGoodDieTemp;
+    }
+}
+
+/*!
+    @brief Sorts an array of values into ascending order, note that the array will be modified
+    @param array - Array of floating point values to sort
+    @param n - Size of the array
+!*/
+void sort(float *array, uint32_t n)
+{
+    for(uint32_t i = 1; i < n; i++)
+    {
+        float key = array[i];
+        int32_t j = i - 1;
+
+        while(j >= 0 && array[j] > key)
+        {
+            array[j + 1] = array[j];
+            j--;
+        }
+        array[j + 1] = key;
     }
 }

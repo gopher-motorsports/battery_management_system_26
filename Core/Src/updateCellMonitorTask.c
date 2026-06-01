@@ -4,15 +4,21 @@
 
 #include "updateCellMonitorTask.h"
 #include "taskStatistics.h"
+#include "alerts.h"
 #include <stdio.h>
+#include "GopherCAN.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
 /* ==================================================================== */
 
-#define FORCE_BALANCING_ON      1
+#define FORCE_BALANCING_ON      0
 
 #define NUM_CELL_TEMP_ADCS      7
+#define BOARD_TEMP_ADC_INDEX    7
+#define REG_TEMP_ADC_INDEX      8
+
+#define ALLOWED_TEMP_VARIATION_C   20.0f
 
 /* ==================================================================== */
 /* ========================= LOCAL VARIABLES ========================== */
@@ -26,25 +32,55 @@ static cellMonitorTaskData_S taskData;
 
 cellMonitorTaskData_S publicCellMonitorTaskData;
 
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DECLARATIONS ==================== */
+/* ==================================================================== */
+
+static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMonitorData, cellMonitorTaskData_S* taskData);
+
+static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData);
+
+/* ==================================================================== */
+/* =================== LOCAL FUNCTION DEFINITIONS ===================== */
+/* ==================================================================== */
+
 static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMonitorData, cellMonitorTaskData_S* taskData)
 {
     TRANSACTION_STATUS_E status = TRANSACTION_SUCCESS;
 
-    static float floor = MAX_BRICK_VOLTAGE;
+    static float floor = MAX_CELL_VOLTAGE;
 
     if(taskData->balancingEnabled)
     {
         for(uint16_t i = 0; i < NUM_CELL_MON; i++)
         {
+            float pwmDutyCycle = 100.0f;
+
+            static uint32_t lastPwmUpdate = 0;
+            // Update pwm every 10 sec based on die temp
+            if(HAL_GetTick() - lastPwmUpdate > 10000)
+            {
+                // Only considered an update once each cell monitor duty cycle has been computed
+                if(i == (NUM_CELL_MON - 1))
+                {
+                    lastPwmUpdate = HAL_GetTick();
+                }
+                pwmDutyCycle = lookup(taskData->cellMonitor[i].dieTemp, &dischargePwmTable);
+            }
+            
             for(uint16_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
             {
-                if(taskData->cellMonitor[i].cellVoltage[j] > floor)
+                if(taskData->cellMonitor[i].cellVoltage[j] > (floor + 0.010))
                 {
-                    cellMonitorData[i].dischargePWM[j] = 50.0f;
+                    cellMonitorData[i].dischargePWM[j] = pwmDutyCycle;
+                }
+                else
+                {
+                    cellMonitorData[i].dischargePWM[j] = 0.0f;
                 }
             }
 
-            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 120;
+            cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 1;
         }      
 
         static uint32_t lastBalancingUpdate = 0;
@@ -58,16 +94,84 @@ static TRANSACTION_STATUS_E updateBalancingState(ADBMS_CellMonitorData* cellMoni
     }
     else
     {
-        floor = taskData->minCellVoltage + 0.001f;
+        if(taskData->minCellVoltage > MIN_CELL_FAULT_VOLTAGE)
+        {
+            floor = taskData->minCellVoltage + 0.001f;
+        }
+
         for(uint16_t i = 0; i < NUM_CELL_MON; i++)
         {
             cellMonitorData[i].configGroupB.dischargeTimeoutMinutes = 0;
         }
     }
 
-    taskData->balancingEnabled = FORCE_BALANCING_ON;
+    // Only enable balancing if all cell voltages are good
+    // (The first time this code runs the chain will be initialized, but no adcs will be read yet.)
+    // TODO: Maybe it makes more sense to use alerts code for this
+    static bool allVoltageSensorStatusGood = false;
+
+    for(uint16_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        if(taskData->cellMonitor[i].numBadCellVoltage == 0)
+        {
+            allVoltageSensorStatusGood = true;   
+        }
+        else
+        {
+            allVoltageSensorStatusGood = false;
+        }
+    }
+
+    if(allVoltageSensorStatusGood)
+    {
+        taskData->balancingEnabled = (FORCE_BALANCING_ON || forceEnableBalancing_state.data);
+    }
 
     return status;
+}
+
+static void runCellMonitorAlertMonitor(cellMonitorTaskData_S* taskData)
+{
+    // Accumulate alert statuses
+    bool responseStatus[NUM_ALERT_RESPONSES] = {false};
+
+    uint32_t numAlertsSet = 0;
+
+    for(uint32_t i = 0; i < NUM_CELL_MONITOR_ALERTS; i++)
+    {
+        Alert_S* alert = cellMonitorAlerts[i];
+
+        // Check alert condition and run alert monitor
+        alert->alertConditionPresent = cellMonitorAlertConditionArray[i](taskData);
+        runAlertMonitor(alert);
+
+        // Get alert status and set response
+        const AlertStatus_E alertStatus = getAlertStatus(alert);
+        if((alertStatus == ALERT_SET) || (alertStatus == ALERT_LATCHED))
+        {
+            // Iterate through all alert responses and set them
+            for (uint32_t j = 0; j < alert->numAlertResponse; j++)
+            {
+                const AlertResponse_E response = alert->alertResponse[j];
+                // Set the alert response to active
+                responseStatus[response] = true;
+            }
+
+            numAlertsSet++;
+
+            // Bit encoding for GopherCAN
+            uint8_t bitIndex = alert->gcanAlertEncode;
+            taskData->cellMonitorGcanAlerts |= (1U << bitIndex);
+        }
+        else 
+        {
+            // Bit encoding for GopherCAN
+            uint8_t bitIndex = alert->gcanAlertEncode;
+            taskData->cellMonitorGcanAlerts &= ~(1U << bitIndex);
+        }
+    }
+    bmsFaultByTask.cellMonitorBmsFault = responseStatus[BMS_FAULT];
+    setBmsFault();
 }
 
 /* ==================================================================== */
@@ -82,10 +186,6 @@ void initUpdateCellMonitorTask()
 
     // Disable balancing until we have the first minCellVoltage reading to set the floor
     taskData.balancingEnabled = 0;
-
-    // TODO: Alerts
-    HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(BMS_INB_N_GPIO_Port, BMS_INB_N_Pin, GPIO_PIN_SET);
 
 }
 
@@ -110,59 +210,108 @@ void runUpdateCellMonitorTask()
         Debug("Persistent Command Counter Error!\n");
     }
 
-    // Filter and assign all voltages to task data struct
-    for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+    if((telemetryStatus == TRANSACTION_SUCCESS) || (telemetryStatus == TRANSACTION_CHAIN_BREAK_ERROR))
     {
-        for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+        // Filter and assign all voltages to task data struct
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
         {
-            // Add filtering here
-            taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
+            for(uint32_t j = 0; j < NUM_CELLS_PER_CELL_MONITOR; j++)
+            {
+                taskData.cellMonitor[i].cellVoltage[j] = cellMonitorData[i].cellVoltage[j];
 
-            if((taskData.cellMonitor[i].cellVoltage[j] > MAX_BRICK_VOLTAGE) || (taskData.cellMonitor[i].cellVoltage[j] < 2.5f))
-            {
-                taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
-            }
-            else
-            {
-                taskData.cellMonitor[i].cellVoltageStatus[j] = GOOD;
+                // TODO: Could also add check for battery current to limit bounds more
+                if((taskData.cellMonitor[i].cellVoltage[j] > MAX_CELL_VOLTAGE_LIMIT) || (taskData.cellMonitor[i].cellVoltage[j] < MIN_CELL_VOLTAGE_LIMIT))
+                {
+                    taskData.cellMonitor[i].cellVoltageStatus[j] = BAD;
+                }
+                else
+                {
+                    taskData.cellMonitor[i].cellVoltageStatus[j] = GOOD;
+                }
             }
         }
+
+        uint32_t tempArrayIndex = 0;
+        float tempArray[NUM_SERIES_CELLS];
+        static uint32_t cellTempStatusInitialized = 0;
+
+        // Filter and assign all cell temps and board temps
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            // Cell indexes are offset depending on the mux state, which is set by gpio10
+            uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+
+            // Cell temps
+            for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+            {
+                // Use lookup table to calculate temperature
+                float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
+                taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
+
+                // Add each temperature to array for filtering
+                if(tempArrayIndex < NUM_SERIES_CELLS)
+                {
+                    tempArray[tempArrayIndex++] = cellTemp;
+                }
+            }
+
+            float boardTemp = lookup(cellMonitorData[i].auxVoltage[BOARD_TEMP_ADC_INDEX], &cellTempTable);
+            if(cellMonitorData[i].configGroupA.gpo10State == 0)
+            {
+                taskData.cellMonitor[i].boardTemp1 = boardTemp;
+                taskData.cellMonitor[i].boardTemp1Status = GOOD;
+            }
+            else if(cellMonitorData[i].configGroupA.gpo10State == 1)
+            {
+                taskData.cellMonitor[i].boardTemp2 = boardTemp;
+                taskData.cellMonitor[i].boardTemp2Status = GOOD;
+            }
+
+            taskData.cellMonitor[i].regTemp = lookup(cellMonitorData[i].auxVoltage[REG_TEMP_ADC_INDEX], &cellTempTable);
+            taskData.cellMonitor[i].regTempStatus = GOOD;
+
+            taskData.cellMonitor[i].dieTemp = cellMonitorData[i].statusGroupA.dieTemp;
+            taskData.cellMonitor[i].dieTempStatus = GOOD;
+        }
+
+        // Calculate median temperature to eliminate outlier temp readings due to cold solder joints
+        // Runs twice upon start up, then does not run again
+        if(cellTempStatusInitialized < 3)
+        {
+            sort(tempArray, tempArrayIndex);
+            float median = tempArray[tempArrayIndex / 2];
+
+            // Set sensor status to BAD if the reading is an outlier
+            for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+            {
+                // Cell indexes are offset depending on the mux state, which is set by gpio10
+                uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+
+                for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
+                {
+                    float cellTemp = taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset];
+                
+                    if(fabsf(cellTemp - median) > ALLOWED_TEMP_VARIATION_C)
+                    {
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                    }
+                    else if((i == 5) && (j == 2))
+                    {
+                        // Ignore these sensors due to hardware issue
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                    }
+                    else
+                    {
+                        taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
+                    }
+                }
+            }
+
+            cellTempStatusInitialized++;
+        }
+
+        updateBatteryStatistics(&taskData);
     }
-
-    // Filter and assign all cell temps and board temps
-    for(uint32_t i = 0; i < NUM_CELL_MON; i++)
-    {
-        // Cell indexes are offset depending on the mux state, which is set by gpio10
-        uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
-
-        // Cell temps
-        for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
-        {
-            float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
-            taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
-
-            if(fequals(cellTemp, MIN_TEMP_SENSOR_VALUE_C) || fequals(cellTemp, MAX_TEMP_SENSOR_VALUE_C))
-            {
-                taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
-            }
-            else
-            {
-                taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = GOOD;
-            }
-        }
-
-        float boardTemp = lookup(cellMonitorData[i].auxVoltage[8], &cellTempTable);
-        if(cellMonitorData[i].configGroupA.gpo10State == 0)
-        {
-            taskData.cellMonitor[i].boardTemp1 = boardTemp;
-        }
-        else if(cellMonitorData[i].configGroupA.gpo10State == 1)
-        {
-            taskData.cellMonitor[i].boardTemp2 = boardTemp;
-        }
-    }
-
-    updateBatteryStatistics(&taskData);
 
     telemetryStatus = updateBalancingState(cellMonitorData, &taskData);
 
@@ -182,6 +331,35 @@ void runUpdateCellMonitorTask()
     {
         Debug("Persistent Command Counter Error!\n");
     }
+
+    // Update cell monitor status
+    if(chainInfo.chainStatus == MULTIPLE_CHAIN_BREAK)
+    {
+        uint32_t numCellMonitorA = chainInfo.availableDevices[PORTA];
+        uint32_t numCellMonitorB = chainInfo.availableDevices[PORTB];
+
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            if((i < numCellMonitorA) || (i >= (NUM_CELL_MON - numCellMonitorB)))
+            {
+                taskData.cellMonitorStatus[i] = GOOD;
+            }
+            else
+            {
+                taskData.cellMonitorStatus[i] = BAD;
+            }
+        }
+    }
+    else
+    {
+        for(uint32_t i = 0; i < NUM_CELL_MON; i++)
+        {
+            taskData.cellMonitorStatus[i] = GOOD;
+        }
+    }
+
+    // Regardless of whether or not chain initialized, run alert monitor
+    runCellMonitorAlertMonitor(&taskData);
 
     // Copy task data to public struct
     vTaskSuspendAll();
