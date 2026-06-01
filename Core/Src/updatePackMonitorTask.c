@@ -285,7 +285,7 @@ static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
     setBmsFault();
 }
 
-static void updateCurrentLimit(packMonitorTask_S* taskData, float minCellVoltage)
+static void updateCurrentLimit(packMonitorTaskData_S* taskData)
 {
     static PID_S currentPID = 
     {
@@ -301,11 +301,11 @@ static void updateCurrentLimit(packMonitorTask_S* taskData, float minCellVoltage
         .setPoint = 175,
     };
 
-    float feedForward = currentPID.previousOutput + ((minCellVoltage - 3.05f) / 2.0f);
+    float feedForward = currentPID.previousOutput + ((taskData->minCellVoltage - 3.05f) / 2.0f);
 
-    pidStep(&currentPID, minCellVoltage, feedForward);
+    pidStep(&currentPID, taskData->minCellVoltage, feedForward);
 
-    updateI(&currentPID, minCellVoltage);
+    updateI(&currentPID, taskData->minCellVoltage);
 }
 
 /* ==================================================================== */
