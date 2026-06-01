@@ -5,7 +5,7 @@
 #include "pid.h"
 #include <stdbool.h>
 
-static float clamp(float val, float min, float max)
+float clamp(float val, float min, float max)
 {
     if(val < min)
     {

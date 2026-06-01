@@ -287,25 +287,35 @@ static void runPackMonitorAlertMonitor(packMonitorTaskData_S* taskData)
 
 static void updateCurrentLimit(packMonitorTaskData_S* taskData)
 {
-    static PID_S currentPID = 
+    // Filter min cell voltage to prevent oscillations
+    float minCellV = taskData->minCellVoltage;
+    float filt_minCellV = taskData->filteredMinCellVoltage;
+    float alpha = 1;
+    if(minCellV < filt_minCellV)
     {
-        .kp = 0,
-        .kiNeg = 0,
-        .kiPos = 0,
-        .kaw = 0,
-        .outputMax = 175,
-        .outputMin = 0,
-        .dt = 2,
-        .integratorMax = 50,
-        .integratorMin = 0,
-        .setPoint = 175,
-    };
+        // follow drops quickly
+        alpha = 0.8;
+    } 
+    else 
+    {
+        // recover slowly
+        alpha = 0.995;
+    }
 
-    float feedForward = currentPID.previousOutput + ((taskData->minCellVoltage - 3.05f) / 2.0f);
+    filt_minCellV = (alpha * filt_minCellV) + ((1 - alpha) * minCellV);
 
-    pidStep(&currentPID, taskData->minCellVoltage, feedForward);
 
-    updateI(&currentPID, taskData->minCellVoltage);
+    float rawCurrentLimit = 175.0f;
+
+    if(filt_minCellV < 3.25f)
+    {
+        // Calculate feed forward term
+        rawCurrentLimit = -1 * taskData->packCurrent + (filt_minCellV - 3.02f) / 0.005;
+    }
+
+    taskData->dischargeCurrentLimit = clamp(rawCurrentLimit, 0.0f, 175.0f);
+    taskData->filteredMinCellVoltage = filt_minCellV;
+
 }
 
 /* ==================================================================== */

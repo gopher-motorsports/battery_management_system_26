@@ -38,6 +38,8 @@ typedef struct {
 /* =================== GLOBAL FUNCTION DECLARATIONS =================== */
 /* ==================================================================== */
 
+float clamp(float val, float min, float max);
+
 float clampOutput(PID_S* pid, float val);
 
 float slewLimitOutput(PID_S* pid, float val);

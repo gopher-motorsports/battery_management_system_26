@@ -59,6 +59,10 @@ typedef struct
 
     Soc_S socData;
 
+    // Filtered value for dc current limit
+    float filteredMinCellVoltage;
+    float dischargeCurrentLimit;
+
     // Alerts Bit Encoded for GopherCAN
     uint8_t packMonitorGcanAlerts;
 
