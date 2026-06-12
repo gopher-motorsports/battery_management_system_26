@@ -195,7 +195,7 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
     taskData->sdcEndVoltage_V = localAdcValue * adcCountsToSdcVoltsGain;
 
     bool sdcClosed = (taskData->sdcEndVoltage_V > SDC_END_V_THRESHOLD);
-    bool linkReady = (taskData->linkVoltage > (0.93f * taskData->packVoltage)) && (taskData->packVoltage > 20.0f);
+    bool linkReady = (taskData->linkVoltage > (0.905f * taskData->packVoltage)) && (taskData->packVoltage > 20.0f);
     bool sdcDelayComplete = ((now - taskData->sdcCloseTime) > PRECHARGE_WINDOW_MS) && (taskData->sdcCloseTime != 0);
 
     switch(taskData->positiveIRStatus)
