@@ -53,6 +53,12 @@
 
 #define PRECHARGE_WINDOW_MS     3000
 
+// DC Current Limit
+#define ABS_MAX_DC_CURRENT              130.0f
+#define MIN_THRESH_DISCHARGE_LIMIT      3.25f
+#define TARGET_MIN_VOLTAGE              3.02f
+#define Z_AT_LOW_SOC                    0.005f
+
 /* ==================================================================== */
 /* ========================= ENUMERATED TYPES========================== */
 /* ==================================================================== */
@@ -294,26 +300,27 @@ static void updateCurrentLimit(packMonitorTaskData_S* taskData)
     if(minCellV < filt_minCellV)
     {
         // follow drops quickly
-        alpha = 0.8;
+        alpha = 0.8f;
     } 
     else 
     {
         // recover slowly
-        alpha = 0.995;
+        alpha = 0.995f;
     }
 
     filt_minCellV = (alpha * filt_minCellV) + ((1 - alpha) * minCellV);
 
 
-    float rawCurrentLimit = 175.0f;
+    float rawCurrentLimit = ABS_MAX_DC_CURRENT;
 
-    if(filt_minCellV < 3.25f)
+    if(filt_minCellV < MIN_THRESH_DISCHARGE_LIMIT)
     {
         // Calculate feed forward term
-        rawCurrentLimit = -1 * taskData->packCurrent + (filt_minCellV - 3.02f) / 0.005;
+        // I_limit = (V_min - V_target) / R_effective
+        rawCurrentLimit = -1 * taskData->packCurrent + (filt_minCellV - TARGET_MIN_VOLTAGE) / Z_AT_LOW_SOC;
     }
 
-    taskData->dischargeCurrentLimit = clamp(rawCurrentLimit, 0.0f, 175.0f);
+    taskData->dischargeCurrentLimit = clamp(rawCurrentLimit, 0.0f, ABS_MAX_DC_CURRENT);
     taskData->filteredMinCellVoltage = filt_minCellV;
 
 }
