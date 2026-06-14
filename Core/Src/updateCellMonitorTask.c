@@ -248,6 +248,11 @@ void runUpdateCellMonitorTask()
                 float cellTemp = lookup(cellMonitorData[i].auxVoltage[j], &cellTempTable);
                 taskData.cellMonitor[i].cellTemp[(j * 2) + cellOffset] = cellTemp;
 
+                if(cellTemp > CELL_TEMP_OUT_OF_RANGE)
+                {
+                    taskData.cellMonitor[i].cellTempStatus[(j * 2) + cellOffset] = BAD;
+                }
+
                 // Add each temperature to array for filtering
                 if(tempArrayIndex < NUM_SERIES_CELLS)
                 {
