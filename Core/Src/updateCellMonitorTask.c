@@ -58,16 +58,18 @@ void runUpdateCellMonitorTask()
     // Ready the device
     activatePort(&chainInfo, TIME_READY_US);
 
+    printf("\e[1;1H\e[2J");
     printf("Starting comms . . .\n");
     TRANSACTION_STATUS_E status = readSerialId(&chainInfo, cellMonitor);
     printf("Serial ID status: %u\n", status);
     printf("Serial ID reading: %X\n", cellMonitor->serialId[0]);
 
-    status = startCellConversions(&chainInfo, NON_REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
+    status = startCellConversions(&chainInfo, REDUNDANT_MODE, CONTINUOUS_MODE, DISCHARGE_DISABLED, FILTER_DISABLED, CELL_OPEN_WIRE_DISABLED);
     readCellVoltages(&chainInfo, cellMonitor, RAW_CELL_VOLTAGE);
     for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
     {
         printf("Cell Voltage %u: %f\n", i, cellMonitor->cellVoltage[i]);
+        printf("Redundant Cell Voltage %u: %f\n", i, cellMonitor->redundantCellVoltage[i]);
     }
 
 
