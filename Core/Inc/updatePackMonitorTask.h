@@ -51,6 +51,9 @@ typedef struct
     // minCellVoltage from cell monitor task
     float minCellVoltage;
 
+    // chargerVoltage from charger task
+    float localChargerVoltage;
+
     // Calculated values
 
     int32_t shuntResistance_nOhms;

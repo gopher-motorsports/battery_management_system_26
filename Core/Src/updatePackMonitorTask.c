@@ -6,6 +6,8 @@
 #include "packMonitorTelemetry.h"
 #include "packData.h"
 #include "alerts.h"
+#include "chargerTask.h"
+#include "gopher_sense.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -195,7 +197,8 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
     taskData->sdcEndVoltage_V = localAdcValue * adcCountsToSdcVoltsGain;
 
     bool sdcClosed = (taskData->sdcEndVoltage_V > SDC_END_V_THRESHOLD);
-    bool linkReady = (taskData->linkVoltage > (0.905f * taskData->packVoltage)) && (taskData->packVoltage > 20.0f);
+    bool chargerLinkReady = (taskData->localChargerVoltage > (0.905f * taskData->packVoltage)) && (taskData->packVoltage > MIN_PACK_VOLTAGE);
+    bool inverterLinkReady = (inputInverterVoltage_RL_V.data > (0.905f * taskData->packVoltage)) && (taskData->packVoltage > MIN_PACK_VOLTAGE);
     bool sdcDelayComplete = ((now - taskData->sdcCloseTime) > PRECHARGE_WINDOW_MS) && (taskData->sdcCloseTime != 0);
 
     switch(taskData->positiveIRStatus)
@@ -218,7 +221,7 @@ static void updatePrechargeLogic(packMonitorTaskData_S* taskData)
                 taskData->positiveIRStatus = IR_STATE_SDC_OPEN;
                 break;
             }
-            else if(linkReady && sdcDelayComplete)
+            else if((chargerLinkReady || inverterLinkReady) && sdcDelayComplete)
             {
                 controlPositiveIR(CLOSE_IR);
                 taskData->positiveIRStatus = IR_STATE_CLOSED;
@@ -305,6 +308,7 @@ void runUpdatePackMonitorTask()
     // Get minCellVoltage value from cell monitor task
     vTaskSuspendAll();
     taskData.minCellVoltage = publicCellMonitorTaskData.minCellVoltage;
+    taskData.localChargerVoltage = publicChargerTaskData.chargerVoltage;
     xTaskResumeAll();
 
     TRANSACTION_STATUS_E telemetryStatus = updatePackTelemetry(&packMonInfo, &packMonitorData);
