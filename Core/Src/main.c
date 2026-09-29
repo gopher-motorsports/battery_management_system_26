@@ -857,12 +857,12 @@ void startPrintTask(void const * argument)
 
   initPrintTask();
   TickType_t lastPrintTaskTick = xTaskGetTickCount();
-  const TickType_t printTaskPeriod = pdMS_TO_TICKS(2000);
+  const TickType_t printTaskPeriod = pdMS_TO_TICKS(1000);
 
   /* Infinite loop */
   for(;;)
   {
-    // runPrintTask();
+    runPrintTask();
     vTaskDelayUntil(&lastPrintTaskTick, printTaskPeriod);
   }
   /* USER CODE END 5 */
@@ -932,15 +932,15 @@ void startUpdatePackMon(void const * argument)
   /* USER CODE BEGIN startUpdatePackMon */
   (void)argument;
 
-  initUpdatePackMonitorTask();
-  TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
-  const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(24);
+//   initUpdatePackMonitorTask();
+//   TickType_t lastUpdatePackMonitorTaskTick = xTaskGetTickCount();
+//   const TickType_t updatePackMonitorTaskPeriod = pdMS_TO_TICKS(24);
 
   /* Infinite loop */
   for(;;)
   {
-    runUpdatePackMonitorTask();
-    vTaskDelayUntil(&lastUpdatePackMonitorTaskTick, updatePackMonitorTaskPeriod);
+    // runUpdatePackMonitorTask();
+    // vTaskDelayUntil(&lastUpdatePackMonitorTaskTick, updatePackMonitorTaskPeriod);
   }
   /* USER CODE END startUpdatePackMon */
 }

@@ -18,6 +18,8 @@ cellMonitorTaskData_S cellTaskPrintData;
 
 packMonitorTaskData_S packTaskPrintData;
 
+uint32_t printCounter;
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
@@ -176,7 +178,7 @@ static bool printActiveAlerts(Alert_S** alerts, uint16_t num_alerts)
 
 void initPrintTask()
 {
-
+    printCounter = 0;
 }
 
 void runPrintTask()
@@ -187,9 +189,25 @@ void runPrintTask()
     packTaskPrintData = publicPackMonitorTaskData;
     xTaskResumeAll();
 
-    printf("\e[1;1H\e[2J");
-    printCellVoltages(&cellTaskPrintData);
-    printCellTemps(&cellTaskPrintData);
+    printf("%lu, ", printCounter);
+    for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    {
+        if(i != (NUM_CELLS_PER_CELL_MONITOR - 1))
+        {
+            printf("%f, ", cellTaskPrintData.cellMonitor->cellVoltage[i]);
+        }
+        else
+        {
+            printf("%f\n", cellTaskPrintData.cellMonitor->cellVoltage[i]);
+        }
+        
+    }
+
+    printCounter++;
+
+    // printf("\e[1;1H\e[2J");
+    // printCellVoltages(&cellTaskPrintData);
+    // printCellTemps(&cellTaskPrintData);
 
     // printf("Max Cell Voltage: %f\n", cellTaskPrintData.maxCellVoltage);
     // printf("Min Cell Voltage: %f\n", cellTaskPrintData.minCellVoltage);
@@ -200,14 +218,14 @@ void runPrintTask()
     // printPackMonData(&packTaskPrintData);
     // printForPrechargeTest(&packTaskPrintData);
 
-    printf("\n");
+    // printf("\n");
 
-    bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
-    bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
+    // bool cellAlerts = printActiveAlerts(cellMonitorAlerts, NUM_CELL_MONITOR_ALERTS);
+    // bool packAlerts = printActiveAlerts(packMonitorAlerts, NUM_PACK_MONITOR_ALERTS);
 
-    if(!cellAlerts && !packAlerts)
-    {
-        printf("NO ALERTS ACTIVE\n");
-    }
+    // if(!cellAlerts && !packAlerts)
+    // {
+    //     printf("NO ALERTS ACTIVE\n");
+    // }
 
 }
