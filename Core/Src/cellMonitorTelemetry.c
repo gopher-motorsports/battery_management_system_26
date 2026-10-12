@@ -109,6 +109,13 @@ static TRANSACTION_STATUS_E initCellMonitor(CHAIN_INFO_S* chainInfoData, ADBMS_C
         return status;
     }
 
+    // // Need to add read command in between writes to config A and B or we get command counter error
+    status = readCellMonitorSerialId(chainInfoData, cellMonitorData);
+    if((status != TRANSACTION_SUCCESS) && (status != TRANSACTION_CHAIN_BREAK_ERROR))
+    {
+        return status;
+    }
+
     // Set configuration for Group A
 
     for(uint32_t i = 0; i < NUM_CELL_MON; i++)

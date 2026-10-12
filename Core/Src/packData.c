@@ -20,7 +20,7 @@
 #define DIE_TEMP_SCALE      5.0f
 #define DIE_TEMP_OFFSET     90.0f
 
-#define CELL_MON_TEMP_LUT_LENGTH        60
+#define CELL_MON_TEMP_LUT_LENGTH        58
 #define PACK_MON_TEMP_LUT_LENGTH        24
 #define VOLT_LUT_LENGTH                 14
 #define SOC_LUT_LENGTH                  255

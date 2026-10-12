@@ -51,7 +51,7 @@ float lookup(float x, const LookupTable_S* table)
     }
     else if(index > (table->size - 2))
     {
-        return table->y[table->size];
+        return table->y[table->size - 1];
     }
 
     //Interpolate temperature from lookup table

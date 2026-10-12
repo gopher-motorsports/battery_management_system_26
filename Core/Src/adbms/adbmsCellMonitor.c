@@ -5,6 +5,7 @@
 #include "adbms/adbmsCellMonitor.h"
 #include <string.h>
 #include <math.h>
+#include "debug.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */

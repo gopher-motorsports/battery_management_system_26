@@ -5,6 +5,7 @@
 #include "adbms/adbmsSpi.h"
 #include "utils.h"
 #include <string.h>
+#include "debug.h"
 
 /* ==================================================================== */
 /* ============================= DEFINES ============================== */
@@ -286,6 +287,8 @@ static TRANSACTION_STATUS_E processReadRegisterCRCs(uint8_t registerSize, uint32
                 // A single Power on reset error will take priority over an already present command counter error
                 if((deviceCommandCounter != 0) && (returnStatus != TRANSACTION_POR_ERROR))
                 {
+                    Debug("deviceCommandCounter: %u\n", deviceCommandCounter);
+                    Debug("localCommandCounter: %u\n", localCommandCounter);
                     returnStatus = TRANSACTION_COMMAND_COUNTER_ERROR;
                 }
                 else
@@ -399,7 +402,6 @@ TRANSACTION_STATUS_E updateChainStatus(CHAIN_INFO_S *chainInfo)
         for(uint32_t devices = 1; devices <= chainInfo->numDevs; devices++)
         {
             TRANSACTION_STATUS_E readStatus = readRegister(RDSID, REGISTER_SIZE_BYTES, devices, rxBuff, &chainInfo->commPorts[port], chainInfo->localCommandCounter, port);
-
             // Handle read error
             if(readStatus == TRANSACTION_CHAIN_BREAK_ERROR)
             {

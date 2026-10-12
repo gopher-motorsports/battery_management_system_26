@@ -21,6 +21,8 @@ cellMonitorTaskData_S cellTaskPrintData;
 
 static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData);
 
+static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData);
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DEFINITIONS ===================== */
 /* ==================================================================== */
@@ -59,6 +61,46 @@ static void printCellVoltages(cellMonitorTaskData_S* cellTaskPrintData)
 	printf("\n");
 }
 
+static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
+{
+    printf("Cell Temp:\n");
+    printf("|   BMB    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        printf("     %02ld   |", i+1);
+    }
+    printf("\n");
+    for(int32_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    {
+        printf("|    %02ld    |", i+1);
+        for(int32_t j = 0; j < NUM_CELL_MON; j++)
+        {
+            if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == GOOD)
+            {
+                printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            else if(cellTaskPrintData->cellMonitor[j].cellTempStatus[i] == BAD)
+            {
+                printf("  %3.1f ! |", (double)cellTaskPrintData->cellMonitor[j].cellTemp[i]);
+            }
+            
+        }
+        printf("\n");
+    }
+    printf("|  Board   |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        printf("   %3.1f   |", (double)cellTaskPrintData->cellMonitor[i].boardTemp1);
+    }
+	printf("\n");
+    printf("|   Die    |");
+    for(int32_t i = 0; i < NUM_CELL_MON; i++)
+    {
+        printf("   %3.1f   |", cellTaskPrintData->cellMonitor[i].dieTemp);
+    }
+	printf("\n\n");
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -77,4 +119,5 @@ void runPrintTask()
 
     printf("\e[1;1H\e[2J");
     printCellVoltages(&cellTaskPrintData);
+    printCellTemps(&cellTaskPrintData);
 }

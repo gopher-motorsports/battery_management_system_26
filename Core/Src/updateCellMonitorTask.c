@@ -244,7 +244,7 @@ void runUpdateCellMonitorTask()
         for(uint32_t i = 0; i < NUM_CELL_MON; i++)
         {
             // Cell indexes are offset depending on the mux state, which is set by gpio10
-            uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+            uint32_t cellOffset = !(cellMonitorData[i].configGroupA.gpo10State);
 
             // Cell temps
             for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
@@ -295,7 +295,7 @@ void runUpdateCellMonitorTask()
             for(uint32_t i = 0; i < NUM_CELL_MON; i++)
             {
                 // Cell indexes are offset depending on the mux state, which is set by gpio10
-                uint32_t cellOffset = cellMonitorData[i].configGroupA.gpo10State;
+                uint32_t cellOffset = !(cellMonitorData[i].configGroupA.gpo10State);
 
                 for(uint32_t j = 0; j < NUM_CELL_TEMP_ADCS; j++)
                 {
