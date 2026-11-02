@@ -1561,3 +1561,79 @@ buckets:
                 ADC: NON_ADC
                 sensor: NON_ADC
                 samples_buffered: 1
+    
+        imd_bms:
+        frequency_hz: 2
+        parameters:
+            isoCorrected:     
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoStatus:        
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoCounter:       
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            statusWarning:    
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            deviceActivity:   
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoNeg:           
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoPos:           
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoOriginal:      
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoDetailCounter: 
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            isoQuality:       
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            HVSystem:         
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            HVNeg:            
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            HVPos:            
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            voltCounter:      
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            capacityVal:      
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            capacityCounter:  
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            unbalanceVal:     
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
+            unbalanceCounter: 
+                ADC: NON_ADC
+                sensor: NON_ADC
+                samples_buffered: 1
