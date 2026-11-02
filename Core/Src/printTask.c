@@ -15,6 +15,8 @@
 
 cellMonitorTaskData_S cellTaskPrintData;
 
+uint32_t printCounter;
+
 /* ==================================================================== */
 /* =================== LOCAL FUNCTION DECLARATIONS ==================== */
 /* ==================================================================== */
@@ -101,6 +103,25 @@ static void printCellTemps(cellMonitorTaskData_S* cellTaskPrintData)
 	printf("\n\n");
 }
 
+void printToCsv()
+{
+    printf("%u, ", printCounter);
+
+    for(uint8_t i = 0; i < NUM_CELLS_PER_CELL_MONITOR; i++)
+    {
+        if(i != (NUM_CELLS_PER_CELL_MONITOR - 1))
+        {
+            printf("%f, ", cellTaskPrintData.cellMonitor->cellVoltage[i]);
+        }
+        else
+        {
+            printf("%f\n", cellTaskPrintData.cellMonitor->cellVoltage[i]);
+        }
+    }
+
+    printCounter++;
+}
+
 /* ==================================================================== */
 /* =================== GLOBAL FUNCTION DEFINITIONS ==================== */
 /* ==================================================================== */
@@ -117,7 +138,8 @@ void runPrintTask()
     cellTaskPrintData = publicCellMonitorTaskData;
     xTaskResumeAll();
 
-    printf("\e[1;1H\e[2J");
-    printCellVoltages(&cellTaskPrintData);
-    printCellTemps(&cellTaskPrintData);
+    // printf("\e[1;1H\e[2J");
+    // printCellVoltages(&cellTaskPrintData);
+    // printCellTemps(&cellTaskPrintData);
+    printToCsv();
 }
