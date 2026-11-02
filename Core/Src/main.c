@@ -28,6 +28,7 @@
 #include "statusUpdateTask.h"
 #include "updateCellMonitorTask.h"
 #include "updatePackMonitorTask.h"
+#include "imd.h"
 #include "utils.h"
 #include "GopherCAN.h"
 #include "gopher_sense.h"
@@ -88,6 +89,9 @@ osStaticThreadDef_t serviceGcanControlBlock;
 osThreadId chargerTaskHandle;
 uint32_t chargerTaskBuffer[ 1024 ];
 osStaticThreadDef_t chargerTaskControlBlock;
+osThreadId imdTaskHandle;
+uint32_t imdTaskBuffer[ 1024 ];
+osStaticThreadDef_t imdTaskControlBlock;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -112,6 +116,7 @@ void startUpdateCellMon(void const * argument);
 void startUpdatePackMon(void const * argument);
 void startServiceGcanTask(void const * argument);
 void startChargerTask(void const * argument);
+void StartImdTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 #ifdef __GNUC__
@@ -281,6 +286,10 @@ int main(void)
   /* definition and creation of chargerTask */
   osThreadStaticDef(chargerTask, startChargerTask, osPriorityAboveNormal, 0, 1024, chargerTaskBuffer, &chargerTaskControlBlock);
   chargerTaskHandle = osThreadCreate(osThread(chargerTask), NULL);
+
+  /* definition and creation of imdTask */
+  osThreadStaticDef(imdTask, StartImdTask, osPriorityIdle, 0, 1024, imdTaskBuffer, &imdTaskControlBlock);
+  imdTaskHandle = osThreadCreate(osThread(imdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -993,6 +1002,31 @@ void startChargerTask(void const * argument)
     vTaskDelayUntil(&lastChargerTaskTick, chargerTaskPeriod);
   }
   /* USER CODE END startChargerTask */
+}
+
+/* USER CODE BEGIN Header_StartImdTask */
+/**
+* @brief Function implementing the imdTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartImdTask */
+void StartImdTask(void const * argument)
+{
+  /* USER CODE BEGIN StartImdTask */
+  (void)argument;
+
+  initImdTask();
+  TickType_t lastImdTaskTick = xTaskGetTickCount();
+  const TickType_t imdTaskPeriod = pdMS_TO_TICKS(150);
+
+  /* Infinite loop */
+  for(;;)
+  {
+    runImdTask();
+    vTaskDelayUntil(&lastImdTaskTick, imdTaskPeriod);
+  }
+  /* USER CODE END StartImdTask */
 }
 
 /**

@@ -7,7 +7,6 @@ cmake_minimum_required(VERSION 3.22)
 set(CMAKE_PROJECT_NAME battery_management_system_26)
 
 # Toolchain must be included before project()
-include("cmake/gcc-arm-none-eabi.cmake")
 
 project(${CMAKE_PROJECT_NAME} C ASM)
 
@@ -27,7 +26,9 @@ message("Build type: ${CMAKE_BUILD_TYPE}")
 # Target
 # ------------------------------------------------------------
 
-add_executable(${CMAKE_PROJECT_NAME})
+add_executable(${CMAKE_PROJECT_NAME}
+    Core/Inc/imd.h
+    Core/Src/imd.c)
 
 # ------------------------------------------------------------
 # Linker script and startup file
