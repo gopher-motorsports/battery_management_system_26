@@ -12,6 +12,7 @@
 #define FILTER_ACCEPT_STD // accept 11-bit IDs
 #define FILTER_ACCEPT_EXT_THIS_ID // accept 29-bit IDs with destination = THIS_MODULE_ID
 #define FILTER_ACCEPT_EXT_ALL_ID // accept 29-bit IDs with destination = ALL_MODULES_ID
+#define FILTER_ACCEPT_IMD_J1939   // 29 extended bit IMD ID
 
 // if defined, messages received with a different destination module (29-bit ID) will be retransmitted
 // this can be used to pass messages between unconnected modules
